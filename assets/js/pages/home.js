@@ -42,7 +42,7 @@
     if (text && allDistricts.indexOf(text) !== -1) q.district = text; else if (text) q.q = text;
     if (q.district && !q.city) S.cities.forEach(function (c) { if (c.districts.indexOf(q.district) !== -1) q.city = c.id; });
     ui.handoff(q);
-    location.href = 'properties.html#' + offer;
+    location.href = '/properties#' + offer;
   });
 
   /* ---------- Data-driven sections ---------- */
@@ -54,12 +54,12 @@
 
     document.querySelector('[data-types]').innerHTML = Object.keys(S.types).map(function (k) {
       var t = S.types[k], n = st.byType[k] || 0;
-      return '<a class="type-tile" href="properties.html" data-goto-type="' + k + '">' + ui.icon(t.icon) + '<div><b>' + t.plural + '</b><br><span>' + (n ? n + ' عقار متاح' : 'قريباً') + '</span></div></a>';
+      return '<a class="type-tile" href="/properties" data-goto-type="' + k + '">' + ui.icon(t.icon) + '<div><b>' + t.plural + '</b><br><span>' + (n ? n + ' عقار متاح' : 'قريباً') + '</span></div></a>';
     }).join('');
 
     var grads = ['#176149,#0A2F25', '#7C5A2C,#3E2B12', '#1F4E6B,#0E2738', '#5C3B5E,#2C1A2D', '#2F5D50,#132B24', '#6B4A2A,#2E2012'];
     document.querySelector('[data-cities]').innerHTML = S.cities.map(function (c, i) {
-      return '<a class="city" style="--c-bg:linear-gradient(160deg,' + grads[i % grads.length] + ')" href="properties.html" data-goto-city="' + c.id + '"><b>' + c.label + '</b><span>' + (st.byCity[c.id] || 0) + ' عقار' + ui.icon('arrowL') + '</span></a>';
+      return '<a class="city" style="--c-bg:linear-gradient(160deg,' + grads[i % grads.length] + ')" href="/properties" data-goto-city="' + c.id + '"><b>' + c.label + '</b><span>' + (st.byCity[c.id] || 0) + ' عقار' + ui.icon('arrowL') + '</span></a>';
     }).join('');
   });
 
@@ -93,7 +93,7 @@
         '<div class="icard__media"><img src="' + ui.img(p.images[0]) + '" alt="" loading="lazy">' +
           '<div class="card__top">' + ui.statusBadge(p) + '</div></div>' +
         '<div class="icard__body">' +
-          '<h3><a href="property.html#p-' + p.id + '">' + ui.esc(p.title) + '</a></h3>' +
+          '<h3><a href="/property#p-' + p.id + '">' + ui.esc(p.title) + '</a></h3>' +
           '<p class="icard__loc">' + ui.icon('pin') + p.district + '، ' + p.cityLabel + '</p>' +
           '<div class="kpis">' +
             '<div><span>قيمة الاستثمار</span><b>' + ui.moneyShort(p.price) + '</b></div>' +
@@ -122,7 +122,7 @@
       if (!m) return;
       var riyadh = r.items.filter(function (p) { return p.city === 'riyadh'; });
       riyadh.forEach(function (p) {
-        m.marker(p.lat, p.lng, MZ.map.pricePin(p), { onClick: function () { location.href = 'property.html#p-' + p.id; }, title: p.title });
+        m.marker(p.lat, p.lng, MZ.map.pricePin(p), { onClick: function () { location.href = '/property#p-' + p.id; }, title: p.title });
       });
       m.fit(riyadh.map(function (p) { return [p.lat, p.lng]; }), 50);
     });

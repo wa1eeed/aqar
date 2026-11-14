@@ -18,7 +18,7 @@
   load();
 
   function notFound() {
-    root.innerHTML = '<div class="page-head"></div><div class="empty">' + I('search') + '<h3>لم نعثر على هذا العقار</h3><p>ربما تم حذف الإعلان أو انتهى ترخيصه. تصفّح العقارات المتاحة.</p><a class="btn btn--primary" href="properties.html">كل العقارات</a></div>';
+    root.innerHTML = '<div class="page-head"></div><div class="empty">' + I('search') + '<h3>لم نعثر على هذا العقار</h3><p>ربما تم حذف الإعلان أو انتهى ترخيصه. تصفّح العقارات المتاحة.</p><a class="btn btn--primary" href="/properties">كل العقارات</a></div>';
   }
 
   /* ---------------------------------------------------------------- */
@@ -141,8 +141,8 @@
 
     root.innerHTML =
       '<header class="page-head" style="padding-bottom:20px"><nav class="crumbs" aria-label="مسار التنقل">' +
-        '<a href="index.html">الرئيسية</a><span aria-hidden="true">/</span><a href="properties.html#' + p.offer + '">' + S.offers[p.offer].label + '</a><span aria-hidden="true">/</span>' +
-        '<a href="properties.html" data-goto-type="' + p.type + '">' + t.plural + '</a><span aria-hidden="true">/</span><span>' + p.code + '</span></nav></header>' +
+        '<a href="/">الرئيسية</a><span aria-hidden="true">/</span><a href="/properties#' + p.offer + '">' + S.offers[p.offer].label + '</a><span aria-hidden="true">/</span>' +
+        '<a href="/properties" data-goto-type="' + p.type + '">' + t.plural + '</a><span aria-hidden="true">/</span><span>' + p.code + '</span></nav></header>' +
       gal +
       '<div class="prop-head"><div>' +
         '<div class="prop-head__badges">' + ui.offerBadge(p) + ui.statusBadge(p, true) + '<span class="status" style="color:var(--gold-ink)">' + I(t.icon) + t.label + '</span></div>' +
@@ -175,7 +175,7 @@
         calc +
       '</aside></div>' +
 
-      '<section class="section" id="similar" style="padding-bottom:0"><div class="section-head"><div><span class="eyebrow">قد يعجبك أيضاً</span><h2 class="h2">عقارات مشابهة</h2></div><a class="link" href="properties.html#' + p.offer + '">المزيد ' + I('arrowL') + '</a></div><div class="grid-cards grid-cards--4" data-similar></div></section>' +
+      '<section class="section" id="similar" style="padding-bottom:0"><div class="section-head"><div><span class="eyebrow">قد يعجبك أيضاً</span><h2 class="h2">عقارات مشابهة</h2></div><a class="link" href="/properties#' + p.offer + '">المزيد ' + I('arrowL') + '</a></div><div class="grid-cards grid-cards--4" data-similar></div></section>' +
 
       '<div class="mobile-bar"><div class="price">' + ui.money(p.price) + '<small>' + ui.priceSuffix(p) + '</small></div>' +
         (closed ? '<a class="btn btn--primary" href="#similar">عقارات مشابهة</a>' :

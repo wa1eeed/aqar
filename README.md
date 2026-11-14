@@ -4,8 +4,11 @@
 
 ## التشغيل
 
-- **على السيرفر:** ارفع محتويات المجلد كما هو إلى جذر الموقع (`public_html` أو ما يعادله). لا يحتاج أي إعداد.
-- **محلياً:** افتح المجلد بأي سيرفر بسيط، مثلاً: `npx serve .` أو `python3 -m http.server`، ثم افتح `http://localhost:8000`.
+- **على السيرفر (Coolify):** المستودع فيه `Dockerfile` يشغّل الموقع على Nginx (المنفذ 80) بإعدادات `deploy/nginx.conf`. في Coolify اختر Build Pack: Dockerfile.
+- **محلياً:** `npx serve .` ثم افتح `http://localhost:3000` (يدعم الروابط بدون `.html`).
+
+الروابط نظيفة بدون `.html`: `/about`، `/properties`، `/property#p-1001`. الروابط القديمة المنتهية بـ `.html` تُحوَّل تلقائياً للشكل الجديد.
+عند الرفع على استضافة أخرى غير Nginx المرفق يجب إعداد الروابط النظيفة فيها (مثلاً `.htaccess` على Apache).
 
 ## الصفحات
 
@@ -19,8 +22,8 @@
 | `favorites.html` | المفضلة (محفوظة في المتصفح) |
 | `404.html` | صفحة الخطأ |
 
-روابط العقار تقبل الشكلين: `property.html#p-1001` و `property.html?id=1001`.
-صفحة العقارات تقبل الفلاتر في الرابط أيضاً، مثل: `properties.html?offer=rent&city=riyadh&types=apartment,villa`.
+روابط العقار تقبل الشكلين: `/property#p-1001` و `/property?id=1001`.
+صفحة العقارات تقبل الفلاتر في الرابط أيضاً، مثل: `/properties?offer=rent&city=riyadh&types=apartment,villa`.
 
 ## البنية
 

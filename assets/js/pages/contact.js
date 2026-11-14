@@ -42,7 +42,7 @@
         document.querySelector('[data-form-panel]').innerHTML = '<div class="success"><div class="ic-wrap">' + I('check') + '</div><h2 style="font-size:24px">استلمنا طلبك</h2>' +
           '<p class="muted">سيتواصل معك أحد مستشارينا خلال يوم عمل. رقم الطلب: <bdi>' + r.id + '</bdi></p>' +
           (r.demo ? '<p class="demo-note">وضع تجريبي: لم يُرسل الطلب لأي جهة. سيعمل الإرسال بعد ربط الباك إند.</p>' : '') +
-          '<a class="btn btn--primary" href="properties.html">تصفّح العقارات</a></div>';
+          '<a class="btn btn--primary" href="/properties">تصفّح العقارات</a></div>';
       })
       .catch(function () { btn.disabled = false; btn.textContent = 'إعادة المحاولة'; ui.toast('تعذّر الإرسال، حاول مرة أخرى'); });
   });

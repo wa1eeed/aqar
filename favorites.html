@@ -18,7 +18,7 @@
 <main id="main">
   <div class="container">
     <header class="page-head">
-      <nav class="crumbs" aria-label="مسار التنقل"><a href="index.html">الرئيسية</a><span aria-hidden="true">/</span><span>المفضلة</span></nav>
+      <nav class="crumbs" aria-label="مسار التنقل"><a href="/">الرئيسية</a><span aria-hidden="true">/</span><span>المفضلة</span></nav>
       <h1 class="page-title">العقارات المحفوظة</h1>
       <p class="lead">العقارات التي حفظتها على هذا الجهاز. ستُحفظ في حسابك بعد إضافة تسجيل الدخول.</p>
     </header>
@@ -40,7 +40,7 @@
   function draw() {
     MZ.api.getMany(ui.fav.list()).then(function (items) {
       el.innerHTML = items.length ? items.map(function (p) { return ui.card(p); }).join('') :
-        '<div class="empty" style="grid-column:1/-1">' + ui.icon('heart') + '<h3>لا توجد عقارات محفوظة بعد</h3><p>اضغط على أيقونة القلب في أي عقار لحفظه هنا والرجوع إليه لاحقاً.</p><a class="btn btn--primary" href="properties.html">تصفّح العقارات</a></div>';
+        '<div class="empty" style="grid-column:1/-1">' + ui.icon('heart') + '<h3>لا توجد عقارات محفوظة بعد</h3><p>اضغط على أيقونة القلب في أي عقار لحفظه هنا والرجوع إليه لاحقاً.</p><a class="btn btn--primary" href="/properties">تصفّح العقارات</a></div>';
     });
   }
   document.addEventListener('mz:fav', draw);

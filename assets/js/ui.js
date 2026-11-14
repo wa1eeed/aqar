@@ -181,7 +181,7 @@ window.MZ = window.MZ || {};
   function card(p, opts) {
     opts = opts || {};
     var t = S.types[p.type], closed = S.isClosed(p.status), isFav = fav.has(p.id);
-    var href = 'property.html#p-' + p.id;
+    var href = '/property#p-' + p.id;
     return '' +
       '<article class="card' + (closed ? ' card--closed' : '') + (opts.row ? ' card--row' : '') + '" data-id="' + p.id + '">' +
         '<a class="card__media" href="' + href + '" tabindex="-1" aria-hidden="true">' +
@@ -205,17 +205,17 @@ window.MZ = window.MZ || {};
 
   /* ---------- Header / Footer ---------- */
   var NAV = [
-    { href: 'index.html', label: 'الرئيسية', id: 'home' },
-    { href: 'properties.html', label: 'العقارات', id: 'properties' },
-    { href: 'properties.html#sale', label: 'للبيع', id: 'sale' },
-    { href: 'properties.html#rent', label: 'للإيجار', id: 'rent' },
-    { href: 'properties.html#investment', label: 'للاستثمار', id: 'investment' },
-    { href: 'about.html', label: 'من نحن', id: 'about' },
-    { href: 'contact.html', label: 'تواصل معنا', id: 'contact' }
+    { href: '/', label: 'الرئيسية', id: 'home' },
+    { href: '/properties', label: 'العقارات', id: 'properties' },
+    { href: '/properties#sale', label: 'للبيع', id: 'sale' },
+    { href: '/properties#rent', label: 'للإيجار', id: 'rent' },
+    { href: '/properties#investment', label: 'للاستثمار', id: 'investment' },
+    { href: '/about', label: 'من نحن', id: 'about' },
+    { href: '/contact', label: 'تواصل معنا', id: 'contact' }
   ];
 
   function logo(light) {
-    return '<a class="logo' + (light ? ' logo--light' : '') + '" href="index.html" aria-label="' + cfg.brand.fullName + ' — الرئيسية">' +
+    return '<a class="logo' + (light ? ' logo--light' : '') + '" href="/" aria-label="' + cfg.brand.fullName + ' — الرئيسية">' +
       '<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="currentColor"/><path d="M10 29V18l10-7 10 7v11" fill="none" stroke="#C9A86C" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 29v-6h8v6" fill="none" stroke="#FAF7F2" stroke-width="2.4" stroke-linejoin="round"/></svg>' +
       '<span><b>' + cfg.brand.name + '</b><small>للعقارات</small></span></a>';
   }
@@ -230,21 +230,21 @@ window.MZ = window.MZ || {};
         logo() +
         '<nav class="nav" aria-label="القائمة الرئيسية">' + links + '</nav>' +
         '<div class="header-actions">' +
-          '<a class="icon-btn" href="favorites.html" aria-label="المفضلة">' + icon('heart') + '<span class="dot-count" data-fav-count hidden></span></a>' +
-          '<a class="btn btn--primary btn--sm hide-sm" href="contact.html#list">' + icon('plus') + 'اعرض عقارك</a>' +
+          '<a class="icon-btn" href="/favorites" aria-label="المفضلة">' + icon('heart') + '<span class="dot-count" data-fav-count hidden></span></a>' +
+          '<a class="btn btn--primary btn--sm hide-sm" href="/contact#list">' + icon('plus') + 'اعرض عقارك</a>' +
           '<button class="icon-btn show-sm" type="button" data-menu-open aria-label="فتح القائمة" aria-expanded="false">' + icon('menu') + '</button>' +
         '</div>' +
       '</div></header>' +
       '<div class="drawer" data-menu hidden><div class="drawer__panel" role="dialog" aria-modal="true" aria-label="القائمة">' +
         '<div class="drawer__head">' + logo() + '<button class="icon-btn" type="button" data-menu-close aria-label="إغلاق القائمة">' + icon('close') + '</button></div>' +
-        '<nav class="drawer__nav">' + links + '<a href="favorites.html" class="nav__link">المفضلة</a></nav>' +
-        '<a class="btn btn--primary btn--block" href="contact.html#list">' + icon('plus') + 'اعرض عقارك</a>' +
+        '<nav class="drawer__nav">' + links + '<a href="/favorites" class="nav__link">المفضلة</a></nav>' +
+        '<a class="btn btn--primary btn--block" href="/contact#list">' + icon('plus') + 'اعرض عقارك</a>' +
       '</div></div>';
   }
 
   function footer() {
-    var types = Object.keys(S.types).slice(0, 8).map(function (k) { return '<li><a href="properties.html" data-goto-type="' + k + '">' + S.types[k].plural + '</a></li>'; }).join('');
-    var cities = S.cities.map(function (c) { return '<li><a href="properties.html" data-goto-city="' + c.id + '">عقارات ' + c.label + '</a></li>'; }).join('');
+    var types = Object.keys(S.types).slice(0, 8).map(function (k) { return '<li><a href="/properties" data-goto-type="' + k + '">' + S.types[k].plural + '</a></li>'; }).join('');
+    var cities = S.cities.map(function (c) { return '<li><a href="/properties" data-goto-city="' + c.id + '">عقارات ' + c.label + '</a></li>'; }).join('');
     return '' +
       '<footer class="site-footer"><div class="container">' +
         '<div class="footer-grid">' +

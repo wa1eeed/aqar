@@ -185,8 +185,8 @@
     els.title.textContent = t; els.crumb.textContent = t;
     document.title = t + ' — منزلة العقارية';
     document.querySelectorAll('.nav__link').forEach(function (a) {
-      var id = a.getAttribute('href').split('#')[1] || (a.getAttribute('href') === 'properties.html' ? '' : null);
-      var on = id !== null && id === state.offer && a.getAttribute('href').indexOf('properties.html') === 0;
+      var id = a.getAttribute('href').split('#')[1] || (a.getAttribute('href') === '/properties' ? '' : null);
+      var on = id !== null && id === state.offer && a.getAttribute('href').indexOf('/properties') === 0;
       a.classList.toggle('is-active', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
   }
@@ -319,7 +319,7 @@
   }
   function render(items) {
     if (!items.length) {
-      els.results.innerHTML = '<div class="empty" style="grid-column:1/-1">' + ui.icon('search') + '<h3>لا توجد عقارات مطابقة</h3><p>جرّب توسيع نطاق السعر أو إزالة بعض الفلاتر، أو اطلب عقاراً بمواصفاتك وسنبحث لك عنه.</p><div class="cta__btns" style="margin-top:8px"><button class="btn btn--ghost" type="button" data-clear-all>مسح الفلاتر</button><a class="btn btn--primary" href="contact.html">اطلب عقاراً</a></div></div>';
+      els.results.innerHTML = '<div class="empty" style="grid-column:1/-1">' + ui.icon('search') + '<h3>لا توجد عقارات مطابقة</h3><p>جرّب توسيع نطاق السعر أو إزالة بعض الفلاتر، أو اطلب عقاراً بمواصفاتك وسنبحث لك عنه.</p><div class="cta__btns" style="margin-top:8px"><button class="btn btn--ghost" type="button" data-clear-all>مسح الفلاتر</button><a class="btn btn--primary" href="/contact">اطلب عقاراً</a></div></div>';
       var c = els.results.querySelector('[data-clear-all]');
       if (c) c.addEventListener('click', function () { document.querySelector('[data-reset]').click(); });
       return;
