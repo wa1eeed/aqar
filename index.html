@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>منزلة العقارية — عقارات للبيع والإيجار والاستثمار في السعودية</title>
+<meta name="description" content="فلل وشقق وأراضٍ وعمائر وأبراج للبيع والإيجار والاستثمار في الرياض وجدة والدمام والخبر ومكة والمدينة. إعلانات مرخّصة وخرائط بالخدمات القريبة.">
+<meta name="theme-color" content="#0F4C3A">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<div data-header></div>
+
+<main id="main">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero__box">
+        <div class="hero__sky" aria-hidden="true"><img src="assets/img/photos/riyadh-city.jpg" alt=""></div>
+        <div class="hero__content">
+          <span class="hero__tag"><b>مرخّص</b> كل إعلان يعرض رقم ترخيصه من الهيئة العامة للعقار</span>
+          <h1>عقارك القادم<br>بـ<em>منزلة</em> تليق بك</h1>
+          <p class="hero__lead">فلل وشقق وأراضٍ وعمائر وأبراج، للبيع والإيجار والاستثمار في أبرز مدن المملكة — مع خريطة لكل عقار والخدمات من حوله.</p>
+          <div class="hero__stats" data-hero-stats></div>
+        </div>
+      </div>
+
+      <form class="search" data-search role="search" aria-label="البحث عن عقار">
+        <div class="search__tabs" role="tablist" aria-label="نوع العرض">
+          <button type="button" role="tab" aria-selected="true" data-offer="sale">للبيع</button>
+          <button type="button" role="tab" aria-selected="false" data-offer="rent">للإيجار</button>
+          <button type="button" role="tab" aria-selected="false" data-offer="investment">للاستثمار</button>
+        </div>
+        <div class="search__row">
+          <div class="field">
+            <label for="s-city">المدينة</label>
+            <select id="s-city" class="select" name="city"><option value="">كل المدن</option></select>
+          </div>
+          <div class="field">
+            <label for="s-type">نوع العقار</label>
+            <select id="s-type" class="select" name="type"><option value="">كل الأنواع</option></select>
+          </div>
+          <div class="field field--q">
+            <label for="s-q">الحي أو كلمة البحث</label>
+            <input id="s-q" class="input" name="q" list="s-districts" placeholder="مثال: الملقا، فيلا بمسبح، MZ-1001" autocomplete="off">
+            <datalist id="s-districts"></datalist>
+          </div>
+          <div class="field">
+            <label for="s-price">السعر الأعلى</label>
+            <select id="s-price" class="select" name="priceMax"></select>
+          </div>
+          <button class="btn btn--primary" type="submit"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>ابحث</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Types -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">تصفّح حسب النوع</span><h2 class="h2">كل أنواع العقار في مكان واحد</h2></div>
+        <a class="link" href="properties.html">كل العقارات <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a>
+      </div>
+      <div class="types" data-types></div>
+    </div>
+  </section>
+
+  <!-- Featured -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">مختارات منزلة</span><h2 class="h2">عقارات مميّزة</h2><p class="lead">عقارات اخترناها لموقعها وجودة تنفيذها وقيمتها مقارنة بالسوق.</p></div>
+        <div class="seg" role="group" aria-label="تصفية العقارات المميزة" data-feat-tabs>
+          <button type="button" aria-pressed="true" data-v="">الكل</button>
+          <button type="button" aria-pressed="false" data-v="sale">للبيع</button>
+          <button type="button" aria-pressed="false" data-v="rent">للإيجار</button>
+        </div>
+      </div>
+      <div class="grid-cards grid-cards--4" data-featured></div>
+    </div>
+  </section>
+
+  <!-- Investment -->
+  <section class="section--tight">
+    <div class="container">
+      <div class="invest">
+        <div class="section-head" style="margin-bottom:0">
+          <div><span class="eyebrow">فرص استثمارية</span><h2 class="h2">استثمر في دخلٍ قائم</h2><p class="lead">عمائر وأبراج وأراضٍ تجارية بعوائد واضحة ونسب إشغال موثّقة، مع مستشار استثمار يرافقك حتى الإفراغ.</p></div>
+          <a class="btn btn--gold" href="properties.html#investment">كل الفرص الاستثمارية</a>
+        </div>
+        <div class="invest-grid" data-invest></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map teaser -->
+  <section class="section">
+    <div class="container split">
+      <div>
+        <span class="eyebrow">ابحث على الخريطة</span>
+        <h2 class="h2">اعرف الحي قبل أن تزوره</h2>
+        <p class="lead">كل عقار معروض على الخريطة بموقعه الدقيق، ومعه المساجد والمدارس والمستشفيات والمراكز التجارية من حوله ومسافة الوصول إليها.</p>
+        <ul class="ticks">
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>مسافات المشي والقيادة لأقرب الخدمات</li>
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>بحث بالحي والمدينة مع عرض النتائج على الخريطة</li>
+          <li><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>أسعار ظاهرة على كل علامة لمقارنة سريعة</li>
+        </ul>
+        <a class="btn btn--primary" href="properties.html#map">افتح الخريطة</a>
+      </div>
+      <div class="map-box" data-home-map></div>
+    </div>
+  </section>
+
+  <!-- Cities -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">المدن</span><h2 class="h2">عقارات في أبرز مدن المملكة</h2></div>
+      </div>
+      <div class="cities" data-cities></div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="section" style="padding-top:0">
+    <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">خدماتنا</span><h2 class="h2">أكثر من مجرد إعلان</h2><p class="lead">فريق مرخّص يرافقك من أول معاينة حتى توقيع العقد أو الإفراغ.</p></div>
+      </div>
+      <div class="services" data-services></div>
+    </div>
+  </section>
+
+  <!-- Trust -->
+  <section class="section--tight" style="padding-top:0">
+    <div class="container">
+      <div class="trust">
+        <div class="ic-wrap"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4.5 6v6c0 4.5 3.2 7.8 7.5 9 4.3-1.2 7.5-4.5 7.5-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <div><h3>إعلانات مرخّصة وبيانات واضحة</h3><p>نعرض في كل إعلان رقم ترخيص الإعلان ورقم رخصة فال للوسيط، وفق اشتراطات الهيئة العامة للعقار.</p></div>
+        <a class="btn btn--ghost" href="about.html">تعرّف علينا</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section">
+    <div class="container">
+      <div class="cta">
+        <div>
+          <span class="eyebrow">للملّاك</span>
+          <h2 class="h2">عندك عقار؟ نسوّقه لك باحتراف</h2>
+          <p class="lead">تصوير احترافي، تسعير مدروس، وإعلان مرخّص يصل للمشتري أو المستأجر المناسب. سجّل عقارك وسيتواصل معك مستشار خلال يوم عمل.</p>
+          <div class="cta__btns">
+            <a class="btn btn--primary" href="contact.html#list">اعرض عقارك الآن</a>
+            <a class="btn btn--ghost" href="contact.html">اطلب عقاراً بمواصفاتك</a>
+          </div>
+        </div>
+        <div class="cta__art"><img src="assets/img/photos/villa-modern.jpg" alt=""></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div data-footer></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/schema.js"></script>
+<script src="data/properties.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/map.js"></script>
+<script src="assets/js/pages/home.js"></script>
+</body>
+</html>
