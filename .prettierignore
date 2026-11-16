@@ -7,3 +7,4 @@ backend/prisma/migrations/
 **/dist/
 *.md
 packages/schema/src/data.ts
+packages/schema/test/fixtures/
