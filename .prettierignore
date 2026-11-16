@@ -1,0 +1,9 @@
+frontend/
+design/
+docs/
+spec-assets/
+pnpm-lock.yaml
+backend/prisma/migrations/
+**/dist/
+*.md
+packages/schema/src/data.ts
