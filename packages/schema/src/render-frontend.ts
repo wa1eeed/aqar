@@ -1,4 +1,15 @@
-import { categories, cities, closedStatuses, fieldGroups, fields, nearby, offers, rentPeriods, statuses, types } from './data';
+import {
+  categories,
+  cities,
+  closedStatuses,
+  fieldGroups,
+  fields,
+  nearby,
+  offers,
+  rentPeriods,
+  statuses,
+  types,
+} from './data';
 
 /**
  * Renders the browser IIFE that sets `window.MZ.schema` with the exact public surface of the

@@ -23,12 +23,20 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports', disallowTypeAnnotations: false }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { fixStyle: 'inline-type-imports', disallowTypeAnnotations: false },
+      ],
       eqeqeq: ['error', 'always'],
       'no-eval': 'error',
       'no-implied-eval': 'error',
       'no-new-func': 'error',
     },
+  },
+  {
+    // NestJS DI needs runtime imports of constructor parameter types.
+    files: ['backend/**/*.ts'],
+    languageOptions: { parserOptions: { emitDecoratorMetadata: true, experimentalDecorators: true } },
   },
   {
     files: ['admin/**/*.{ts,tsx}'],

@@ -46,8 +46,10 @@ describe('generated frontend schema.js', () => {
     }
     for (const o of probeOffers) expect(generated.statusesFor(o)).toEqual(original.statusesFor(o));
     for (const s of [...STATUS_KEYS, 'x']) expect(generated.isClosed(s)).toBe(original.isClosed(s));
-    for (const c of [...cities.map((x) => x.id), 'nowhere']) expect(plain(generated.city(c))).toEqual(plain(original.city(c)));
-    for (const f of [...fields.map((x) => x.key), 'nope']) expect(plain(generated.field(f))).toEqual(plain(original.field(f)));
+    for (const c of [...cities.map((x) => x.id), 'nowhere'])
+      expect(plain(generated.city(c))).toEqual(plain(original.city(c)));
+    for (const f of [...fields.map((x) => x.key), 'nope'])
+      expect(plain(generated.field(f))).toEqual(plain(original.field(f)));
   });
 
   it('is not stale (frontend/assets/js/schema.js equals the generator output)', () => {
