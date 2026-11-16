@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تواصل معنا — منزلة العقارية</title>
+<meta name="description" content="تواصل مع منزلة العقارية لطلب عقار أو عرض عقارك للبيع أو الإيجار أو للاستشارات الاستثمارية.">
+<meta name="theme-color" content="#0F4C3A">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<div data-header></div>
+
+<main id="main">
+  <div class="container">
+    <header class="page-head">
+      <nav class="crumbs" aria-label="مسار التنقل"><a href="index.html">الرئيسية</a><span aria-hidden="true">/</span><span>تواصل معنا</span></nav>
+      <h1 class="page-title">كيف نقدر نخدمك؟</h1>
+      <p class="lead">اختر نوع طلبك واترك بياناتك، وسيتواصل معك مستشار مرخّص خلال يوم عمل.</p>
+    </header>
+
+    <div class="contact-layout">
+      <div class="panel" data-form-panel>
+        <form novalidate data-contact>
+          <fieldset style="border:0;padding:0;margin:0 0 22px">
+            <legend class="label" style="margin-bottom:10px">نوع الطلب</legend>
+            <div class="req-tabs" data-req></div>
+          </fieldset>
+          <div class="form-grid">
+            <div class="field"><label for="c-name">الاسم الكامل</label><input id="c-name" class="input" name="name" required autocomplete="name"></div>
+            <div class="field"><label for="c-phone">رقم الجوال</label><input id="c-phone" class="input" name="phone" required inputmode="tel" dir="ltr" placeholder="05XXXXXXXX" autocomplete="tel"><span class="err" data-err="phone" hidden>أدخل رقم جوال سعودي صحيح يبدأ بـ 05</span></div>
+            <div class="field"><label for="c-email">البريد الإلكتروني (اختياري)</label><input id="c-email" class="input" name="email" type="email" dir="ltr" autocomplete="email"></div>
+            <div class="field"><label for="c-city">المدينة</label><select id="c-city" class="select" name="city"></select></div>
+            <div class="field"><label for="c-type">نوع العقار</label><select id="c-type" class="select" name="type"></select></div>
+            <div class="field" data-budget-wrap><label for="c-budget" data-budget-label>الميزانية التقريبية (ر.س)</label><input id="c-budget" class="input" name="budget" inputmode="numeric" placeholder="مثال: 2,000,000"></div>
+            <div class="field full"><label for="c-msg">تفاصيل الطلب</label><textarea id="c-msg" class="textarea" name="message" placeholder="الحي المفضل، المساحة، عدد الغرف، أو أي تفاصيل تساعدنا"></textarea></div>
+            <label class="check full"><input type="checkbox" name="consent" required>أوافق على تواصل منزلة العقارية معي بخصوص هذا الطلب</label>
+            <span class="err full" data-err="consent" hidden>يلزم الموافقة على التواصل لإرسال الطلب</span>
+            <div class="full"><button class="btn btn--primary" type="submit">إرسال الطلب</button></div>
+          </div>
+        </form>
+      </div>
+
+      <aside class="panel">
+        <h2 style="font-size:20px;margin-bottom:18px">بيانات التواصل</h2>
+        <div class="info-list" data-info></div>
+        <div class="map-box" style="height:240px;margin-top:22px;box-shadow:none" data-office-map></div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div data-footer></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/schema.js"></script>
+<script src="data/properties.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/map.js"></script>
+<script src="assets/js/pages/contact.js"></script>
+</body>
+</html>

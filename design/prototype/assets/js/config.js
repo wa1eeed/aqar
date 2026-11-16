@@ -1,0 +1,51 @@
+/* =========================================================
+   الإعدادات العامة — عدّل هنا فقط عند الربط بالباك إند
+   ========================================================= */
+window.MZ = window.MZ || {};
+
+MZ.config = {
+  brand: {
+    name: 'منزلة',
+    fullName: 'منزلة العقارية',
+    tagline: 'عقارات تليق بمنزلتك',
+    falLicense: '[رقم رخصة فال للمنشأة]',
+    cr: '[رقم السجل التجاري]',
+    address: '[عنوان المقر الرئيسي]، الرياض'
+  },
+
+  contact: {
+    phone: '+966500000000',          // [رقم التواصل]
+    phoneDisplay: '050 000 0000',
+    whatsapp: '966500000000',        // بدون + للروابط
+    email: 'info@example.com',       // [البريد الرسمي]
+    hours: 'الأحد – الخميس، 9 ص – 9 م'
+  },
+
+  /* مصدر البيانات:
+     'mock' = بيانات تجريبية من data/properties.js
+     'api'  = الباك إند (راجع API.md لشكل الطلبات والردود) */
+  dataSource: 'mock',
+  apiBase: '/api/v1',
+
+  /* الخريطة: 'osm' (افتراضي، مجاني) أو 'google' (يحتاج مفتاح) */
+  map: {
+    provider: 'osm',
+    googleApiKey: '',
+    tiles: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; مساهمو OpenStreetMap'
+  },
+
+  /* الخدمات القريبة:
+     'osm' = بحث مباشر من OpenStreetMap (Overpass API)
+     'api' = من الباك إند: GET {apiBase}/properties/:id/nearby
+     عند فشل المصدر تُعرض بيانات تجريبية مع تنبيه واضح */
+  nearby: {
+    source: 'osm',
+    radius: 2000,
+    overpassUrl: 'https://overpass-api.de/api/interpreter',
+    fallbackToSample: true
+  },
+
+  pageSize: 12,
+  currency: 'ر.س'
+};

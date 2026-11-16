@@ -1,0 +1,687 @@
+# 01 — Data Model (Prisma)
+
+Copy this schema **plus the SEO models in docs/07 §13** to `backend/prisma/schema.prisma`. Names, enums and relations are final; add indexes
+only, never rename. A unit test (`schema-sync.spec.ts`) must assert that `PropertyOffer`,
+`PropertyStatus` and the allowed `Property.type` values equal the keys in `packages/schema`.
+
+Conventions: ids are `cuid()` strings except `Property.id` (integer, public listing number starting at
+1001). All money fields are **halalas** (`BigInt`, 1 SAR = 100). Timestamps are UTC.
+
+```prisma
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, unaccent]
+}
+
+// ───────────────────────────── Identity ─────────────────────────────
+
+model Role {
+  id          String      @id @default(cuid())
+  key         String      @unique              // owner | admin | sales_manager | agent | finance | content_editor | custom_*
+  nameAr      String
+  isSystem    Boolean     @default(true)       // system roles cannot be deleted
+  permissions String[]                         // see docs/03 permission keys
+  users       StaffUser[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model StaffUser {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  phone          String?                        // E.164 +9665XXXXXXXX
+  whatsapp       String?                        // digits only 9665XXXXXXXX
+  title          String?                        // "مستشار عقاري أول"
+  falLicense     String?                        // رخصة فال الشخصية
+  avatarKey      String?                        // R2 media key
+  passwordHash   String
+  roleId         String
+  role           Role      @relation(fields: [roleId], references: [id])
+  isActive       Boolean   @default(true)
+  showOnWebsite  Boolean   @default(true)       // appears as listing agent
+  totpSecretEnc  Bytes?
+  totpEnabled    Boolean   @default(false)
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  properties     Property[]          @relation("PropertyAgent")
+  assignedLeads  Lead[]              @relation("LeadAssignee")
+  viewings       Viewing[]           @relation("ViewingAgent")
+}
+
+enum CustomerStatus { active blocked deleted }
+
+model Customer {
+  id                String         @id @default(cuid())
+  name              String
+  email             String?        @unique
+  phone             String?        @unique     // E.164
+  passwordHash      String?                    // optional: OTP login is the default
+  emailVerifiedAt   DateTime?
+  phoneVerifiedAt   DateTime?
+  nafathVerifiedAt  DateTime?                  // set by Nafath integration (docs/05)
+  nationalIdHash    String?                    // SHA-256(pepper + id) only — never store raw ID
+  nationalIdLast4   String?
+  status            CustomerStatus @default(active)
+  marketingConsent  Boolean        @default(false)
+  consentAt         DateTime?                  // PDPL consent timestamp
+  lastLoginAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  deletedAt         DateTime?
+
+  favorites         Favorite[]
+  savedSearches     SavedSearch[]
+  leads             Lead[]
+  viewings          Viewing[]
+  bookings          Booking[]
+  wallet            Wallet?
+}
+
+enum SubjectType { staff customer }
+
+model RefreshToken {
+  id           String      @id @default(cuid())
+  subjectType  SubjectType
+  subjectId    String
+  tokenHash    String      @unique
+  family       String                          // rotation family; reuse => revoke family
+  userAgent    String?
+  ip           String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  @@index([subjectType, subjectId])
+}
+
+enum OtpChannel { email sms }
+enum OtpPurpose { login verify_email verify_phone reset_password staff_2fa_email }
+
+model OtpCode {
+  id          String     @id @default(cuid())
+  channel     OtpChannel
+  destination String
+  purpose     OtpPurpose
+  codeHash    String
+  attempts    Int        @default(0)          // max 5
+  expiresAt   DateTime                        // 10 minutes
+  consumedAt  DateTime?
+  createdAt   DateTime   @default(now())
+  @@index([destination, purpose])
+}
+
+// ───────────────────────────── Locations ─────────────────────────────
+
+model City {
+  id        String     @id                    // riyadh, jeddah … (slug from packages/schema)
+  nameAr    String
+  lat       Decimal    @db.Decimal(9, 6)
+  lng       Decimal    @db.Decimal(9, 6)
+  sort      Int        @default(0)
+  isActive  Boolean    @default(true)
+  districts District[]
+  properties Property[]
+}
+
+model District {
+  id        String     @id @default(cuid())
+  cityId    String
+  city      City       @relation(fields: [cityId], references: [id])
+  nameAr    String
+  lat       Decimal?   @db.Decimal(9, 6)
+  lng       Decimal?   @db.Decimal(9, 6)
+  isActive  Boolean    @default(true)
+  properties Property[]
+  @@unique([cityId, nameAr])
+}
+
+// ───────────────────────────── Listings ─────────────────────────────
+
+enum PropertyOffer      { sale rent investment }
+enum PropertyStatus     { available negotiation reserved sold rented }
+enum RentPeriod         { yearly monthly daily }
+enum ListingVisibility  { draft published archived }
+enum AdLicenseCheck     { unknown valid expiring expired invalid }
+
+model Property {
+  id               Int              @id @default(autoincrement())  // start sequence at 1001 in migration
+  code             String           @unique                         // "{settings.general.listingCodePrefix}-{id}" e.g. MZ-1001
+  slug             String                                           // arabic-safe slug from title
+  type             String                                           // key of packages/schema types
+  offer            PropertyOffer
+  status           PropertyStatus   @default(available)
+  visibility       ListingVisibility @default(draft)
+  featured         Boolean          @default(false)
+  title            String
+  description      String
+  cityId           String
+  city             City             @relation(fields: [cityId], references: [id])
+  districtId       String
+  district         District         @relation(fields: [districtId], references: [id])
+  lat              Decimal          @db.Decimal(9, 6)
+  lng              Decimal          @db.Decimal(9, 6)
+  showExactLocation Boolean         @default(true)                  // false => public lat/lng jittered ±250 m
+  price            BigInt                                           // halalas
+  rentPeriod       RentPeriod?                                      // required when offer = rent
+  negotiable       Boolean          @default(false)
+  annualisedPrice  BigInt                                           // derived, for sorting/filtering (docs/02 §3)
+  pricePerMeter    BigInt?                                          // derived (sale/investment only)
+  // denormalised from specs for fast filters (kept in sync by PropertiesService)
+  area             Int
+  bedrooms         Int?
+  bathrooms        Int?
+  roi              Decimal?         @db.Decimal(5, 2)
+  specs            Json                                             // validated by buildSpecsZod(type, offer)
+  // licensing (also present inside specs for display; these columns drive checks/alerts)
+  adLicenseNo      String
+  falLicenseNo     String
+  licenseExpiry    DateTime?
+  adLicenseCheck   AdLicenseCheck   @default(unknown)
+  adLicenseCheckedAt DateTime?
+  // booking
+  bookingEnabled   Boolean          @default(true)
+  paymentPolicy    Json?                                            // per-listing override of settings.booking (docs/04 §2)
+  // seo (docs/07 §11)
+  seoTitle         String?
+  seoDescription   String?
+  focusKeyword     String?
+  keywords         String[]
+  ogImageKey       String?
+  noindex          Boolean          @default(false)
+  // people
+  agentId          String
+  agent            StaffUser        @relation("PropertyAgent", fields: [agentId], references: [id])
+  createdById      String
+  updatedById      String?
+  publishedAt      DateTime?
+  viewCount        Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+
+  media            PropertyMedia[]
+  statusHistory    PropertyStatusHistory[]
+  favorites        Favorite[]
+  leads            Lead[]
+  viewings         Viewing[]
+  bookings         Booking[]
+  nearbyCache      NearbyCache[]
+  auctions         Auction[]
+
+  @@index([visibility, status, offer, type])
+  @@index([cityId, districtId])
+  @@index([annualisedPrice])
+  @@index([createdAt])
+}
+
+enum MediaKind   { photo floor_plan document video_url }
+enum MediaStatus { processing ready failed }
+
+model PropertyMedia {
+  id          String      @id @default(cuid())
+  propertyId  Int
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  kind        MediaKind   @default(photo)
+  originalKey String?                         // R2 uploads bucket key (private)
+  variants    Json?                           // { thumb, card, full, webpThumb, webpCard, webpFull } public CDN URLs
+  externalUrl String?                         // for video_url (YouTube/Vimeo)
+  width       Int?
+  height      Int?
+  altAr       String?
+  sort        Int         @default(0)
+  isCover     Boolean     @default(false)
+  status      MediaStatus @default(processing)
+  createdAt   DateTime    @default(now())
+  @@index([propertyId, sort])
+}
+
+model PropertyStatusHistory {
+  id          String         @id @default(cuid())
+  propertyId  Int
+  property    Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  from        PropertyStatus
+  to          PropertyStatus
+  reason      String?                          // manual | booking_confirmed | booking_cancelled | booking_completed | auction_awarded
+  bookingId   String?
+  actorType   String                           // staff | system
+  actorId     String?
+  createdAt   DateTime       @default(now())
+}
+
+model NearbyCache {
+  id          String   @id @default(cuid())
+  propertyId  Int
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  provider    String                            // places.overpass | places.google
+  radius      Int
+  items       Json                              // [{id,cat,name,lat,lng,distance}]
+  fetchedAt   DateTime @default(now())
+  expiresAt   DateTime                          // +30 days (settings.maps.nearbyCacheDays)
+  @@unique([propertyId, provider, radius])
+}
+
+model Favorite {
+  customerId  String
+  propertyId  Int
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  @@id([customerId, propertyId])
+}
+
+model SavedSearch {
+  id             String    @id @default(cuid())
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name           String
+  query          Json                          // same shape as GET /public/properties query
+  alertEnabled   Boolean   @default(true)
+  lastNotifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+}
+
+// ───────────────────────────── CRM ─────────────────────────────
+
+enum LeadType   { viewing waitlist buy rent list invest manage contact }
+enum LeadStage  { new contacted viewing negotiation won lost }
+enum LeadSource { website whatsapp phone walk_in admin }
+
+model Lead {
+  id             String     @id @default(cuid())
+  number         String     @unique             // L-000123
+  type           LeadType
+  stage          LeadStage  @default(new)
+  source         LeadSource @default(website)
+  propertyId     Int?
+  property       Property?  @relation(fields: [propertyId], references: [id])
+  customerId     String?
+  customer       Customer?  @relation(fields: [customerId], references: [id])
+  name           String
+  phone          String
+  email          String?
+  cityId         String?
+  propertyType   String?
+  budget         BigInt?                        // halalas, or units count when type = manage (stored in meta)
+  message        String?
+  preferredDate  DateTime?
+  preferredSlot  String?                        // morning | afternoon | evening
+  assignedToId   String?
+  assignedTo     StaffUser? @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  lostReason     String?
+  consent        Boolean    @default(true)
+  utm            Json?
+  meta           Json?
+  closedAt       DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  activities     LeadActivity[]
+  viewings       Viewing[]
+  @@index([stage, assignedToId])
+  @@index([createdAt])
+}
+
+enum LeadActivityType { note call whatsapp email stage_change assignment viewing booking system }
+
+model LeadActivity {
+  id        String           @id @default(cuid())
+  leadId    String
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      LeadActivityType
+  body      String?
+  meta      Json?
+  actorId   String?                              // staff id; null = system
+  createdAt DateTime         @default(now())
+}
+
+enum ViewingStatus { requested confirmed completed no_show cancelled }
+
+model Viewing {
+  id           String        @id @default(cuid())
+  propertyId   Int
+  property     Property      @relation(fields: [propertyId], references: [id])
+  leadId       String?
+  lead         Lead?         @relation(fields: [leadId], references: [id])
+  customerId   String?
+  customer     Customer?     @relation(fields: [customerId], references: [id])
+  agentId      String
+  agent        StaffUser     @relation("ViewingAgent", fields: [agentId], references: [id])
+  scheduledAt  DateTime
+  durationMin  Int           @default(45)
+  status       ViewingStatus @default(requested)
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  @@index([agentId, scheduledAt])
+}
+
+// ───────────────────────────── Bookings & payments ─────────────────────────────
+
+enum BookingStatus  { pending_payment awaiting_transfer_review confirmed completed cancelled expired refunded }
+enum PaymentType    { deposit full }
+enum PaymentMethod  { moyasar bank_transfer rize }
+
+model Booking {
+  id                String         @id @default(cuid())
+  number            String         @unique      // B-2026-000123
+  propertyId        Int
+  property          Property       @relation(fields: [propertyId], references: [id])
+  customerId        String
+  customer          Customer       @relation(fields: [customerId], references: [id])
+  offerSnapshot     PropertyOffer
+  priceSnapshot     BigInt                      // property price at booking time (halalas)
+  rentPeriodSnapshot RentPeriod?
+  paymentType       PaymentType
+  paymentMethod     PaymentMethod
+  amountDue         BigInt                      // what the customer must pay now
+  amountPaid        BigInt         @default(0)
+  status            BookingStatus  @default(pending_payment)
+  holdExpiresAt     DateTime                    // see docs/04 §4
+  termsVersion      String
+  termsAcceptedAt   DateTime
+  customerNotes     String?
+  cancelReason      String?
+  confirmedAt       DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  payments          Payment[]
+  @@index([status, holdExpiresAt])
+  @@index([propertyId, status])
+}
+
+enum PaymentStatus { initiated pending paid failed under_review rejected cancelled refunded partially_refunded }
+
+model Payment {
+  id                 String         @id @default(cuid())
+  bookingId          String
+  booking            Booking        @relation(fields: [bookingId], references: [id])
+  method             PaymentMethod
+  status             PaymentStatus  @default(initiated)
+  amount             BigInt
+  refundedAmount     BigInt         @default(0)
+  currency           String         @default("SAR")
+  idempotencyKey     String         @unique
+  providerPaymentId  String?        @unique
+  providerInvoiceId  String?        @unique
+  providerStatus     String?
+  providerUrl        String?                    // hosted invoice/payment URL
+  providerPayload    Json?                      // redacted
+  receiptNumber      String?        @unique     // R-2026-000123 when paid
+  paidAt             DateTime?
+  failureReason      String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  events             PaymentEvent[]
+  transfer           BankTransferSubmission?
+}
+
+model PaymentEvent {
+  id         String   @id @default(cuid())
+  paymentId  String
+  payment    Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  type       String                             // created | redirected | webhook | callback | verified | paid | failed | refunded | transfer_submitted | transfer_approved | transfer_rejected
+  payload    Json?
+  createdAt  DateTime @default(now())
+}
+
+model BankAccount {
+  id              String   @id @default(cuid())
+  bankName        String                         // "مصرف الراجحي"
+  beneficiaryName String                         // اسم المستفيد
+  iban            String                         // SA + 22 digits, validated (mod-97)
+  accountNumber   String?
+  swift           String?
+  isActive        Boolean  @default(true)
+  sort            Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  submissions     BankTransferSubmission[]
+}
+
+enum TransferStatus { submitted approved rejected }
+
+model BankTransferSubmission {
+  id                String         @id @default(cuid())
+  paymentId         String         @unique
+  payment           Payment        @relation(fields: [paymentId], references: [id])
+  bankAccountId     String
+  bankAccount       BankAccount    @relation(fields: [bankAccountId], references: [id])
+  senderName        String
+  senderBank        String
+  transferReference String?
+  transferredAt     DateTime
+  amount            BigInt
+  receiptKey        String                       // R2 private key (PDF/JPG/PNG ≤ 10 MB)
+  status            TransferStatus @default(submitted)
+  reviewedById      String?
+  reviewedAt        DateTime?
+  rejectionReason   String?
+  createdAt         DateTime       @default(now())
+}
+
+// ───────────────────────────── Notifications & email ─────────────────────────────
+
+enum NotificationPriority { low normal high }
+
+model Notification {
+  id            String               @id @default(cuid())
+  recipientType SubjectType
+  recipientId   String
+  eventKey      String                           // docs/06 events catalog
+  title         String
+  body          String
+  link          String?                          // relative URL inside admin or frontend
+  data          Json?
+  priority      NotificationPriority @default(normal)
+  readAt        DateTime?
+  archivedAt    DateTime?
+  createdAt     DateTime             @default(now())
+  @@index([recipientType, recipientId, readAt])
+  @@index([createdAt])
+}
+
+model NotificationPreference {
+  recipientType SubjectType
+  recipientId   String
+  eventKey      String
+  inApp         Boolean     @default(true)
+  email         Boolean     @default(true)
+  sms           Boolean     @default(false)
+  @@id([recipientType, recipientId, eventKey])
+}
+
+enum EmailStatus { queued sent delivered bounced complained failed }
+
+model EmailLog {
+  id           String      @id @default(cuid())
+  to           String
+  template     String
+  subject      String
+  resendId     String?     @unique
+  status       EmailStatus @default(queued)
+  error        String?
+  relatedType  String?
+  relatedId    String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+// ───────────────────────────── Settings, integrations, audit ─────────────────────────────
+
+model SettingsSection {
+  key          String   @id                      // general | branding | contact | licensing | booking | payments | bank_transfer | notifications | maps | locations | features | legal | seo
+  value        Json                              // validated by zod schema per section (docs/07 §10)
+  updatedById  String?
+  updatedAt    DateTime @updatedAt
+}
+
+enum IntegrationEnv    { sandbox live }
+enum IntegrationHealth { unknown ok degraded down }
+
+model Integration {
+  key            String            @id            // e.g. payments.moyasar (docs/05 §3 registry)
+  category       String                            // maps | places | payments | email | storage | government | identity | sms
+  enabled        Boolean           @default(false)
+  environment    IntegrationEnv    @default(sandbox)
+  config         Json              @default("{}") // non-secret values (base URLs, ids, toggles)
+  secretsEnc     Bytes?                           // AES-256-GCM(JSON) with APP_ENCRYPTION_KEY
+  secretsHint    Json?                            // { apiKey: "••••a1b2" } for UI display only
+  health         IntegrationHealth @default(unknown)
+  healthCheckedAt DateTime?
+  lastError      String?
+  updatedById    String?
+  updatedAt      DateTime          @updatedAt
+}
+
+model IntegrationCallLog {
+  id             String   @id @default(cuid())
+  integrationKey String
+  operation      String                           // e.g. createInvoice, fetchPayment, nearby
+  success        Boolean
+  httpStatus     Int?
+  latencyMs      Int
+  correlationId  String
+  request        Json?                            // redacted (docs/05 §6)
+  response       Json?                            // redacted, truncated to 8 KB
+  error          String?
+  createdAt      DateTime @default(now())
+  @@index([integrationKey, createdAt])
+}
+
+model WebhookEvent {
+  id             String    @id @default(cuid())
+  provider       String
+  externalId     String
+  type           String
+  payload        Json
+  signatureValid Boolean
+  processedAt    DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+  @@unique([provider, externalId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorType   String                              // staff | customer | system
+  actorId     String?
+  action      String                              // e.g. property.update, booking.confirm, settings.update, integration.secrets.update
+  entityType  String
+  entityId    String
+  before      Json?
+  after       Json?                               // secrets always redacted
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Counter {                                   // sequential human numbers (L-, B-, R-)
+  key    String @id                               // lead | booking:2026 | receipt:2026
+  value  Int    @default(0)
+}
+
+// ───────────────────────────── Auctions (feature flag `features.auctions`) ─────────────────────────────
+
+enum AuctionStatus { draft scheduled live ended awarded cancelled }
+
+model Auction {
+  id               String        @id @default(cuid())
+  propertyId       Int
+  property         Property      @relation(fields: [propertyId], references: [id])
+  regaAuctionLicense String                       // ترخيص المزاد
+  startsAt         DateTime
+  endsAt           DateTime
+  startingPrice    BigInt
+  minIncrement     BigInt
+  reservePrice     BigInt?                        // hidden
+  depositAmount    BigInt                         // required wallet hold or Nafith note value
+  antiSnipingSec   Int           @default(120)    // bid in last N sec extends end by N sec
+  status           AuctionStatus @default(draft)
+  winnerCustomerId String?
+  winningBidId     String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  bids             AuctionBid[]
+  registrations    AuctionRegistration[]
+}
+
+enum RegistrationStatus { pending approved rejected }
+enum GuaranteeType      { wallet nafith }
+
+model AuctionRegistration {
+  id             String             @id @default(cuid())
+  auctionId      String
+  auction        Auction            @relation(fields: [auctionId], references: [id])
+  customerId     String
+  guaranteeType  GuaranteeType
+  nafithNoteId   String?
+  walletHoldId   String?
+  status         RegistrationStatus @default(pending)
+  bidderAlias    String                           // "مزايد #18"
+  createdAt      DateTime           @default(now())
+  @@unique([auctionId, customerId])
+}
+
+model AuctionBid {
+  id          String   @id @default(cuid())
+  auctionId   String
+  auction     Auction  @relation(fields: [auctionId], references: [id])
+  customerId  String
+  amount      BigInt
+  createdAt   DateTime @default(now())
+  @@index([auctionId, amount])
+}
+
+model Wallet {
+  id          String              @id @default(cuid())
+  customerId  String              @unique
+  customer    Customer            @relation(fields: [customerId], references: [id])
+  balance     BigInt              @default(0)     // available
+  held        BigInt              @default(0)     // reserved for auctions
+  transactions WalletTransaction[]
+}
+
+enum WalletTxType { topup hold release capture refund adjustment }
+
+model WalletTransaction {
+  id          String       @id @default(cuid())
+  walletId    String
+  wallet      Wallet       @relation(fields: [walletId], references: [id])
+  type        WalletTxType
+  amount      BigInt
+  reference   String?                             // paymentId / auctionId
+  createdAt   DateTime     @default(now())
+}
+```
+
+## Migration notes
+
+- First migration: `ALTER SEQUENCE "Property_id_seq" RESTART WITH 1001;`
+- Create a `tsvector` generated column on `Property` (`title`, `description`, district name via trigger)
+  with a GIN index for `q` search; fall back to `ILIKE` with `pg_trgm` for short queries.
+- Partial unique index: one active booking per property:
+  `CREATE UNIQUE INDEX one_active_booking ON "Booking"("propertyId") WHERE status IN ('pending_payment','awaiting_transfer_review','confirmed');`
+- `IntegrationCallLog` and `Notification` (archived, > 180 days) are pruned by a nightly job.
+
+## Derived fields (PropertiesService.save)
+
+| Field | Rule |
+|---|---|
+| `code` | `${settings.general.listingCodePrefix}-${id}` |
+| `slug` | lowercased title, Arabic letters kept, spaces → `-`, max 80 chars |
+| `annualisedPrice` | rent monthly × 12, daily × 365, otherwise `price` |
+| `pricePerMeter` | `offer != rent && area > 0 ? round(price / area) : null` |
+| `area, bedrooms, bathrooms, roi` | copied from `specs`; `roi` computed `annualIncome / price × 100` if missing |
+| `adLicenseNo, falLicenseNo, licenseExpiry` | copied from `specs.adLicense`, `specs.falLicense`, `specs.licenseExpiry` |

@@ -1,0 +1,46 @@
+.acc{padding:36px 0 80px}
+.acc-grid{display:grid;grid-template-columns:270px 1fr;gap:26px;align-items:start}
+.acc-side{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;position:sticky;top:96px}
+.acc-side .who{display:flex;gap:12px;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.acc-side .who b{display:block}.acc-side .who small{color:var(--muted);font-size:13px}
+.acc-side nav a{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;font-weight:600;font-size:15px;color:var(--ink-2,#33413B)}
+.acc-side nav a .ic{width:20px;height:20px;color:var(--muted)}
+.acc-side nav a.on{background:var(--green-50);color:var(--green)}.acc-side nav a.on .ic{color:var(--green)}
+.acc-side nav a .cnt{margin-inline-start:auto;background:var(--gold);color:var(--green-900);font-size:12px;border-radius:999px;padding:0 8px;font-weight:800}
+.acc-main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.acc-main h1{font-size:30px}
+.bk-card{display:grid;grid-template-columns:150px 1fr auto;gap:18px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px}
+.bk-card img{width:150px;height:108px;object-fit:cover;border-radius:12px}
+.bk-card .m{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:6px}
+.countdown{display:inline-flex;gap:6px;direction:ltr}
+.countdown span{background:var(--green-900);color:#fff;border-radius:10px;padding:6px 10px;font:700 20px var(--f-display);min-width:48px;text-align:center}
+.bank{border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px;background:#fff}
+.bank .iban{white-space:nowrap;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:10px;padding:10px 12px;font-weight:700;direction:ltr}
+.opt{border:1.5px solid var(--line);border-radius:16px;padding:16px;display:flex;gap:14px;align-items:flex-start;background:#fff;cursor:pointer}
+.opt.on{border-color:var(--green);box-shadow:0 0 0 3px var(--green-50)}
+.opt .r{width:22px;height:22px;border-radius:50%;border:2px solid var(--line-2);flex:none;margin-top:2px}
+.opt.on .r{border:7px solid var(--green)}
+.opt b{display:block;font-size:16px}.opt small{color:var(--muted);font-size:13px;line-height:1.6;display:block}
+.opt .amt{margin-inline-start:auto;font:700 18px var(--f-display);color:var(--green);white-space:nowrap}
+.pm-logos{display:flex;gap:6px;margin-top:8px}.pm-logos span{border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;color:#333;background:#fff}
+.chk-steps{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:700;color:var(--muted);flex-wrap:wrap}
+.chk-steps i{width:28px;height:28px;border-radius:50%;display:inline-grid;place-items:center;background:var(--sand-200);font-style:normal;margin-inline-end:6px}
+.chk-steps .on{color:var(--green)}.chk-steps .on i{background:var(--green);color:#fff}
+.chk-steps .ln{width:40px;height:2px;background:var(--line)}
+.chk{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start}
+.sum{position:sticky;top:96px}
+@media (max-width:900px){.acc-grid,.chk{grid-template-columns:1fr}.acc-side{position:static}.bk-card{grid-template-columns:90px 1fr}.bk-card img{width:90px;height:72px}.bk-card>div:last-child{grid-column:1/-1}}
+@media (max-width:900px){
+ .acc{padding:18px 0 60px}
+ .acc-side{padding:8px;border-radius:16px}
+ .acc-side .who{display:none}
+ .acc-side nav{display:flex;overflow-x:auto;gap:4px;scrollbar-width:none}
+ .acc-side nav a{white-space:nowrap;padding:9px 12px;font-size:14px}
+ .acc-main h1{font-size:24px}
+ .acc-main .kpis2{grid-template-columns:repeat(2,1fr)!important}
+ .acc-main .g2,.acc-main .g2e,.acc-main .form2{grid-template-columns:1fr!important}
+ .acc-main .grid-cards{grid-template-columns:1fr!important}
+ .chk-steps .ln{width:18px}
+}
+.acc-grid>*,.chk>*,.chk>*>*{min-width:0}
+.acc-main b[dir=ltr]{white-space:nowrap}
