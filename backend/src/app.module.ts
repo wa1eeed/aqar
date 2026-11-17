@@ -25,6 +25,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { QueueModule } from './queue/queue.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { CryptoModule } from './modules/crypto/crypto.module';
 import { HealthModule } from './modules/health/health.module';
@@ -57,6 +58,7 @@ import { RedisModule } from './redis/redis.module';
     StaffModule,
     LeadsModule,
     CustomersModule,
+    BookingsModule,
     PropertiesModule,
     MediaModule,
     PublicModule,

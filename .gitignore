@@ -9,3 +9,4 @@ coverage
 .turbo
 admin/dist
 dump.rdb
+backend/.uploads

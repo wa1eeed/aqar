@@ -130,3 +130,18 @@ work could continue; please confirm or correct.
     with the legal pages (docs/08 §11).
 42. **Admin home dashboard** KPIs (docs/07 §2) are not in the Phase 4 plan; the dashboard stays as
     is until the reports phase unless you want it earlier.
+43. **Payment return URL** is `/account/booking?b=<booking>&p=<payment>` (query string) instead of
+    `account/booking.html#b-{id}`: providers append their own query parameters, which does not work after
+    a `#` fragment.
+44. **Holds of bookings awaiting transfer review** are not expired automatically: the upload extends the
+    hold by `reviewHoursTransfer`, and if staff have not reviewed it in time the booking waits for the
+    reviewer (expiring it would punish the customer for our delay). Staff can approve, reject or cancel.
+45. **Transfer receipts are streamed through the API** to reviewers (after the permission check, audited,
+    `Cache-Control: no-store`) instead of handing out 5-minute signed R2 URLs — same protection, works
+    with every storage backend.
+46. **Bank-transfer refunds** are executed by the finance team outside the platform and recorded with
+    «استرداد» (amount + reason); card refunds go through Moyasar.
+47. **Development storage**: without R2, development/test store private files in `backend/.uploads`
+    (git-ignored). Staging/production return «رفع الملفات غير متاح حالياً» until R2 is configured.
+48. **Manual confirmation** (`POST /admin/bookings/:id/confirm`) is allowed only when the amount due has
+    been received (useful when `autoConfirmWhenPaid` is off).

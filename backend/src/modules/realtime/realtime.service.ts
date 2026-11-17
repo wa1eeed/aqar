@@ -27,6 +27,12 @@ export const rooms = {
 export class RealtimeService implements OnApplicationShutdown {
   private readonly redis: Redis;
   private readonly emitter: Emitter;
+  private closed = false;
+
+  /** Late events during shutdown are dropped instead of failing on a closed connection. */
+  private usable(): boolean {
+    return !this.closed && this.redis.status !== 'end' && this.redis.status !== 'close';
+  }
 
   constructor(@Inject(ENV) env: Env) {
     this.redis = createRedis(env.REDIS_URL, 'nx-realtime-pub');
@@ -35,16 +41,18 @@ export class RealtimeService implements OnApplicationShutdown {
 
   emit(room: string | string[], event: string, payload: Record<string, unknown>): void {
     const list = Array.isArray(room) ? room : [room];
-    if (!list.length) return;
+    if (!list.length || !this.usable()) return;
     this.emitter.to(list).emit(event, payload);
   }
 
   /** Drops live sockets of a subject (logout everywhere, block, password reset). */
   disconnect(typ: 'staff' | 'customer', id: string): void {
+    if (!this.usable()) return;
     this.emitter.in(typ === 'staff' ? rooms.staffUser(id) : rooms.customer(id)).disconnectSockets(true);
   }
 
   async onApplicationShutdown(): Promise<void> {
+    this.closed = true;
     await this.redis.quit().catch(() => undefined);
   }
 }

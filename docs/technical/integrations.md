@@ -16,7 +16,7 @@ confirmation), **اختبار الاتصال**, **health** (checked every 15 min
 | `places.google` | live | Nearby via Google Places (New) | Server API key | — |
 | `email.resend` | live | All emails (OTP, notifications) | API key, sender name/email, reply-to, verified domain | `POST /api/v1/webhooks/resend` (Svix signing secret) |
 | `storage.r2` | live | Listing media (public bucket) and private uploads | Account id, access key, secret, buckets, public CDN URL; bucket CORS rule ([operations](./operations.md#2-first-run-checklist)) | — |
-| `payments.moyasar` | settings + connection test; payment flows in Phase 5 | Card, mada, Apple Pay, STC Pay | Secret key, publishable key (embedded form), webhook secret, mode (invoice / embedded form) | `POST /api/v1/webhooks/moyasar` (Phase 5) |
+| `payments.moyasar` | live (Phase 5) | Card, mada, Apple Pay, STC Pay | Secret key, publishable key (embedded form), webhook secret, mode (invoice / embedded form) | `POST /api/v1/webhooks/moyasar` (shared `secret_token`) |
 | `payments.rize` | prepared (disabled) | Rent instalments | Awaiting the partner API documentation | `/api/v1/webhooks/rize` |
 | `gov.rega`, `gov.ejar`, `identity.nafath`, `gov.nafith` | prepared (disabled) | Licence checks, lease contracts, identity, promissory notes | Awaiting credentials and documentation | `/api/v1/webhooks/<key>` |
 | `sms.unifonic`, `sms.taqnyat`, `sms.msegat` | prepared (disabled) | SMS OTP and alerts (one provider at a time) | Awaiting the company's choice | — |
@@ -34,7 +34,9 @@ implemented; the platform hides the related features meanwhile.
 - **Moyasar**: test with `sk_test_…` keys in the sandbox environment; switching to live requires
   `sk_live_…`. The site loads Moyasar's form only in embedded mode (CSP allows `cdn.moyasar.com` and
   `api.moyasar.com`). Server-side, a payment is marked paid only after re-fetching it from Moyasar and
-  matching amount, currency and metadata (Phase 5).
+  matching amount, currency and metadata. Configure in the Moyasar dashboard: webhook URL
+  `https://<domain>/api/v1/webhooks/moyasar` with the same secret token as in the admin panel. Customers
+  return to `/account/booking?b=<booking>&p=<payment>`, which calls `POST /me/payments/:id/verify`.
 - The build environment could not reach some provider documentation sites; adapters follow the
   documented APIs and are tested against recorded responses — run «اختبار الاتصال» and one real
   sandbox transaction before go-live (`docs/QUESTIONS.md` #21).

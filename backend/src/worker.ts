@@ -19,9 +19,19 @@ import { PropertiesModule } from './modules/properties/properties.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
-import { CRM_QUEUE, INTEGRATIONS_QUEUE, QUEUES, QueueModule, queueConnection } from './queue/queue.module';
+import {
+  CRM_QUEUE,
+  PAYMENTS_QUEUE,
+  INTEGRATIONS_QUEUE,
+  QUEUES,
+  QueueModule,
+  queueConnection,
+} from './queue/queue.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { BookingsCoreModule } from './modules/bookings/bookings.module';
+import { BookingsService } from './modules/bookings/bookings.service';
+import { PaymentsService } from './modules/payments/payments.service';
 import { CustomersService } from './modules/customers/customers.service';
 import { CrmJobsService } from './modules/notifications/crm-jobs.service';
 import { NotificationsCoreModule } from './modules/notifications/notifications.module';
@@ -46,6 +56,7 @@ import { RedisModule } from './redis/redis.module';
     AuthModule,
     NotificationsCoreModule,
     CustomersModule,
+    BookingsCoreModule,
     PropertiesModule,
     MediaCoreModule,
   ],
@@ -121,11 +132,35 @@ async function main(): Promise<void> {
     { name: 'anonymise-deleted' },
   );
 
+  // Payments: webhook-triggered reconciles, the 5-minute reconcile sweep and hold expiry (docs/04 §4–5).
+  const payments = app.get(PaymentsService);
+  const bookings = app.get(BookingsService);
+  const paymentsWorker = new Worker<{ paymentId?: string; hintPaymentId?: string | null }>(
+    QUEUES.payments,
+    async (job) => {
+      if (job.name === 'reconcile' && job.data.paymentId) {
+        await payments.reconcile(job.data.paymentId, {
+          source: 'webhook',
+          ...(job.data.hintPaymentId ? { hintPaymentId: job.data.hintPaymentId } : {}),
+        });
+      }
+      if (job.name === 'reconcile-pending') await payments.reconcilePending();
+      if (job.name === 'expire-holds') {
+        const n = await bookings.expireHolds();
+        if (n) log.log(`expired ${n} booking holds`);
+      }
+    },
+    { connection: queueConnection(env.REDIS_URL), concurrency: 2 },
+  );
+  const paymentsQueue = app.get<Queue>(PAYMENTS_QUEUE);
+  await paymentsQueue.upsertJobScheduler('reconcile-pending', { every: 5 * 60 * 1000 }, { name: 'reconcile-pending' });
+  await paymentsQueue.upsertJobScheduler('expire-holds', { every: 60 * 1000 }, { name: 'expire-holds' });
+
   const queue = app.get<Queue>(INTEGRATIONS_QUEUE);
   await queue.upsertJobScheduler('integrations-health', { every: HEALTH_EVERY_MS }, { name: 'health' });
   await queue.upsertJobScheduler('maintenance-prune', { every: PRUNE_EVERY_MS }, { name: 'prune' });
 
-  for (const w of [emailWorker, integrationsWorker, mediaWorker, crmWorker]) {
+  for (const w of [emailWorker, integrationsWorker, mediaWorker, crmWorker, paymentsWorker]) {
     w.on('failed', (job, err) =>
       log.warn({ queue: w.name, jobId: job?.id, attempt: job?.attemptsMade, err: err.message }, 'job failed'),
     );
@@ -133,7 +168,13 @@ async function main(): Promise<void> {
 
   const shutdown = async () => {
     log.log('worker shutting down');
-    await Promise.allSettled([emailWorker.close(), integrationsWorker.close(), mediaWorker.close(), crmWorker.close()]);
+    await Promise.allSettled([
+      emailWorker.close(),
+      integrationsWorker.close(),
+      mediaWorker.close(),
+      crmWorker.close(),
+      paymentsWorker.close(),
+    ]);
     await app.close();
     process.exit(0);
   };

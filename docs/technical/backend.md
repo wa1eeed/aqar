@@ -100,5 +100,19 @@ and document them in [operations.md](./operations.md#jobs-and-queues).
 - **Viewings**: slots stored in UTC (Riyadh = UTC+3); only confirmed viewings block an agent's time.
 - **Customers**: deletion = immediate sign-out + anonymisation after 30 days (worker job).
 - **Notifications**: see [architecture §6](./architecture.md#6-events-notifications-and-realtime).
-- **Bookings & payments** (Phase 5, in progress): pure quote rules in `modules/bookings/quote.ts`
-  (unit-tested); Moyasar operations in `integrations/providers/moyasar.ts` via `gateway.payments()`.
+- **Bookings & payments** (`modules/bookings`, `modules/payments`):
+  - `quote.ts` — pure amount/method rules (unit-tested). `BookingsService.create` locks the property row
+    (`SELECT … FOR UPDATE`) and relies on the partial unique index `one_active_booking` → `409
+    BOOKING_PROPERTY_UNAVAILABLE` for the loser of a race; supports `Idempotency-Key`.
+  - `BookingTransitions.apply(tx, booking, to, …)` is the only way to change a booking status: it
+    validates the state machine (docs/04 §4), applies the property side effect with a
+    `PropertyStatusHistory` row (`booking_confirmed` / `booking_completed` / `booking_cancelled`), audits,
+    and returns the events to emit after commit.
+  - `PaymentsService.reconcile` re-fetches from Moyasar and marks a payment paid only when status,
+    amount, currency and `metadata.paymentId` match (row lock, idempotent); mismatches raise
+    `payment.anomaly`. Webhooks only queue a reconcile. `markPaid` allocates the receipt number,
+    increments `amountPaid` and auto-confirms when fully paid.
+  - `TransfersService`: receipt upload (file type detected from its bytes, size limit, private storage via
+    `FileStore`), review approve/reject; `iban.ts` validates Saudi IBANs (mod-97).
+  - `FileStore` uses the private R2 bucket; in development/test without R2 it writes to
+    `backend/.uploads` (never in staging/production).

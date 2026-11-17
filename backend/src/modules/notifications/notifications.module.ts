@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { SettingsModule } from '../settings/settings.module';
+import { BookingRules } from './booking-rules';
 import { CrmJobsService } from './crm-jobs.service';
 import { NotificationRules } from './notification-rules';
 import { NotificationsService } from './notifications.service';
@@ -8,7 +9,7 @@ import { NotificationsService } from './notifications.service';
 @Global()
 @Module({
   imports: [SettingsModule],
-  providers: [NotificationsService, NotificationRules, CrmJobsService],
+  providers: [NotificationsService, NotificationRules, BookingRules, CrmJobsService],
   exports: [NotificationsService, CrmJobsService],
 })
 export class NotificationsCoreModule {}

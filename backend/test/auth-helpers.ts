@@ -18,6 +18,11 @@ export function totpNow(secret: string, offsetSteps = 0): string {
 export async function resetDb(app: NestExpressApplication): Promise<void> {
   const prisma = app.get(PrismaService);
   await prisma.$transaction([
+    prisma.paymentEvent.deleteMany(),
+    prisma.bankTransferSubmission.deleteMany(),
+    prisma.payment.deleteMany(),
+    prisma.booking.deleteMany(),
+    prisma.bankAccount.deleteMany(),
     prisma.notification.deleteMany(),
     prisma.notificationPreference.deleteMany(),
     prisma.savedSearch.deleteMany(),

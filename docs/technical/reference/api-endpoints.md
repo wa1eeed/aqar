@@ -3,11 +3,22 @@
 > **Generated** by `pnpm docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
-Base path `/api/v1`. **119 endpoints.** Access: `public` (no token; a valid token is still read),
+Base path `/api/v1`. **145 endpoints.** Access: `public` (no token; a valid token is still read),
 `staff`, `customer` or `any signed-in`. Every listed permission is required. *Re-auth* = password/TOTP
 within the last 10 minutes (`REAUTH_REQUIRED`). *CSRF* = header `X-Requested-With: nx` required.
 Public GETs without a rule share the default limit of 120/min per IP. Request/response schemas:
 Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
+
+## admin/bookings
+
+| Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
+|---|---|---|---|---|---|---|---|
+| `GET` | `/api/v1/admin/bookings` | staff | `bookings.view` |  |  |  | Bookings with status filter, search and per-status counts. |
+| `GET` | `/api/v1/admin/bookings/:id` | staff | `bookings.view` |  |  |  | Booking details: property, customer, payments, transfer submission and audit timeline. |
+| `POST` | `/api/v1/admin/bookings/:id/cancel` | staff | `bookings.manage` |  |  |  | Cancel with a reason; a reserved property returns to available. |
+| `POST` | `/api/v1/admin/bookings/:id/complete` | staff | `bookings.manage` |  |  |  | Complete the deal (property becomes sold or rented). |
+| `POST` | `/api/v1/admin/bookings/:id/confirm` | staff | `bookings.manage` |  |  |  | Confirm manually once the amount due has been received (property becomes reserved). |
+| `POST` | `/api/v1/admin/bookings/:id/extend-hold` | staff | `bookings.manage` |  |  |  | Extend the payment hold by 1–168 hours. |
 
 ## admin/customers
 
@@ -78,6 +89,22 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `POST` | `/api/v1/admin/notifications/archive` | staff | — |  |  |  | Archive notifications. |
 | `POST` | `/api/v1/admin/notifications/broadcast` | staff | `notifications.broadcast` |  |  |  | «إرسال تنبيه للفريق» — in-app announcement to the selected roles (docs/07 §8). |
 | `POST` | `/api/v1/admin/notifications/read` | staff | — |  |  |  | Mark notifications as read (`ids` or `all`). |
+
+## admin/payments
+
+| Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
+|---|---|---|---|---|---|---|---|
+| `GET` | `/api/v1/admin/bank-accounts` | staff | `settings.payments` |  |  |  | Company bank accounts shown to customers for transfers. |
+| `POST` | `/api/v1/admin/bank-accounts` | staff | `settings.payments` | yes |  |  | Add a bank account (IBAN validated with mod-97; re-authentication required). |
+| `DELETE` | `/api/v1/admin/bank-accounts/:id` | staff | `settings.payments` | yes |  |  | Delete a bank account that has no transfer submissions (otherwise deactivate it). |
+| `PATCH` | `/api/v1/admin/bank-accounts/:id` | staff | `settings.payments` | yes |  |  | Edit a bank account (re-authentication required). |
+| `GET` | `/api/v1/admin/payments` | staff | `payments.view` |  |  |  | Payments with filters (status, method, search) and this month's totals; `status=under_review` is the transfer review queue. |
+| `GET` | `/api/v1/admin/payments/:id` | staff | `payments.view` |  |  |  | Payment details with provider ids, events and the transfer submission. |
+| `POST` | `/api/v1/admin/payments/:id/reconcile` | staff | `payments.view` |  |  |  | Re-check a pending online payment with the provider now. |
+| `POST` | `/api/v1/admin/payments/:id/refund` | staff | `payments.refund` | yes |  |  | Refund all or part of a paid payment (Moyasar via the gateway; bank transfers recorded as refunded by finance). |
+| `POST` | `/api/v1/admin/payments/:id/transfer/approve` | staff | `payments.review` |  |  |  | Approve a bank transfer receipt: payment paid, booking confirmed, customer notified. |
+| `GET` | `/api/v1/admin/payments/:id/transfer/receipt` | staff | `payments.review` |  |  |  | The uploaded receipt file (streamed after the permission check; never cached). |
+| `POST` | `/api/v1/admin/payments/:id/transfer/reject` | staff | `payments.review` |  |  |  | Reject a bank transfer receipt with a reason; the customer may upload again until the hold expires. |
 
 ## admin/properties
 
@@ -178,6 +205,17 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `GET` | `/api/v1/me/viewings` | customer | — |  |  |  | The customer's viewings and requests. |
 | `POST` | `/api/v1/me/viewings/:id/cancel` | customer | — |  |  |  | Cancel one of the customer's upcoming viewings. |
 
+## me/bookings
+
+| Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
+|---|---|---|---|---|---|---|---|
+| `GET` | `/api/v1/me/bookings` | customer | — |  |  |  | The customer's bookings with payments, transfer submission and timeline. |
+| `POST` | `/api/v1/me/bookings` | customer | — |  |  | 10/1h per ip | Create a booking (row lock + one active booking per property → 409) and start its payment; Idempotency-Key supported. |
+| `GET` | `/api/v1/me/bookings/:id` | customer | — |  |  |  | One of the customer's bookings. |
+| `POST` | `/api/v1/me/bookings/:id/cancel` | customer | — |  |  |  | Cancel while the booking is pending payment or awaiting transfer review. |
+| `POST` | `/api/v1/me/bookings/:id/pay` | customer | — |  |  | 20/1h per ip | Start another payment attempt (e.g. |
+| `POST` | `/api/v1/me/bookings/quote` | customer | — |  |  | 60/1min per ip | Amounts, payment types and available methods for booking a property (server-computed). |
+
 ## me/notifications
 
 | Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
@@ -187,6 +225,13 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `GET` | `/api/v1/me/notifications` | customer | — |  |  |  | The customer's notifications with the unread count. |
 | `POST` | `/api/v1/me/notifications/archive` | customer | — |  |  |  | Archive the customer's notifications. |
 | `POST` | `/api/v1/me/notifications/read` | customer | — |  |  |  | Mark the customer's notifications as read (`ids` or `all`). |
+
+## me/payments
+
+| Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
+|---|---|---|---|---|---|---|---|
+| `POST` | `/api/v1/me/payments/:id/transfer` | customer | — |  |  | 10/1h per ip | Upload a bank transfer receipt (multipart: receipt + fields); the booking waits for review. |
+| `POST` | `/api/v1/me/payments/:id/verify` | customer | — |  |  | 30/1min per ip | Called by the result page after a provider redirect: re-fetches the payment from the provider. |
 
 ## public
 
@@ -206,5 +251,6 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 
 | Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
 |---|---|---|---|---|---|---|---|
+| `POST` | `/api/v1/webhooks/moyasar` | public | — |  |  | 600/1min per ip | Moyasar payment events; the payment is re-fetched from Moyasar before anything changes. |
 | `POST` | `/api/v1/webhooks/resend` | public | — |  |  | 600/1min per ip | Resend email events (Svix signature verified, idempotent). |
 

@@ -9,6 +9,13 @@ phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md
 ### Added
 - Booking quote rules (`backend/src/modules/bookings/quote.ts`): fixed/percent deposit with min/max,
   rent period, per-property policy override, payment-method availability; unit tests.
+- Bookings: quote, creation with row lock + one-active-booking index (409 for the loser), state machine
+  with property side effects and history, customer cancel/pay again, admin confirm/complete/cancel/
+  extend hold, hold-expiry job, `booking` block in the public property payload.
+- Payments: Moyasar invoice/embedded flows, server-side reconcile (webhook → queue, callback, 5-minute
+  job) with amount/currency/metadata checks and anomaly alerts, refunds; bank transfers with receipt
+  upload (byte-level type check), review approve/reject; bank accounts with IBAN mod-97 validation.
+- Notifications for `booking.*` and `payment.*` events; live `booking.updated` / `payment.updated`.
 - Moyasar payment operations in the integrations gateway (`gateway.payments()`): hosted invoice,
   fetch invoice/payment, refund, webhook verification (`secret_token`).
 - Technical documentation set `docs/technical/` (architecture, backend, admin, frontend, security,

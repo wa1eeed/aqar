@@ -55,6 +55,9 @@ so redeploying never duplicates them. Jobs are idempotent.
 | `crm` | `viewing-reminders` | every 15 min | Reminders 24 h (in-app + email) and 2 h (in-app) before confirmed viewings, once each |
 | `crm` | `saved-search-digest` | 06:00 UTC (09:00 Riyadh) | New published listings matching each saved search with alerts on |
 | `crm` | `anonymise-deleted` | 00:30 UTC | Anonymises customer accounts 30 days after a deletion request (PDPL) |
+| `payments` | `reconcile` | on demand (Moyasar webhook) | Re-fetches the payment from Moyasar and applies it once (row lock); 5 attempts |
+| `payments` | `reconcile-pending` | every 5 min | Re-checks Moyasar payments still pending (younger than 24 h) |
+| `payments` | `expire-holds` | every minute | Expires unpaid bookings past their hold (after a last reconcile); bookings awaiting transfer review wait for the reviewer |
 
 Inspect queues with `redis-cli` (`KEYS bull:<queue>:*`) or BullMQ tooling; failed jobs are logged with
 queue, job id and attempt.
@@ -96,6 +99,8 @@ queue, job id and attempt.
 | Photos stuck «قيد المعالجة» | worker logs (`media` queue); R2 health | Restart worker; check R2 credentials/CORS; failed items can be deleted and re-uploaded |
 | Users logged out unexpectedly | API logs for `refresh_reuse`; clock skew | Reuse after the 30 s grace means a stolen or replayed cookie — the family was revoked on purpose |
 | Live updates not arriving | Browser console WebSocket errors; `/ws` through Caddy; `PUBLIC_URL` origin | `PUBLIC_URL` must match the site origin exactly; Redis must be reachable by API and worker |
+| Customer paid but booking still «بانتظار الدفع» | Admin → المدفوعات → the payment → events; Moyasar webhook configured? | «إعادة التحقق» (`POST /admin/payments/:id/reconcile`) re-fetches from Moyasar; the 5-minute job does the same |
+| `payment.anomaly` alert | Payment events (`AMOUNT_MISMATCH` or payment for an inactive booking) | Verify in the Moyasar dashboard; refund from the payment page if the booking cannot be honoured |
 | `429 RATE_LIMITED` for many users | `TRUST_PROXY_HOPS` | Wrong value makes every user share the proxy's IP — set it to the number of proxies |
 | Integration marked «متوقف» | التكاملات → السجل; circuit breaker opens after 5 failures | Fix credentials/provider; the next health check (≤ 15 min) or «اختبار الاتصال» closes it |
 | API refuses to start | Container logs list invalid variables (never values) | Fix `.env` according to [reference/environment.md](./reference/environment.md) |

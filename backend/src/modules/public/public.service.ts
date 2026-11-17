@@ -9,6 +9,7 @@ import { IntegrationsGateway } from '../integrations/gateway.service';
 import { PUBLIC_CACHE_VERSION } from '../properties/properties.service';
 import { buildWhere, pagedIds, type ListQuery } from '../properties/query';
 import { agentView, PUBLIC_INCLUDE, toPublic, type PublicProperty } from '../properties/serializer';
+import { BookingsService } from '../bookings/bookings.service';
 import { SettingsService } from '../settings/settings.service';
 
 const PUBLISHED = { visibility: 'published' as const, deletedAt: null };
@@ -22,6 +23,7 @@ export class PublicService {
     private readonly settings: SettingsService,
     private readonly gateway: IntegrationsGateway,
     @Inject(REDIS) private readonly redis: Redis,
+    private readonly bookings: BookingsService,
   ) {}
 
   /** Redis cache keyed by the public data version; any property/location change bumps the version. */
@@ -173,7 +175,22 @@ export class PublicService {
     if ((await this.redis.set(`view:${id}:${who}`, '1', 'EX', 1800, 'NX')) === 'OK') {
       await this.prisma.$executeRaw`UPDATE "Property" SET "viewCount" = "viewCount" + 1 WHERE "id" = ${id}`;
     }
-    return p;
+    // Booking availability is computed per request (settings, integrations and active bookings change often).
+    const raw = await this.prisma.property.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        offer: true,
+        price: true,
+        rentPeriod: true,
+        status: true,
+        visibility: true,
+        bookingEnabled: true,
+        deletedAt: true,
+        paymentPolicy: true,
+      },
+    });
+    return { ...p, booking: raw ? await this.bookings.publicBlock(raw) : { enabled: false } } as PublicProperty;
   }
 
   /** Same type first, then offer, then city; never closed listings (docs/02 §2). */

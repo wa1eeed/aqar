@@ -33,7 +33,12 @@ Codes thrown by the application:
 | `ACCOUNT_LOCKED` | 429 | تم إيقاف الدخول مؤقتاً بسبب محاولات متكررة، حاول بعد 15 دقيقة | modules/auth/customer-auth.service.ts<br>modules/auth/staff-auth.service.ts |
 | `ALREADY_ACTIVE` | 409 | العضو سجّل الدخول من قبل | modules/staff/staff.service.ts |
 | `ALREADY_ENABLED` | 409 | التحقق بخطوتين مفعّل بالفعل | modules/auth/staff-auth.service.ts |
-| `BOOKING_PROPERTY_UNAVAILABLE` | 409 | العقار غير متاح للحجز حالياً | common/errors/app-exception.ts |
+| `BANK_ACCOUNT_IN_USE` | 409 | الحساب مرتبط بتحويلات سابقة، يمكنك تعطيله بدلاً من حذفه | modules/payments/payments.controller.ts |
+| `BOOKING_HOLD_EXPIRED` | 422 | انتهت مهلة الحجز | modules/payments/transfers.service.ts |
+| `BOOKING_INVALID_TRANSITION` | 422 | لا يمكن تنفيذ هذا الإجراء في حالة الحجز الحالية | modules/bookings/booking-transitions.ts<br>modules/bookings/bookings.service.ts<br>modules/payments/transfers.service.ts |
+| `BOOKING_NOT_AVAILABLE` | 422 | الحجز غير متاح لهذا العقار | modules/bookings/bookings.service.ts |
+| `BOOKING_NOT_PAID` | 422 | لم يُستلم المبلغ المستحق بعد | modules/bookings/bookings.service.ts |
+| `BOOKING_PROPERTY_UNAVAILABLE` | 409 | العقار غير متاح للحجز حالياً | common/errors/app-exception.ts<br>modules/bookings/bookings.service.ts |
 | `CHALLENGE_EXPIRED` | 401 | انتهت صلاحية جلسة الدخول، سجّل الدخول من جديد | modules/auth/staff-auth.service.ts |
 | `CONFIRM_LIVE_REQUIRED` | 422 | التبديل إلى البيئة المباشرة يتطلب تأكيداً | modules/integrations/admin-integrations.controller.ts |
 | `CONFLICT` | 409 | رقم الجوال مستخدم في حساب آخر | modules/customers/customers.service.ts<br>modules/locations/locations.controller.ts |
@@ -42,17 +47,21 @@ Codes thrown by the application:
 | `EMAIL_IN_USE` | 409 | البريد الإلكتروني مستخدم لعضو آخر | modules/staff/staff.service.ts |
 | `FEATURE_DISABLED` | 404 | الميزة غير مفعّلة | modules/customers/customers.service.ts |
 | `FORBIDDEN` | 403 | ليست لديك صلاحية لتنفيذ هذا الإجراء | common/auth/auth.guard.ts<br>modules/leads/assignees.controller.ts<br>modules/leads/leads.service.ts<br>modules/media/media.service.ts<br>modules/properties/properties.service.ts<br>modules/settings/settings.controller.ts<br>modules/staff/staff.service.ts |
+| `INTEGRATION_ERROR` | 502 | تعذّر الاتصال ببوابة الدفع، حاول مرة أخرى | modules/payments/payments.service.ts |
+| `INTEGRATION_NOT_CONFIGURED` | 502 | التقسيط عبر رايز غير متاح حالياً | modules/payments/payments.service.ts |
 | `INVALID_CODE` | 401 | الرمز غير صحيح أو منتهي الصلاحية | modules/auth/customer-auth.service.ts<br>modules/auth/staff-auth.service.ts<br>modules/customers/customers.service.ts |
 | `INVALID_CREDENTIALS` | 401 | البريد الإلكتروني أو كلمة المرور غير صحيحة | modules/auth/customer-auth.service.ts<br>modules/auth/staff-auth.service.ts |
-| `INVALID_SIGNATURE` | 401 | توقيع غير صالح | modules/webhooks/webhooks.controller.ts |
+| `INVALID_SIGNATURE` | 401 | توقيع غير صالح | modules/payments/payments.controller.ts<br>modules/webhooks/webhooks.controller.ts |
 | `INVALID_TOKEN` | 400 | انتهت صلاحية التسجيل، أعد طلب الرمز | modules/auth/customer-auth.service.ts<br>modules/auth/staff-auth.service.ts |
 | `LAST_OWNER` | 422 | لا يمكن إزالة آخر مالك للمنشأة | modules/staff/staff.service.ts |
 | `LIMIT_REACHED` | 422 | الحد الأقصى ${MAX_FAVORITES} عقاراً في المفضلة | modules/customers/customers.service.ts |
 | `MEDIA_LIMIT` | 422 | الحد الأقصى ${MAX_PHOTOS} صورة لكل عقار | modules/media/media.service.ts |
-| `NOT_FOUND` | 404 | العميل غير موجود | modules/customers/customers.service.ts<br>modules/integrations/admin-integrations.controller.ts<br>modules/integrations/integration-store.service.ts<br>modules/leads/leads.service.ts<br>modules/leads/public-leads.ts<br>modules/locations/locations.controller.ts<br>modules/media/media.service.ts<br>modules/nearby/nearby.controller.ts<br>modules/nearby/nearby.service.ts<br>modules/properties/properties.service.ts<br>modules/public/public.controller.ts<br>modules/public/public.service.ts<br>modules/settings/settings.controller.ts<br>modules/settings/settings.service.ts<br>modules/staff/staff.service.ts<br>modules/viewings/viewings.service.ts |
+| `NAFATH_REQUIRED` | 422 | يتطلب هذا الحجز التحقق من الهوية عبر النفاذ الوطني | modules/bookings/bookings.service.ts |
+| `NOT_FOUND` | 404 | الحجز غير موجود | modules/bookings/bookings.service.ts<br>modules/customers/customers.service.ts<br>modules/integrations/admin-integrations.controller.ts<br>modules/integrations/integration-store.service.ts<br>modules/leads/leads.service.ts<br>modules/leads/public-leads.ts<br>modules/locations/locations.controller.ts<br>modules/media/media.service.ts<br>modules/nearby/nearby.controller.ts<br>modules/nearby/nearby.service.ts<br>modules/payments/payments.controller.ts<br>modules/payments/payments.service.ts<br>modules/payments/transfers.service.ts<br>modules/properties/properties.service.ts<br>modules/public/public.controller.ts<br>modules/public/public.service.ts<br>modules/settings/settings.controller.ts<br>modules/settings/settings.service.ts<br>modules/staff/staff.service.ts<br>modules/viewings/viewings.service.ts |
 | `PASSWORD_REUSED` | 422 | اختر كلمة مرور مختلفة عن الحالية | modules/auth/staff-auth.service.ts |
 | `PAYLOAD_TOO_COMPLEX` | 413 | حجم البيانات المرسلة أكبر من المسموح | common/http/json-shape.middleware.ts |
 | `PAYLOAD_TOO_LARGE` | 413 | حجم الصورة يجب ألا يتجاوز 15 ميجابايت | modules/media/media.service.ts |
+| `PAYMENT_NOT_REFUNDABLE` | 422 | لا يمكن استرداد هذه الدفعة | modules/payments/payments.service.ts |
 | `PHONE_IN_USE` | 409 | رقم الجوال مسجّل في حساب آخر | modules/auth/customer-auth.service.ts |
 | `PROVIDER_NOT_READY` | 422 | هذا التكامل بانتظار بيانات الربط من الجهة المزوّدة | modules/integrations/integration-store.service.ts<br>modules/properties/admin-properties.controller.ts |
 | `RATE_LIMITED` | 429 | عدد كبير من المحاولات، حاول لاحقاً | common/rate-limit/rate-limit.guard.ts |
@@ -60,11 +69,14 @@ Codes thrown by the application:
 | `SERVICE_UNAVAILABLE` | 503 | الخدمة غير متاحة مؤقتاً | common/rate-limit/rate-limit.guard.ts |
 | `SESSION_EXPIRED` | 401 | انتهت الجلسة، سجّل الدخول من جديد | modules/auth/auth.controller.ts<br>modules/auth/customer-auth.service.ts<br>modules/auth/staff-auth.service.ts |
 | `SMS_NOT_AVAILABLE` | 422 | الدخول برسالة نصية غير متاح حالياً، استخدم البريد الإلكتروني | modules/auth/customer-auth.service.ts |
-| `STORAGE_NOT_CONFIGURED` | 422 | فعّل تكامل التخزين (Cloudflare R2) أولاً من صفحة التكاملات | modules/media/media.service.ts |
+| `STORAGE_NOT_CONFIGURED` | 422, 503 | فعّل تكامل التخزين (Cloudflare R2) أولاً من صفحة التكاملات | modules/media/media.service.ts<br>modules/payments/file-store.service.ts |
 | `SYSTEM_ROLE` | 422 | أدوار النظام لا يمكن تعديلها | modules/staff/staff.service.ts |
+| `TERMS_OUTDATED` | 409 | تم تحديث شروط الحجز، يرجى مراجعتها والموافقة عليها من جديد | modules/bookings/bookings.service.ts |
 | `TOO_MANY_ATTEMPTS` | 429 | محاولات كثيرة غير صحيحة، سجّل الدخول من جديد | modules/auth/staff-auth.service.ts |
-| `UNAUTHENTICATED` | 401 | يلزم تسجيل الدخول | common/auth/auth.guard.ts<br>modules/customers/customers.service.ts |
-| `VALIDATION_FAILED` | 400 | البيانات المدخلة غير صحيحة | modules/auth/customer-auth.service.ts<br>modules/integrations/integration-store.service.ts<br>modules/leads/leads.service.ts<br>modules/leads/public-leads.ts<br>modules/media/media.service.ts<br>modules/notifications/notifications.controller.ts<br>modules/properties/properties.service.ts<br>modules/staff/staff.service.ts<br>modules/viewings/viewings.service.ts |
+| `TRANSFER_ALREADY_REVIEWED` | 409 | تمت مراجعة هذا الإيصال | modules/payments/transfers.service.ts |
+| `TRANSFER_NOT_ALLOWED` | 422 | لا يمكن رفع إيصال لهذه الدفعة | modules/payments/transfers.service.ts |
+| `UNAUTHENTICATED` | 401 | يلزم تسجيل الدخول | common/auth/auth.guard.ts<br>modules/bookings/bookings.service.ts<br>modules/customers/customers.service.ts |
+| `VALIDATION_FAILED` | 400 | البيانات المدخلة غير صحيحة | modules/auth/customer-auth.service.ts<br>modules/bookings/bookings.service.ts<br>modules/integrations/integration-store.service.ts<br>modules/leads/leads.service.ts<br>modules/leads/public-leads.ts<br>modules/media/media.service.ts<br>modules/notifications/notifications.controller.ts<br>modules/payments/payments.service.ts<br>modules/payments/transfers.service.ts<br>modules/properties/properties.service.ts<br>modules/staff/staff.service.ts<br>modules/viewings/viewings.service.ts |
 | `VIEWING_CONFLICT` | 409 | لدى المستشار موعد آخر في هذا الوقت | modules/viewings/viewings.service.ts |
 | `VIEWING_NOT_CANCELLABLE` | 422 | لا يمكن إلغاء هذا الموعد | modules/customers/customers.service.ts |
 | `WRONG_STEP` | 409 | خطوة الدخول غير متوقعة | modules/auth/staff-auth.service.ts |
