@@ -287,6 +287,25 @@ describe('Bookings & payments (e2e, Phase 5)', () => {
       expect(lastEmail(app, 'a@example.sa')!.subject).toMatch(/تم (تأكيد حجز|استلام دفعتك)/);
     });
 
+    it('the receipt PDF is rendered (Arabic RTL), stored and downloadable by its owner only', async () => {
+      const { ReceiptsService } = await import('../src/modules/payments/receipts.service');
+      const receipts = app.get(ReceiptsService);
+      const html = await receipts.html(paymentId);
+      expect(html).toContain('dir="rtl"');
+      expect(html).toContain('50,000.00 ر.س');
+      if (!receipts.enabled) return; // CHROMIUM_PATH not set in this environment
+      await receipts.generateAndSend(paymentId);
+      const mail = lastEmail(app, 'a@example.sa')!;
+      expect(mail.attachments?.[0]).toMatchObject({
+        contentType: 'application/pdf',
+        filename: expect.stringMatching(/^R-\d{4}-\d{6}\.pdf$/),
+      });
+      const pdf = await as(customers.a!, 'get', `/me/payments/${paymentId}/receipt.pdf`).buffer(true).expect(200);
+      expect(pdf.headers['content-type']).toBe('application/pdf');
+      expect((pdf.body as Buffer).subarray(0, 5).toString()).toBe('%PDF-');
+      await as(customers.b!, 'get', `/me/payments/${paymentId}/receipt.pdf`).expect(404);
+    }, 60_000);
+
     it('admin completes → sold; refunds go through Moyasar and are audited', async () => {
       // Refund needs payments.refund (finance/owner), not available to a sales manager.
       await as(manager, 'post', `/admin/payments/${paymentId}/refund`)
@@ -298,6 +317,50 @@ describe('Bookings & payments (e2e, Phase 5)', () => {
       expect((await prisma.property.findUniqueOrThrow({ where: { id: propertyId } })).status).toBe('sold');
       await as(manager, 'post', `/admin/bookings/${bookingId}/cancel`).send({ reason: 'محاولة' }).expect(422);
     });
+  });
+
+  it('cancel after payment, then a full Moyasar refund → payment refunded, booking refunded, audited', async () => {
+    const p = await property();
+    nock(MOYASAR)
+      .post('/v1/invoices')
+      .reply(201, {
+        id: 'inv_r',
+        status: 'initiated',
+        amount: 5_000_000,
+        currency: 'SAR',
+        url: 'https://checkout.moyasar.com/invoices/inv_r',
+      });
+    const r = await as(customers.b!, 'post', '/me/bookings')
+      .send({ propertyId: p.id, paymentType: 'deposit', paymentMethod: 'moyasar', termsVersion: '1' })
+      .expect(201);
+    const paymentId = r.body.booking.payments[0].id as string;
+    nock(MOYASAR)
+      .get('/v1/invoices/inv_r')
+      .reply(200, {
+        id: 'inv_r',
+        status: 'paid',
+        amount: 5_000_000,
+        currency: 'SAR',
+        metadata: { paymentId },
+        payments: [{ id: 'pay_r', status: 'paid', amount: 5_000_000, currency: 'SAR' }],
+      });
+    await as(customers.b!, 'post', `/me/payments/${paymentId}/verify`).send({}).expect(200);
+    const payments = app.get(PaymentsService);
+    await as(manager, 'post', `/admin/bookings/${r.body.booking.id}/cancel`)
+      .send({ reason: 'تعذّر إكمال الصفقة' })
+      .expect(200);
+    expect((await prisma.property.findUniqueOrThrow({ where: { id: p.id } })).status).toBe('available');
+    await expect(payments.refund(financeId, paymentId, 6_000_000n, 'أكثر من المدفوع')).rejects.toMatchObject({
+      code: 'VALIDATION_FAILED',
+    });
+    const refund = nock(MOYASAR)
+      .post('/v1/payments/pay_r/refund', { amount: 5_000_000 })
+      .reply(201, { id: 'pay_r', status: 'refunded', amount: 5_000_000, currency: 'SAR' });
+    const out = await payments.refund(financeId, paymentId, 5_000_000n, 'إلغاء الحجز');
+    expect(refund.isDone()).toBe(true);
+    expect(out).toMatchObject({ status: 'refunded', refundedAmount: 5_000_000n });
+    expect((await prisma.booking.findUniqueOrThrow({ where: { id: r.body.booking.id } })).status).toBe('refunded');
+    expect(await prisma.auditLog.count({ where: { entityId: paymentId, action: 'payment.refund' } })).toBe(1);
   });
 
   it('amount mismatch → payment failed, booking not confirmed, finance alerted', async () => {

@@ -4,9 +4,11 @@ import type { Booking, Payment, PaymentMethod, Prisma } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
 import { nextCounter } from '../../common/counter';
 import { AppException } from '../../common/errors/app-exception';
+import type { Queue } from 'bullmq';
 import { ENV } from '../../config/config.module';
 import type { Env } from '../../config/env';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PAYMENTS_QUEUE } from '../../queue/queue.module';
 import { AuditService } from '../audit/audit.service';
 import { BookingTransitions, type PendingEvent } from '../bookings/booking-transitions';
 import { IntegrationsGateway } from '../integrations/gateway.service';
@@ -66,10 +68,28 @@ export class PaymentsService {
     private readonly transitions: BookingTransitions,
     private readonly events: EventEmitter2,
     @Inject(ENV) private readonly env: Env,
+    @Inject(PAYMENTS_QUEUE) private readonly queue: Queue,
   ) {}
 
   emitAll(events: PendingEvent[]): void {
-    for (const [key, payload] of events) this.events.emit(key, payload);
+    for (const [key, payload] of events) {
+      this.events.emit(key, payload);
+      // Receipt PDF + email are produced by the worker (docs/04 §8).
+      if (key === 'payment.paid') {
+        void this.queue
+          .add(
+            'receipt',
+            { paymentId: payload.paymentId },
+            {
+              jobId: `receipt-${String(payload.paymentId)}`,
+              attempts: 5,
+              backoff: { type: 'exponential', delay: 30_000 },
+              removeOnComplete: true,
+            },
+          )
+          .catch((e: unknown) => this.logger.error({ err: e }, 'receipt job not queued'));
+      }
+    }
   }
 
   /** Customer return page (query string survives provider redirects; docs/QUESTIONS #43). */

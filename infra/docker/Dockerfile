@@ -39,9 +39,10 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 
 # ───────────── api / worker runtime ─────────────
 FROM ${NODE_IMAGE} AS api
-RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates tini \
+# chromium: receipt PDFs rendered by the worker (docs/04 §8); fonts are embedded by the app.
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates tini chromium \
  && rm -rf /var/lib/apt/lists/*
-ENV NODE_ENV=production PORT=3000
+ENV NODE_ENV=production PORT=3000 CHROMIUM_PATH=/usr/bin/chromium
 WORKDIR /app
 COPY --from=build --chown=node:node /out ./
 # Demo listings for staging (`node dist/cli/index.js seed-demo`); never used in production.

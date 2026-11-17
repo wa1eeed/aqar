@@ -51,6 +51,8 @@ export const envSchema = z
       .default('false')
       .transform((v) => v === 'true'),
     SENTRY_DSN: z.string().url().optional(),
+    /** Chromium/Chrome binary used by the worker to render receipt PDFs (docs/04 §8). */
+    CHROMIUM_PATH: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
     if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {

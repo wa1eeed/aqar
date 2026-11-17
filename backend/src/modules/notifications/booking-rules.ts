@@ -280,27 +280,12 @@ export class BookingRules {
       if (!p) return;
       const b = p.booking;
       const title = `تم استلام دفعتك ${sarLabel(p.amount)}`;
+      // In-app here; the receipt email (with the PDF attached) is sent by the worker's receipt job.
       await this.notifications.dispatch(
         'payment.paid',
         [customer(b.customerId)],
         { title, body: `الحجز ${b.number} · ${b.property.title}`, link: this.customerLink(b.id) },
-        {
-          entityId: p.id,
-          email: {
-            template: 'payment-receipt',
-            content: this.email(
-              title,
-              'استلمنا دفعتك بنجاح. يمكنك تنزيل الإيصال من صفحة الحجز.',
-              [
-                ['رقم الإيصال', p.receiptNumber ?? ''],
-                ['رقم الحجز', b.number],
-                ['الطريقة', METHOD[p.method] ?? p.method],
-                ['العقار', b.property.title],
-              ],
-              { label: 'عرض الحجز والإيصال', url: this.accountUrl(b.id) },
-            ),
-          },
-        },
+        { entityId: p.id },
       );
       await this.notifications.dispatch(
         'payment.paid',

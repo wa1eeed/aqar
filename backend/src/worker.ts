@@ -32,6 +32,7 @@ import { CustomersModule } from './modules/customers/customers.module';
 import { BookingsCoreModule } from './modules/bookings/bookings.module';
 import { BookingsService } from './modules/bookings/bookings.service';
 import { PaymentsService } from './modules/payments/payments.service';
+import { ReceiptsService } from './modules/payments/receipts.service';
 import { CustomersService } from './modules/customers/customers.service';
 import { CrmJobsService } from './modules/notifications/crm-jobs.service';
 import { NotificationsCoreModule } from './modules/notifications/notifications.module';
@@ -135,6 +136,7 @@ async function main(): Promise<void> {
   // Payments: webhook-triggered reconciles, the 5-minute reconcile sweep and hold expiry (docs/04 §4–5).
   const payments = app.get(PaymentsService);
   const bookings = app.get(BookingsService);
+  const receipts = app.get(ReceiptsService);
   const paymentsWorker = new Worker<{ paymentId?: string; hintPaymentId?: string | null }>(
     QUEUES.payments,
     async (job) => {
@@ -145,6 +147,7 @@ async function main(): Promise<void> {
         });
       }
       if (job.name === 'reconcile-pending') await payments.reconcilePending();
+      if (job.name === 'receipt' && job.data.paymentId) await receipts.generateAndSend(job.data.paymentId);
       if (job.name === 'expire-holds') {
         const n = await bookings.expireHolds();
         if (n) log.log(`expired ${n} booking holds`);

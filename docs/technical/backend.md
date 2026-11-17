@@ -114,5 +114,8 @@ and document them in [operations.md](./operations.md#jobs-and-queues).
     increments `amountPaid` and auto-confirms when fully paid.
   - `TransfersService`: receipt upload (file type detected from its bytes, size limit, private storage via
     `FileStore`), review approve/reject; `iban.ts` validates Saudi IBANs (mod-97).
+  - `ReceiptsService` (worker): receipt HTML → PDF with `playwright-core` + system Chromium
+    (`CHROMIUM_PATH`), font embedded from `@fontsource/ibm-plex-sans-arabic`, stored at
+    `uploads/receipts/{paymentId}.pdf`, emailed with the PDF attached; downloads render on demand if needed.
   - `FileStore` uses the private R2 bucket; in development/test without R2 it writes to
     `backend/.uploads` (never in staging/production).

@@ -29,3 +29,4 @@ value and never prints values. Production template: `infra/.env.example`; local:
 | `R2_PUBLIC_BASE_URL` | no |  | CDN base URL of the media bucket. |
 | `SWAGGER_ENABLED` | no | `false` | `true` serves Swagger UI at `/api/docs` (never in production). |
 | `SENTRY_DSN` | no |  | Optional error tracking DSN. |
+| `CHROMIUM_PATH` | no |  | Chromium binary for receipt PDFs (worker). Set in the Docker image (`/usr/bin/chromium`); without it receipts are emailed without a PDF and downloads answer 503. |

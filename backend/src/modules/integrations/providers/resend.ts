@@ -36,6 +36,8 @@ export interface OutgoingMessage {
   idempotencyKey: string;
   tags?: Record<string, string>;
   headers?: Record<string, string>;
+  /** Base64 content; small files only (receipts). */
+  attachments?: Array<{ filename: string; content: string; contentType: string }>;
 }
 
 /** Display name is quoted and stripped of characters that could break the From header. */
@@ -59,6 +61,15 @@ export async function resendSend(ctx: Ctx, msg: OutgoingMessage): Promise<{ id: 
       text: msg.text,
       ...(ctx.config.replyTo ? { reply_to: ctx.config.replyTo } : {}),
       ...(msg.headers ? { headers: msg.headers } : {}),
+      ...(msg.attachments?.length
+        ? {
+            attachments: msg.attachments.map((a) => ({
+              filename: a.filename,
+              content: a.content,
+              content_type: a.contentType,
+            })),
+          }
+        : {}),
       ...(msg.tags ? { tags: Object.entries(msg.tags).map(([name, value]) => ({ name, value })) } : {}),
     },
   });

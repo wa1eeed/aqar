@@ -15,6 +15,9 @@ phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md
 - Payments: Moyasar invoice/embedded flows, server-side reconcile (webhook → queue, callback, 5-minute
   job) with amount/currency/metadata checks and anomaly alerts, refunds; bank transfers with receipt
   upload (byte-level type check), review approve/reject; bank accounts with IBAN mod-97 validation.
+- Receipts: number `R-YYYY-NNNNNN`, Arabic PDF rendered in the worker (embedded IBM Plex Sans Arabic),
+  emailed as an attachment, downloadable by the customer and staff; Chromium added to the API image.
+- Email attachments supported end to end (outbox → queue → Resend).
 - Notifications for `booking.*` and `payment.*` events; live `booking.updated` / `payment.updated`.
 - Moyasar payment operations in the integrations gateway (`gateway.payments()`): hosted invoice,
   fetch invoice/payment, refund, webhook verification (`secret_token`).

@@ -7,12 +7,13 @@ import {
   MoyasarWebhookController,
 } from '../payments/payments.controller';
 import { PaymentsService } from '../payments/payments.service';
+import { ReceiptsService } from '../payments/receipts.service';
 import { TransfersService } from '../payments/transfers.service';
 import { BookingTransitions } from './booking-transitions';
 import { AdminBookingsController, MeBookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
 
-const providers = [BookingsService, BookingTransitions, PaymentsService, TransfersService, FileStore];
+const providers = [BookingsService, BookingTransitions, PaymentsService, TransfersService, FileStore, ReceiptsService];
 
 /** Bookings and payments services (API and worker). */
 @Module({ imports: [SettingsModule], providers, exports: providers })

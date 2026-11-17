@@ -19,12 +19,20 @@ import {
 
 export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number];
 
+export interface EmailAttachment {
+  filename: string;
+  /** base64 */
+  content: string;
+  contentType: string;
+}
+
 export interface OutgoingEmail {
   to: string;
   subject: string;
   text: string;
   html: string;
   template: string;
+  attachments?: EmailAttachment[];
 }
 
 export interface EmailJob extends OutgoingEmail {
@@ -86,7 +94,7 @@ export class EmailService {
     to: string,
     content: NotificationEmail,
     related?: { type: string; id: string },
-    opts: { manageUrl?: string } = {},
+    opts: { manageUrl?: string; attachments?: EmailAttachment[] } = {},
   ): Promise<void> {
     const override = (await this.settings.get('notifications')).templateOverrides[template];
     const merged: NotificationEmail = {
@@ -94,7 +102,13 @@ export class EmailService {
       ...(override?.subject ? { subject: override.subject } : {}),
       ...(override?.intro ? { intro: override.intro } : {}),
     };
-    await this.enqueue(template, to, renderNotificationEmail(merged, await this.context(opts.manageUrl)), related);
+    await this.enqueue(
+      template,
+      to,
+      renderNotificationEmail(merged, await this.context(opts.manageUrl)),
+      related,
+      opts.attachments,
+    );
   }
 
   async sendTemplate(
@@ -111,6 +125,7 @@ export class EmailService {
     to: string,
     rendered: RenderedEmail,
     related?: { type: string; id: string },
+    attachments?: EmailAttachment[],
   ): Promise<void> {
     const log = await this.prisma.emailLog.create({
       data: {
@@ -123,7 +138,7 @@ export class EmailService {
     });
 
     if (await this.gateway.email().isReady()) {
-      const job: EmailJob = { emailLogId: log.id, to, template, ...rendered };
+      const job: EmailJob = { emailLogId: log.id, to, template, ...rendered, ...(attachments ? { attachments } : {}) };
       await this.queue.add('send', job, { ...EMAIL_JOB_OPTIONS, jobId: log.id });
       return;
     }
@@ -136,7 +151,7 @@ export class EmailService {
       this.logger.error({ template, emailLogId: log.id }, 'email not sent: email integration is not configured');
       return;
     }
-    this.captured.push({ to, template, ...rendered });
+    this.captured.push({ to, template, ...rendered, ...(attachments ? { attachments } : {}) });
     if (this.captured.length > 50) this.captured.shift();
     if (this.env.NODE_ENV === 'development') {
       this.logger.warn(`[dev email] to=${to} subject="${rendered.subject}"\n${rendered.text}`);
@@ -155,6 +170,7 @@ export class EmailService {
         subject: job.subject,
         html: job.html,
         text: job.text,
+        ...(job.attachments ? { attachments: job.attachments } : {}),
         idempotencyKey: `email:${job.emailLogId}`,
         tags: { template: job.template.replace(/[^a-zA-Z0-9_-]/g, '_') },
       });

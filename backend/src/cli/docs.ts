@@ -194,6 +194,8 @@ const ENV_DOCS: Record<string, string> = {
   R2_PUBLIC_BASE_URL: 'CDN base URL of the media bucket.',
   SWAGGER_ENABLED: '`true` serves Swagger UI at `/api/docs` (never in production).',
   SENTRY_DSN: 'Optional error tracking DSN.',
+  CHROMIUM_PATH:
+    'Chromium binary for receipt PDFs (worker). Set in the Docker image (`/usr/bin/chromium`); without it receipts are emailed without a PDF and downloads answer 503.',
 };
 function environment(): string {
   const shape = (envSchema as unknown as { _def: { schema: z.AnyZodObject } })._def.schema.shape;

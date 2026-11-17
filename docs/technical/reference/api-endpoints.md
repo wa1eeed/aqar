@@ -3,7 +3,7 @@
 > **Generated** by `pnpm docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
-Base path `/api/v1`. **145 endpoints.** Access: `public` (no token; a valid token is still read),
+Base path `/api/v1`. **147 endpoints.** Access: `public` (no token; a valid token is still read),
 `staff`, `customer` or `any signed-in`. Every listed permission is required. *Re-auth* = password/TOTP
 within the last 10 minutes (`REAUTH_REQUIRED`). *CSRF* = header `X-Requested-With: nx` required.
 Public GETs without a rule share the default limit of 120/min per IP. Request/response schemas:
@@ -100,6 +100,7 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `PATCH` | `/api/v1/admin/bank-accounts/:id` | staff | `settings.payments` | yes |  |  | Edit a bank account (re-authentication required). |
 | `GET` | `/api/v1/admin/payments` | staff | `payments.view` |  |  |  | Payments with filters (status, method, search) and this month's totals; `status=under_review` is the transfer review queue. |
 | `GET` | `/api/v1/admin/payments/:id` | staff | `payments.view` |  |  |  | Payment details with provider ids, events and the transfer submission. |
+| `GET` | `/api/v1/admin/payments/:id/receipt.pdf` | staff | `payments.view` |  |  |  | Payment receipt PDF (staff copy). |
 | `POST` | `/api/v1/admin/payments/:id/reconcile` | staff | `payments.view` |  |  |  | Re-check a pending online payment with the provider now. |
 | `POST` | `/api/v1/admin/payments/:id/refund` | staff | `payments.refund` | yes |  |  | Refund all or part of a paid payment (Moyasar via the gateway; bank transfers recorded as refunded by finance). |
 | `POST` | `/api/v1/admin/payments/:id/transfer/approve` | staff | `payments.review` |  |  |  | Approve a bank transfer receipt: payment paid, booking confirmed, customer notified. |
@@ -230,6 +231,7 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 
 | Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
 |---|---|---|---|---|---|---|---|
+| `GET` | `/api/v1/me/payments/:id/receipt.pdf` | customer | — |  |  | 30/1h per ip | Payment receipt PDF of one of the customer's paid payments. |
 | `POST` | `/api/v1/me/payments/:id/transfer` | customer | — |  |  | 10/1h per ip | Upload a bank transfer receipt (multipart: receipt + fields); the booking waits for review. |
 | `POST` | `/api/v1/me/payments/:id/verify` | customer | — |  |  | 30/1min per ip | Called by the result page after a provider redirect: re-fetches the payment from the provider. |
 

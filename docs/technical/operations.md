@@ -57,6 +57,7 @@ so redeploying never duplicates them. Jobs are idempotent.
 | `crm` | `anonymise-deleted` | 00:30 UTC | Anonymises customer accounts 30 days after a deletion request (PDPL) |
 | `payments` | `reconcile` | on demand (Moyasar webhook) | Re-fetches the payment from Moyasar and applies it once (row lock); 5 attempts |
 | `payments` | `reconcile-pending` | every 5 min | Re-checks Moyasar payments still pending (younger than 24 h) |
+| `payments` | `receipt` | after each paid payment | Renders the Arabic receipt PDF (headless Chromium, embedded font, JS and network off), stores it privately and emails it to the customer as an attachment; 5 attempts |
 | `payments` | `expire-holds` | every minute | Expires unpaid bookings past their hold (after a last reconcile); bookings awaiting transfer review wait for the reviewer |
 
 Inspect queues with `redis-cli` (`KEYS bull:<queue>:*`) or BullMQ tooling; failed jobs are logged with

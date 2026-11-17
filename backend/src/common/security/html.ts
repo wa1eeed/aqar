@@ -43,3 +43,8 @@ export function sanitizeRichText(html: string): string {
 export function stripTags(text: string): string {
   return sanitizeHtml(text, { allowedTags: [], allowedAttributes: {} }).trim();
 }
+
+/** Escapes text for HTML element content and quoted attributes. */
+export function escapeHtml(v: string): string {
+  return v.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+}

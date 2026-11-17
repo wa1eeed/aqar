@@ -35,9 +35,17 @@ import { IntegrationsGateway } from '../integrations/gateway.service';
 import { moyasarVerifyWebhook } from '../integrations/providers/moyasar';
 import { formatIban, isValidSaudiIban, normaliseIban } from './iban';
 import { PaymentsService } from './payments.service';
+import { ReceiptsService } from './receipts.service';
 import { TransfersService } from './transfers.service';
 
 const MAX_UPLOAD = 10 * 1024 * 1024;
+
+function sendPdf(res: Response, body: Buffer, filename: string): void {
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename.replace(/[^A-Za-z0-9._-]/g, '')}"`);
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.send(body);
+}
 const cuid = z.string().regex(/^[a-z0-9]{10,40}$/i);
 
 class TransferDto extends createZodDto(
@@ -122,7 +130,21 @@ export class MePaymentsController {
     private readonly payments: PaymentsService,
     private readonly transfers: TransfersService,
     private readonly prisma: PrismaService,
+    private readonly receipts: ReceiptsService,
   ) {}
+
+  /** Payment receipt PDF of one of the customer's paid payments. */
+  @Customer()
+  @RateLimit({ name: 'receipt-download', limit: 30, windowSec: 3600, by: 'ip' })
+  @Get(':id/receipt.pdf')
+  async receipt(@CurrentUser() user: AuthUser, @Param('id') id: string, @Res() res: Response) {
+    const p = await this.prisma.payment.findFirst({
+      where: { id, booking: { customerId: user.id }, receiptNumber: { not: null } },
+      select: { receiptNumber: true },
+    });
+    if (!p) throw new AppException('NOT_FOUND', 404, 'لا يوجد إيصال لهذه الدفعة');
+    sendPdf(res, await this.receipts.file(id), `${p.receiptNumber}.pdf`);
+  }
 
   /** Upload a bank transfer receipt (multipart: receipt + fields); the booking waits for review. */
   @Customer()
@@ -168,7 +190,20 @@ export class AdminPaymentsController {
     private readonly payments: PaymentsService,
     private readonly transfers: TransfersService,
     private readonly audit: AuditService,
+    private readonly receipts: ReceiptsService,
   ) {}
+
+  /** Payment receipt PDF (staff copy). */
+  @Staff('payments.view')
+  @Get('payments/:id/receipt.pdf')
+  async receiptPdf(@Param('id') id: string, @Res() res: Response) {
+    const p = await this.prisma.payment.findFirst({
+      where: { id, receiptNumber: { not: null } },
+      select: { receiptNumber: true },
+    });
+    if (!p) throw new AppException('NOT_FOUND', 404, 'لا يوجد إيصال لهذه الدفعة');
+    sendPdf(res, await this.receipts.file(id), `${p.receiptNumber}.pdf`);
+  }
 
   /** Payments with filters (status, method, search) and this month's totals; `status=under_review` is the transfer review queue. */
   @Staff('payments.view')
