@@ -129,7 +129,44 @@ job → worker downloads, validates, strips EXIF, renders 480/960/1920 px JPEG +
 sharp, stores them in the public media bucket → listing shows CDN URLs. Demo listings use static
 images under `/assets/img`.
 
-## 8. Data ownership
+## 8. Booking and payment flow
+
+```mermaid
+sequenceDiagram
+  participant C as Customer (site)
+  participant API as API
+  participant DB as PostgreSQL
+  participant Q as Worker (payments queue)
+  participant M as Moyasar (via IntegrationsGateway)
+  C->>API: POST /me/bookings/quote {propertyId, paymentType}
+  API-->>C: amounts, methods, holdMinutes, terms (server-computed)
+  C->>API: POST /me/bookings (Idempotency-Key)
+  API->>DB: tx: SELECT property FOR UPDATE · insert booking (one_active_booking index → 409) · payment row · audit
+  alt Moyasar
+    API->>M: create invoice (or return embedded-form params)
+    API-->>C: nextAction redirect / moyasar_form
+    C->>M: pays on Moyasar
+    M-->>API: webhook (secret_token) → stored once → queue reconcile
+    C->>API: back to /account/booking?b&p → POST /me/payments/:id/verify
+    API->>M: fetch payment / invoice (server-side)
+    API->>DB: tx + row lock: amount, currency, metadata match → paid · receipt no. · confirmed · property reserved
+  else Bank transfer
+    API-->>C: nextAction bank_transfer (accounts, reference, deadline)
+    C->>API: POST /me/payments/:id/transfer (multipart receipt)
+    API->>DB: under_review · hold extended for the review
+    Note over API: staff approve → paid · confirmed · reserved / reject → pending_payment
+  end
+  API-)Q: receipt job → Arabic PDF (Chromium) → private storage → email attachment
+  Q->>DB: every minute expire-holds · every 5 min reconcile-pending
+  API-)C: booking.updated / payment.updated (Socket.IO, customer room) + notifications
+```
+
+Rules: the browser never decides an amount or a status; webhooks only queue a reconcile; every state
+change goes through `BookingTransitions` (audit + `PropertyStatusHistory` + events after commit);
+receipt numbers `R-YYYY-NNNNNN`, booking numbers `B-YYYY-NNNNNN`. Details:
+[backend.md §4](./backend.md#4-domain-notes), [integrations.md](./integrations.md), docs/04.
+
+## 9. Data ownership
 
 | Data | Where | Notes |
 |---|---|---|

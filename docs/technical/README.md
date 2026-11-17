@@ -47,9 +47,9 @@ Interactive API schemas: Swagger UI at `/api/docs` when `SWAGGER_ENABLED=true` (
 ## Platform at a glance
 
 - **Single company** real-estate platform: staff publish listings; customers browse, save, request
-  viewings and (Phase 5) book with a deposit or full payment.
+  viewings and book with a deposit or full payment (Moyasar or bank transfer).
 - **Monorepo** (pnpm): `packages/schema` (shared property schema), `backend` (NestJS API + worker),
   `admin` (React SPA), `frontend` (approved vanilla-JS public site), `infra` (Docker, Caddy, scripts).
 - **Stack**: Node 20, TypeScript strict, NestJS 10, Prisma 5 / PostgreSQL 16, Redis 7, BullMQ,
   Socket.IO, React 18 + Vite 5, Caddy 2, Docker Compose. Arabic RTL first; money in halalas.
-- **Status by phase**: see `docs/PROGRESS.md`.
+- **Status by phase**: see `docs/PROGRESS.md` (Phases 0–5 done and merged). Continuing the build: `docs/HANDOVER.md`.

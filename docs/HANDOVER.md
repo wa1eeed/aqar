@@ -8,6 +8,25 @@
 
 ---
 
+## 0. Start here — checklist for a new session (any Claude Code account)
+
+1. Read, in order: this file → `CLAUDE.md` → `docs/technical/README.md` (then the guide for the area
+   you will touch) → the spec files for the current phase (`docs/11` tells which) → `docs/PROGRESS.md`
+   (what is done, test counts) → `docs/QUESTIONS.md` (decisions already taken — do not re-decide them).
+2. Check the branch: work on the session's development branch; `main` holds every merged phase
+   (Phase 0–5 today). `git log --oneline -10` shows the latest work; `CHANGELOG.md` summarises it.
+3. Bring the environment up (§3.1: PostgreSQL, Redis, `.env`, migrations, seed) and run the full check
+   (§3.2). **Everything must be green before you change anything** — if not, fix the environment first.
+4. Pick up the next phase from §8 (the plan names the spec sections, screenshots and the task order).
+5. For every task: code + tests + docs in the same commit (§9 and `CLAUDE.md` "Definition of done");
+   at the end of a phase run its acceptance checklist, update `PROGRESS.md`, this file and
+   `CHANGELOG.md`, report to the owner in Arabic and ask before merging (§1 working agreement).
+
+Nothing important lives outside the repository: helper scripts used for browser checks are described
+in `docs/technical/testing.md` (§ Browser checks), sandbox Docker builds in §10 below.
+
+---
+
 ## 1. Where the project stands
 
 | Phase (docs/11) | Status | Merged to `main` |
@@ -25,6 +44,19 @@
 Acceptance results, test counts and per-task file locations for each finished phase are in
 `docs/PROGRESS.md`.
 
+### Open items carried forward (do not lose them)
+
+| Item | Why it is open | Where it is tracked |
+|---|---|---|
+| Live check of Resend, Moyasar (payment + refund + webhook) and Google with sandbox keys | Build sandbox could not reach the providers; adapters tested with recorded responses | QUESTIONS #21, #53 |
+| Moyasar embedded-form version `1.14.0` | Could not confirm the latest version | QUESTIONS #53, `frontend/assets/js/session.js` |
+| Rize (rent instalments) adapter | Awaiting the partner's API documentation; the checkout hides Rize until it is ready | QUESTIONS #51, `providers/rize.ts` |
+| REGA, Ejar, Nafath, Nafith integrations | Prepared (settings only), awaiting credentials/documentation; `nafathRequiredAbove` blocks bookings above the threshold if set | docs/05, QUESTIONS |
+| SMS provider choice (Unifonic / Taqnyat / Msegat) | Awaiting the company's choice; SMS preferences stored, nothing sent | QUESTIONS #24, #34 |
+| REGA badge in the checkout summary, footer licensing badges | Phase 6 (licensing settings) | QUESTIONS #52, §8 |
+| Production deployment of the backend | Coolify still deploys only `frontend/`; switch to Docker Compose | §7, `infra/README.md`, `docs/technical/operations.md` |
+| Confirm the open decisions with the owner | Every decision in `docs/QUESTIONS.md` was taken to keep going and awaits confirmation | `docs/QUESTIONS.md` |
+
 ### Working agreement with the owner (keep it)
 
 - Reply to the owner **in Arabic**; code, comments, commits and docs in English (UI copy Arabic).
@@ -35,6 +67,14 @@ Acceptance results, test counts and per-task file locations for each finished ph
 - Never commit secrets: `backend/.env` and `infra/.env.*` are git-ignored (only `*.example` are tracked).
 - No model names in code, commits or docs.
 - When the spec is ambiguous: decide, implement, and record the decision in `docs/QUESTIONS.md`.
+- **Documentation is continuous and must stay professional and complete** (explicit request of the
+  owner): every change updates the affected guide in `docs/technical/`, regenerates the reference
+  (`pnpm run docs`) and adds a `CHANGELOG.md` line, so any technical team — or another Claude Code
+  account — can continue without this conversation.
+- Security first: default-deny routes, server-side amounts/statuses, secrets encrypted and never
+  returned, CSP for every new origin, audit + events for every state change (see `docs/technical/security.md`).
+- Report format at the end of a phase: what now works, acceptance results, issues found and fixed,
+  what remains before go-live, then the merge question.
 
 ---
 
@@ -52,8 +92,10 @@ backend/           NestJS 10 API + worker (same image). Prisma 5 (PostgreSQL 16)
   src/main.ts      HTTP API (prefix /api/v1) — src/bootstrap.ts holds all hardening (helmet, CSP,
                    body limits, trust proxy, Swagger in non-prod, Socket.IO Redis adapter)
   src/worker.ts    BullMQ workers: email, media, integrations (health/prune), crm (reminders,
-                   saved-search digest, PDPL anonymisation)
-  src/cli/         `node dist/cli/index.js <cmd>`: seed-demo, rotate-encryption-key; seed.ts = owner seed
+                   saved-search digest, PDPL anonymisation), payments (reconcile, reconcile-pending,
+                   expire-holds, receipt PDFs)
+  src/cli/         `node dist/cli/index.js <cmd>`: seed-demo, rotate-encryption-key; seed.ts = owner seed;
+                   docs.ts = generator of docs/technical/reference (`pnpm run docs`)
   src/common/      auth guard/decorators/scopes, errors, rate limit, CSRF, security helpers, CSV
   src/modules/     one Nest module per domain (see §4)
   test/            e2e specs (supertest + socket.io-client + nock); unit specs live next to sources
@@ -64,19 +106,38 @@ frontend/          The approved public site (vanilla JS). DO NOT redesign. New p
   assets/js/       config.js · schema.js (generated) · api.js · ui.js · session.js (customer
                    session, login modal, bell, realtime client) · map.js · pages/*.js
   assets/css/      main.css (site tokens + Phase 4 header/login additions) · account.css
-  account/         customer pages (index, viewings, notifications, saved-searches, settings)
+  booking.html     checkout (/booking#p-{id}) — script pages/booking.js
+  account/         customer pages (index, bookings, booking, viewings, notifications, saved-searches,
+                   settings) — one script: pages/account.js
   deploy/nginx.conf  legacy frontend-only container (current Coolify deployment)
 infra/             docker-compose.yml (+ .dev.yml), Caddyfile, docker/Dockerfile, scripts, README
 design/            screenshots (visual source of truth) + clickable prototype
 spec-assets/       logos supplied with the spec (REGA, Ejar)
 docs/              spec 00–11 + PROGRESS + QUESTIONS + this file
+  technical/       professional technical documentation (guides) + reference/ (generated, CI-checked)
+CHANGELOG.md       one line per change; a section per merged phase
 ```
 
 ---
 
 ## 3. Running everything locally (no Docker)
 
-Prerequisites: Node 20, pnpm 10, PostgreSQL 16, Redis 7.
+Prerequisites: Node 20, pnpm 10, PostgreSQL 16, Redis 7 (all present in the Claude Code cloud image;
+Chromium for receipts is at `/opt/pw-browsers/chromium`).
+
+### 3.1 Fresh container bootstrap (copy-paste)
+
+```bash
+pg_ctlcluster 16 main start          # or: service postgresql start
+redis-server --daemonize yes
+sudo -u postgres psql -c "CREATE ROLE nx LOGIN PASSWORD 'nx_dev_password' CREATEDB;"   # skip if it exists
+for db in nx nx_test nx_shadow; do sudo -u postgres createdb -O nx $db; done              # skip existing ones
+```
+`backend/.env` (git-ignored) — start from `backend/.env.example`; required secrets:
+`openssl rand -base64 32` for `APP_ENCRYPTION_KEY`, `openssl rand -base64 48` for the JWT secrets;
+set `SEED_OWNER_EMAIL`, `NODE_ENV=development`, `PUBLIC_URL` = the origin you browse from
+(e.g. `http://127.0.0.1:8090` with the nginx recipe in `docs/technical/testing.md`) and
+`CHROMIUM_PATH=/opt/pw-browsers/chromium`. Full list: `docs/technical/reference/environment.md`.
 
 ```bash
 pnpm install
@@ -100,17 +161,19 @@ Development emails: with no Resend integration configured, `NODE_ENV=development
 (OTP codes included) to the API log (`[dev email]`); `test` keeps them in memory
 (`EmailService.captured`); staging/production mark them failed — codes never reach logs there.
 
-### Tests and checks (all must pass before a commit)
+### 3.2 Tests and checks (all must pass before a commit)
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck
 pnpm -r test            # schema (vitest) + backend (jest: unit + e2e) + admin (vitest)
 pnpm --filter @nx/schema check:frontend
+pnpm docs:check         # generated reference up to date (run `pnpm run docs` to regenerate)
 ```
+Receipt tests render a PDF: export `CHROMIUM_PATH=/opt/pw-browsers/chromium` before `pnpm -r test`.
 Backend e2e needs PostgreSQL + Redis: by default `postgresql://nx:nx_dev_password@localhost:5432/nx_test`
 and `redis://localhost:6379/15` (override with `TEST_DATABASE_URL` / `TEST_REDIS_URL`). Each suite
 calls `resetDb()` (test/auth-helpers.ts) — **add every new table to it** or suites leak into each other.
-Current count: 216 tests (schema 10, backend 197, admin 9).
+Current count: 240 tests (schema 10, backend 221, admin 9).
 
 ---
 
@@ -234,9 +297,21 @@ the embedded form version (QUESTIONS #21, #53).
 - After editing `prisma/schema.prisma`: create a migration (`npx prisma migrate dev --name …`, or
   `prisma migrate diff --from-migrations … --to-schema-datamodel …` in non-interactive shells) and
   keep `resetDb()` in `test/auth-helpers.ts` in sync.
+- **Docker in a restricted sandbox** (Claude Code cloud): start the daemon with `nohup dockerd &`. OS
+  package mirrors are blocked there, so build from a derived Dockerfile: copy `infra/docker/Dockerfile`,
+  add after `FROM ${NODE_IMAGE} AS deps` the lines `COPY --from=ccr ca-bundle.crt
+  /usr/local/share/ca-certificates/sandbox.crt`, `ENV NODE_EXTRA_CA_CERTS=…/sandbox.crt` and
+  `ARG HTTPS_PROXY HTTP_PROXY NO_PROXY`; use `node:20-bookworm` for the `api` stage; drop the
+  `apt-get` RUN block (so no Chromium/tini in that test image) and the tini ENTRYPOINT. Build each
+  target with `docker buildx build --network host --build-context ccr=/root/.ccr --build-arg
+  HTTPS_PROXY=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTPS_PROXY -f <derived> --target <api|admin-static|frontend-static>
+  -t nx/<api|admin|frontend>:latest --load .`, then `docker compose -f infra/docker-compose.yml -f
+  infra/docker-compose.dev.yml --env-file infra/.env.dev up -d --no-build` (create `infra/.env.dev`
+  from `infra/.env.example`). Production images are built by CI with the real Dockerfile.
 - Receipt PDFs need Chromium: locally set `CHROMIUM_PATH=/opt/pw-browsers/chromium` (the Playwright
   browser) for the worker and the backend tests.
-- Browser checks: Playwright is available; serve the stack through Caddy (`infra/Caddyfile`) so
-  `/api`, `/ws`, `/admin` and the site share one origin. The owner account forces a password change
+- Browser checks: Playwright is available; serve the site and the API on one origin (nginx recipe
+  in `docs/technical/testing.md`, or the Docker stack through Caddy) so `/api`, `/ws` and the site
+  share it; the admin can run on Vite (`:5173`, proxies `/api` and `/ws`). The owner account forces a password change
   and 2FA on first login; for scripted tests create a `sales_manager` (no mandatory 2FA).
 - Commit per task, push to the session branch, update `PROGRESS.md` at the end of each phase.

@@ -48,7 +48,10 @@ function walk(dir: string, out: string[] = []): string[] {
 const esc = (s: string) => s.replace(/\|/g, '\\|').replace(/\n+/g, ' ').trim();
 const firstSentence = (s: string) => {
   // Abbreviations such as "e.g." / "i.e." do not end a sentence.
-  const t = s.replace(/\s+/g, ' ').trim().replace(/\b(e\.g|i\.e|etc)\./g, '$1\u2024');
+  const t = s
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b(e\.g|i\.e|etc)\./g, '$1\u2024');
   const m = /^(.+?[.!؟?])(\s|$)/.exec(t);
   return (m ? m[1]! : t).replace(/\u2024/g, '.').slice(0, 220);
 };

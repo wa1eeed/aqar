@@ -6,7 +6,14 @@ phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md
 
 ## [Unreleased]
 
-_Nothing yet — Phase 6 (branding, licensing, SEO/AEO/GEO) in progress._
+### Documentation
+- `docs/HANDOVER.md`: new-session checklist, fresh-container bootstrap, open items carried forward,
+  sandbox Docker build recipe; `docs/technical/testing.md`: browser-check recipe (nginx, logins,
+  staff actions); booking & payment sequence diagram in `architecture.md`; `CHROMIUM_PATH` in
+  `backend/.env.example`.
+
+### Fixed
+- Formatting of the documentation generator (CI format check).
 
 ## Phase 5 — Bookings & payments (2026-11-17)
 
