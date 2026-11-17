@@ -34,6 +34,18 @@ export const envSchema = z
     /** Pepper for SHA-256 hashes of national IDs (docs/01 Customer.nationalIdHash). */
     NATIONAL_ID_PEPPER: secret('NATIONAL_ID_PEPPER'),
 
+    // Infrastructure defaults for providers (docs/10 §1); values saved in the admin panel win.
+    RESEND_API_KEY: z.string().min(8).optional(),
+    R2_ACCOUNT_ID: z
+      .string()
+      .regex(/^[A-Za-z0-9]{8,64}$/)
+      .optional(),
+    R2_ACCESS_KEY_ID: z.string().min(8).optional(),
+    R2_SECRET_ACCESS_KEY: z.string().min(8).optional(),
+    R2_UPLOADS_BUCKET: z.string().optional(),
+    R2_MEDIA_BUCKET: z.string().optional(),
+    R2_PUBLIC_BASE_URL: z.string().url().optional(),
+
     SWAGGER_ENABLED: z
       .enum(['true', 'false'])
       .default('false')

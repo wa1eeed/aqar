@@ -19,6 +19,7 @@ export async function resetDb(app: NestExpressApplication): Promise<void> {
   const prisma = app.get(PrismaService);
   await prisma.$transaction([
     prisma.lead.deleteMany(),
+    prisma.property.deleteMany(), // NearbyCache/media cascade
     prisma.refreshToken.deleteMany(),
     prisma.otpCode.deleteMany(),
     prisma.emailLog.deleteMany(),
@@ -26,6 +27,10 @@ export async function resetDb(app: NestExpressApplication): Promise<void> {
     prisma.customer.deleteMany(),
     prisma.staffUser.deleteMany(),
     prisma.role.deleteMany({ where: { isSystem: false } }),
+    // Integrations back to defaults (e.g. email.resend disabled → emails captured in memory).
+    prisma.integrationCallLog.deleteMany(),
+    prisma.webhookEvent.deleteMany(),
+    prisma.integration.deleteMany(),
   ]);
   for (const r of SYSTEM_ROLES) {
     await prisma.role.upsert({
