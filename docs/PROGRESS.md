@@ -48,4 +48,42 @@ Phases and acceptance criteria from `docs/11-implementation-plan.md`. Open quest
 
 74 automated tests: schema 10, backend 62 (unit + e2e on PostgreSQL and Redis), admin 2.
 
-## Phase 1 — Identity & staff — next
+## Phase 1 — Identity & staff ✅
+
+| Item | Status | Where |
+|---|---|---|
+| Staff login (Argon2id, lockout 15 min after 10 failures, per-IP limit) | ✅ | `modules/auth/staff-auth.service.ts` |
+| Refresh rotation (14 d staff / 30 d customers), reuse → family revoked + `security.session_revoked` | ✅ | `modules/auth/session.service.ts` |
+| 2FA: TOTP (RFC 6238, replay-protected), mandatory for owner/admin/finance, QR + 10 hashed recovery codes | ✅ | `modules/auth/totp.ts` |
+| Forced password change + 2FA setup on the seeded owner's first login | ✅ | login challenge steps |
+| Forgot / reset (30 min link), staff invite (72 h link) | ✅ | email outbox (`EmailLog`), delivery via Resend in Phase 2 |
+| Re-authentication window (10 min) for staff/role changes and payment settings | ✅ | `@RecentAuth()`, `POST /auth/staff/reauth` |
+| Roles & permissions guard + row-level scopes | ✅ | `common/auth` (`@Staff(...)`, `AccessScopeService`) |
+| Staff CRUD + invite, reset 2FA, custom roles | ✅ | `modules/staff` |
+| Customer OTP auth (email), registration with PDPL consent, optional password | ✅ | `modules/auth/customer-auth.service.ts` |
+| `/auth/me`, `/auth/refresh`, `/auth/logout` | ✅ | `modules/auth/auth.controller.ts` |
+| Settings endpoints per section permission | ✅ | `modules/settings/settings.controller.ts` |
+| Admin UI: login, 2FA, setup, recovery codes, forgot/reset, invite, team, roles, re-auth dialog | ✅ | `admin/src` |
+
+### Acceptance
+
+- ✅ **Owner must set 2FA on first login** — e2e `auth-staff.e2e-spec.ts` (password change → 2FA setup →
+  tokens only after both) and verified in Chromium through Caddy on the Docker stack.
+- ✅ **Agent cannot read another agent's leads** — e2e: list returns only assigned leads, another
+  agent's lead answers 404; the owner sees all.
+
+### Security covered by tests
+
+Replayed TOTP codes and recovery codes rejected; challenge destroyed after 5 wrong codes; identical
+errors for unknown email vs wrong password; account lockout; per-IP and per-destination rate limits;
+stolen refresh token reuse revokes the whole session; CSRF header required for cookie endpoints;
+forged/tampered JWTs rejected; deactivation and password reset kill live tokens immediately; admins
+cannot touch the owner; last owner cannot be removed; customers cannot reach staff routes or use a
+customer cookie as a staff session; OTP codes, recovery codes and tokens stored only as keyed hashes;
+no secrets in API responses or the audit log.
+
+### Tests
+
+124 automated tests: schema 10, backend 112, admin 2.
+
+## Phase 2 — Integrations gateway, storage, email — next

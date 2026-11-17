@@ -12,9 +12,8 @@ work could continue; please confirm or correct.
 3. **`Property.searchVector`** — the migration notes ask for a `tsvector` column with a GIN index.
    Added it to the schema as `Unsupported("tsvector")?` (plus the GIN/trigram indexes) so Prisma does
    not drop them in later migrations. No existing field was renamed.
-4. **Forced password change for the seeded owner** — docs/03 §4 asks for it, but `StaffUser` has no
-   flag. Decision: `lastLoginAt = null` means "first login" → password change + 2FA setup are forced
-   (Phase 1). Alternative: add a `mustChangePassword Boolean` column. Which do you prefer?
+4. **Forced password change for the seeded owner** — resolved in Phase 1 by adding
+   `StaffUser.mustChangePassword` (see #15), because invited staff also have `lastLoginAt = null`.
 5. **Booking terms location** — docs/04 puts them in `settings.booking.termsHtml` (versioned), docs/07
    §10 lists them under `legal`. Decision: single source in `settings.booking`;
    `GET /public/pages/booking-terms` will read from there.
@@ -46,3 +45,22 @@ work could continue; please confirm or correct.
 14. **Dependency pins** — patched versions of transitive packages are pinned with `pnpm.overrides`
     (multer, body-parser, lodash, js-yaml, @remix-run/router). Remove each pin once NestJS / React
     Router ship the fixed versions themselves.
+
+## Phase 1
+
+15. **Two `StaffUser` fields added** (the data model had nowhere to store them): `mustChangePassword`
+    (forced first-login change) and `totpRecoveryCodes` (hashed one-time codes, docs/03 §1). No rename.
+16. **Two refresh cookies** — docs/02 names one cookie `nx_rt`. A staff member who is also a customer
+    in the same browser would overwrite one session with the other, so staff use `nx_srt` and
+    customers `nx_rt`; `POST /auth/refresh` and `/auth/logout` take `{ "audience": "staff" | "customer" }`.
+17. **Endpoints added to complete the documented flows**: `staff/password/initial`, `staff/2fa/setup`,
+    `staff/2fa/enable`, `staff/invite/accept`, `staff/reauth`, `staff/password/change`,
+    `staff/me/2fa/setup|enable`, `customer/register` (first login when the profile was not sent with the
+    code), `customer/password/set`, `admin/staff/:id/resend-invite`. Read-only `GET /admin/leads[/:id]`
+    were added early to prove agent scoping (full CRM in Phase 4).
+18. **Emails before Phase 2** — until the Resend integration exists, staging/production record emails
+    as `failed` (`EMAIL_PROVIDER_NOT_CONFIGURED`): staff invites, password resets and customer OTP do not
+    reach inboxes yet. The seeded owner can log in. Development prints them to the console.
+19. **Password policy** (not specified): 12–128 characters, not a common password, at least 5 distinct
+    characters, must not contain the email name.
+20. **zod 4 upgrade** (#13) is still pending your decision; zod 3 remains with the mitigation in place.
