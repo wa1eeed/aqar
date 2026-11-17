@@ -263,6 +263,27 @@ window.MZ = window.MZ || {};
       '</div></div>';
   }
 
+  /* شارات الترخيص (docs/07 §10.2، docs/08 §4): الهيئة العامة للعقار وإيجار، حسب إعدادات العرض */
+  function lic() { return cfg.licensing || {}; }
+  function licBadge(kind, label, number) {
+    var L = lic(), rega = kind === 'rega';
+    var img = '<img src="/assets/img/brands/' + kind + '.png" alt="' + (rega ? 'الهيئة العامة للعقار' : 'منصة إيجار') + '" loading="lazy">';
+    var body = img + '<span><small>' + label + '</small><b>' + number + '</b></span>';
+    return rega && L.regaVerifyUrl
+      ? '<a class="lic-badge" href="' + L.regaVerifyUrl + '" target="_blank" rel="noopener" title="التحقق من الترخيص">' + body + '</a>'
+      : '<span class="lic-badge">' + body + '</span>';
+  }
+  /** where: 'footer' | 'property' (offer for Ejar on rent only) | 'checkout' (REGA only) */
+  function licBadges(where, offer) {
+    var L = lic(), out = '';
+    var fal = L.regaFalLicense || (where === 'footer' ? cfg.brand.falLicense : '');
+    if (where === 'property' && L.showOnPropertyPage === false) return '';
+    if (fal && (where !== 'footer' || L.showRegaInFooter !== false)) out += licBadge('rega', where === 'footer' ? 'رخصة فال' : 'رخصة فال للمنشأة', fal);
+    var ejar = where !== 'checkout' && L.ejarMembership && (where === 'footer' ? L.showEjarInFooter !== false : (offer === 'rent' || L.showEjarOnRentOnly === false));
+    if (ejar) out += licBadge('ejar', 'رقم العضوية في إيجار', L.ejarMembership);
+    return out;
+  }
+
   function footer() {
     var types = Object.keys(S.types).slice(0, 8).map(function (k) { return '<li><a href="/properties" data-goto-type="' + k + '">' + S.types[k].plural + '</a></li>'; }).join('');
     var cities = S.cities.map(function (c) { return '<li><a href="/properties" data-goto-city="' + c.id + '">عقارات ' + c.label + '</a></li>'; }).join('');
@@ -284,12 +305,12 @@ window.MZ = window.MZ || {};
             '<li>' + icon('clock') + '<span>' + cfg.contact.hours + '</span></li>' +
           '</ul></div>' +
         '</div>' +
-        '<div class="footer-legal">' +
-          '<span>رخصة فال: ' + cfg.brand.falLicense + '</span><span>السجل التجاري: ' + cfg.brand.cr + '</span>' +
-          '<span>جميع الإعلانات مرخّصة وفق اشتراطات الهيئة العامة للعقار</span>' +
+        '<div class="footer-legal">' + licBadges('footer') +
+          '<span class="fl-txt">السجل التجاري: <bdi>' + cfg.brand.cr + '</bdi>' + (lic().nationalAddress ? ' · العنوان الوطني: ' + lic().nationalAddress : '') +
+          '<br>جميع الإعلانات مرخّصة وفق اشتراطات الهيئة العامة للعقار</span>' +
         '</div>' +
         '<div class="footer-bottom"><span>© ' + new Date().getFullYear() + ' ' + cfg.brand.fullName + '. جميع الحقوق محفوظة.</span>' +
-          '<span><a href="#">سياسة الخصوصية</a> · <a href="#">الشروط والأحكام</a></span></div>' +
+          '<span><a href="/privacy">سياسة الخصوصية</a> · <a href="/terms">الشروط والأحكام</a></span></div>' +
       '</div></footer>' +
       '<div class="toast" role="status" aria-live="polite" data-toast></div>';
   }
@@ -458,7 +479,7 @@ window.MZ = window.MZ || {};
   MZ.boot = boot;
 
   MZ.ui = {
-    icon: icon, num: num, money: money, moneyShort: moneyShort, esc: esc, img: img, ago: ago, dist: dist,
+    icon: icon, licBadges: licBadges, num: num, money: money, moneyShort: moneyShort, esc: esc, img: img, ago: ago, dist: dist,
     priceSuffix: priceSuffix, fieldValue: fieldValue, card: card, keyFacts: keyFacts,
     offerBadge: offerBadge, statusBadge: statusBadge, fav: fav, toast: toast,
     openModal: openModal, closeModal: closeModal, mount: mount, handoff: handoff, takeHandoff: takeHandoff,

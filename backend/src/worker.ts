@@ -35,6 +35,7 @@ import { PaymentsService } from './modules/payments/payments.service';
 import { ReceiptsService } from './modules/payments/receipts.service';
 import { CustomersService } from './modules/customers/customers.service';
 import { CrmJobsService } from './modules/notifications/crm-jobs.service';
+import { LicenseReminders } from './modules/notifications/license-reminders';
 import { NotificationsCoreModule } from './modules/notifications/notifications.module';
 import { RealtimeCoreModule } from './modules/realtime/realtime.service';
 import { RedisModule } from './redis/redis.module';
@@ -106,12 +107,14 @@ async function main(): Promise<void> {
   );
 
   const crmJobs = app.get(CrmJobsService);
+  const licenses = app.get(LicenseReminders);
   const customers = app.get(CustomersService);
   const crmWorker = new Worker(
     QUEUES.crm,
     async (job) => {
       if (job.name === 'viewing-reminders') await crmJobs.viewingReminders();
       if (job.name === 'saved-search-digest') await crmJobs.savedSearchDigest();
+      if (job.name === 'license-reminders') await licenses.run();
       if (job.name === 'anonymise-deleted') {
         const n = await customers.anonymiseDeleted();
         if (n) log.log(`anonymised ${n} deleted customer accounts`);
@@ -127,6 +130,8 @@ async function main(): Promise<void> {
     { pattern: '0 6 * * *', tz: 'UTC' },
     { name: 'saved-search-digest' },
   );
+  // Licence expiry reminders (60/30/7 days): 08:00 Riyadh.
+  await crm.upsertJobScheduler('license-reminders', { pattern: '0 5 * * *', tz: 'UTC' }, { name: 'license-reminders' });
   await crm.upsertJobScheduler(
     'anonymise-deleted',
     { pattern: '30 0 * * *', tz: 'UTC' },

@@ -117,6 +117,7 @@ window.MZ.boot().then(function () {
       var v = f.kind === 'date' ? new Date(s[f.key]).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' }) : ui.fieldValue(f, s[f.key]);
       return '<div><span>' + f.label + '</span><b' + (f.kind === 'text' ? '' : ' style="direction:rtl"') + '>' + v + '</b></div>';
     }).join('') + '</div>' +
+      (ui.licBadges('property', p.offer) ? '<div class="lic-badges">' + ui.licBadges('property', p.offer) + '</div>' : '') +
       '<p class="legal-note">' + I('shield') + 'هذا الإعلان مرخّص وفق اشتراطات الهيئة العامة للعقار. يمكنك التحقق من رقم الترخيص عبر منصة الهيئة.</p>';
 
     /* Price box */
@@ -140,13 +141,11 @@ window.MZ.boot().then(function () {
         '<a class="btn btn--wa" href="https://wa.me/' + agent.whatsapp + '?text=' + waText + '" target="_blank" rel="noopener">' + I('whatsapp') + 'واتساب</a>' +
         '<a class="btn btn--ghost" href="tel:' + agent.phone + '">' + I('phone') + 'اتصال</a></div>';
     } else {
-      // «احجز العقار» (docs/04 §3, docs/08 §7): only when the API says booking is open for this listing.
+      // «احجز العقار الآن» (docs/04 §3, docs/08 §7, design c-property-rent): gold, above the viewing button.
       var bk = p.booking, canBook = bk && bk.enabled && p.status === 'available';
-      var bookCta = !canBook ? '' : bk.busy
-        ? '<div class="closed-note">' + I('clock') + '<span>العقار قيد الحجز حالياً. يمكنك طلب معاينة أو التواصل معنا.</span></div>'
-        : '<a class="btn btn--primary btn--block" style="margin-top:18px" href="/booking#p-' + p.id + '" data-book-now>' + I('key') + 'احجز العقار' +
-          (bk.depositAmount ? ' <small style="font-weight:500;opacity:.85">· عربون ' + ui.num(bk.depositAmount / 100) + ' ر.س</small>' : '') + '</a>';
-      actions = bookCta + '<div class="pricebox__btns"' + (canBook && !bk.busy ? ' style="margin-top:10px"' : '') + '><button class="btn ' + (canBook && !bk.busy ? 'btn--ghost' : 'btn--primary') + '" type="button" data-book="viewing" style="grid-column:1 / -1">' + I('calendar') + 'احجز موعد معاينة</button>' +
+      actions = (canBook && bk.busy ? '<div class="closed-note">' + I('clock') + '<span>العقار قيد الحجز حالياً. يمكنك طلب معاينة أو التواصل معنا.</span></div>' : '') +
+        '<div class="pricebox__btns">' + (canBook && !bk.busy ? '<a class="btn btn--gold btn--block" href="/booking#p-' + p.id + '" data-book-now>' + I('key') + 'احجز العقار الآن</a>' : '') +
+        '<button class="btn btn--primary" type="button" data-book="viewing">' + I('calendar') + 'احجز موعد معاينة</button>' +
         '<a class="btn btn--wa" href="https://wa.me/' + agent.whatsapp + '?text=' + waText + '" target="_blank" rel="noopener">' + I('whatsapp') + 'واتساب</a>' +
         '<a class="btn btn--ghost" href="tel:' + agent.phone + '">' + I('phone') + 'اتصال</a></div>';
     }
@@ -198,6 +197,7 @@ window.MZ.boot().then(function () {
 
       '<aside class="side">' +
         '<div class="pricebox"><span class="pricebox__label">' + priceLabel + '</span>' +
+          (p.booking && p.booking.enabled && !p.booking.busy && p.status === 'available' && p.booking.depositAmount ? '<span class="pill-dep">' + I('key') + 'احجزه بعربون ' + ui.num(p.booking.depositAmount / 100) + ' ر.س</span>' : '') +
           '<div class="pricebox__price">' + ui.money(p.price) + '<small>' + ui.priceSuffix(p) + '</small></div>' + subs + actions + '</div>' +
         '<div class="agent"><div class="avatar" aria-hidden="true">' + agent.name.charAt(0) + '</div><div><b>' + agent.name + '</b><small>' + agent.role + '</small>' +
           '<small>رخصة فال: <bdi>' + agent.fal + '</bdi></small><small dir="ltr" style="text-align:right">' + agent.phone + '</small></div></div>' +

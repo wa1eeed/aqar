@@ -12,6 +12,11 @@ phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md
   presets; brand uploads (logos incl. sanitised SVG, favicon → 16/32/180/192/512 PNG, share image) served
   from `/brand/*`; `/site.webmanifest`; site and admin load the theme (admin waits for it, no flash);
   `main.css` takes every brand colour from variables.
+- Licensing: REGA/Ejar logos (`assets/img/brands/`), footer badges (verify link, display options),
+  property-page badges (Ejar for rent per settings), REGA badge in the checkout summary; licence expiry
+  reminders `license.expiring` at 60/30/7 days for the company FAL licence and listing ad licences
+  (daily worker job, once per threshold); public config carries the display options.
+- Property page: gold «احجز العقار الآن» and «احجزه بعربون» chip as in design c-property-rent.
 
 ### Documentation
 - `docs/HANDOVER.md`: new-session checklist, fresh-container bootstrap, open items carried forward,

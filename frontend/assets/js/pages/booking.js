@@ -82,6 +82,7 @@ window.MZ.boot().then(function () {
         '<div style="border-top:1px dashed var(--line);padding-top:12px;display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span class="muted">المطلوب الآن</span><b style="font:700 28px var(--f-display);color:var(--green);white-space:nowrap">' + NF.format(q.amountDue / 100) + ' <small style="font-size:14px">ر.س</small></b></div>' +
         (q.vatNoteAr ? '<small class="muted">' + esc(q.vatNoteAr) + '</small>' : '') +
         '<button class="btn btn--primary btn--block" type="button" data-submit' + (m ? '' : ' disabled') + '>' + cta + '</button><span class="field-err" data-submit-err role="alert"></span>' +
+        (ui.licBadges('checkout') ? '<div class="lic-badges" style="margin-top:0">' + ui.licBadges('checkout') + '</div>' : '') +
         '<small class="muted" style="display:flex;gap:6px;align-items:center">' + I('shield') + 'دفع آمن ومشفّر — لا نحتفظ ببيانات بطاقتك</small></div></section></aside></div>');
   }
   function termsModal() {

@@ -97,6 +97,9 @@ export class PublicService {
         showEjarInFooter: licensing.showEjarInFooter,
         cr: licensing.crNumber,
         vatNumber: licensing.vatNumber,
+        nationalAddress: licensing.nationalAddress,
+        showOnPropertyPage: licensing.showOnPropertyPage,
+        showEjarOnRentOnly: licensing.showEjarOnRentOnly,
       },
       map: {
         provider: map.provider,

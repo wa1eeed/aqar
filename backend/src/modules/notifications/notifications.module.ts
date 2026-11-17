@@ -1,3 +1,4 @@
+import { LicenseReminders } from './license-reminders';
 import { Global, Module } from '@nestjs/common';
 import { SettingsModule } from '../settings/settings.module';
 import { BookingRules } from './booking-rules';
@@ -9,7 +10,7 @@ import { NotificationsService } from './notifications.service';
 @Global()
 @Module({
   imports: [SettingsModule],
-  providers: [NotificationsService, NotificationRules, BookingRules, CrmJobsService],
-  exports: [NotificationsService, CrmJobsService],
+  providers: [NotificationsService, NotificationRules, BookingRules, CrmJobsService, LicenseReminders],
+  exports: [NotificationsService, CrmJobsService, LicenseReminders],
 })
 export class NotificationsCoreModule {}
