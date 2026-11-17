@@ -4,7 +4,7 @@ All notable changes to the platform. Format: [Keep a Changelog](https://keepacha
 phases follow `docs/11-implementation-plan.md`. Every change adds a line under **Unreleased**; a
 phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md`.
 
-## [Unreleased] — Phase 5: bookings & payments (in progress)
+## [Unreleased] — Phase 5: bookings & payments (done, awaiting merge)
 
 ### Added
 - Booking quote rules (`backend/src/modules/bookings/quote.ts`): fixed/percent deposit with min/max,

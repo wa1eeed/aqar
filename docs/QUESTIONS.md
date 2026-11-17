@@ -145,3 +145,19 @@ work could continue; please confirm or correct.
     (git-ignored). Staging/production return «رفع الملفات غير متاح حالياً» until R2 is configured.
 48. **Manual confirmation** (`POST /admin/bookings/:id/confirm`) is allowed only when the amount due has
     been received (useful when `autoConfirmWhenPaid` is off).
+49. **Bank accounts before booking / next action on reload**: the design shows the transfer accounts in
+    the checkout (c-checkout-bank) and the transfer screen when the customer reopens a booking.
+    `POST /me/bookings/quote` therefore returns `bankAccounts` when bank transfer is offered, and
+    `GET /me/bookings/:id` returns `nextAction` — read-only (bank transfer details or an existing
+    Moyasar link; a new provider invoice is created only by `POST /me/bookings` or `/pay`).
+50. **Checkout and result URLs**: checkout at `/booking#p-{id}` (docs/08 §6; `?id=` also accepted).
+    The booking page is `/account/booking?b={id}` (query, not hash) because Moyasar appends its own
+    query parameters (`id`, `status`) to the return URL; the page always asks the server to verify.
+51. **Rize in the checkout**: the design shows a disabled «قسّط مع رايز» card for sale listings; docs/08
+    says the Rize card appears only when the quote returns it. The checkout follows docs/08 (hidden
+    until the Rize adapter is enabled).
+52. **REGA licence badge in the checkout summary** (design c-checkout-*): added in Phase 6 together with
+    the licensing settings (docs/11), not hard-coded now.
+53. **Moyasar embedded form version**: pinned `MOYASAR_VERSION = '1.14.0'` in `frontend/assets/js/session.js`
+    (the sandbox could not reach Moyasar to confirm the latest version). Check it against Moyasar's
+    documentation with sandbox keys before go-live, together with QUESTIONS #21.

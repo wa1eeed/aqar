@@ -4,7 +4,7 @@
 > (start at `docs/technical/README.md`), then the spec files (`docs/00` … `docs/11`).
 > `docs/PROGRESS.md` is the per-phase checklist; `docs/QUESTIONS.md` holds every decision taken where
 > the spec was silent or ambiguous (numbered — keep appending, never renumber).
-> Last updated: end of **Phase 4**, start of **Phase 5** (bookings & payments).
+> Last updated: end of **Phase 5** (bookings & payments), start of **Phase 6** (branding, licensing, SEO).
 
 ---
 
@@ -17,8 +17,8 @@
 | 2 — Integrations (gateway, providers, email queue, nearby cache, admin integrations UI) | ✅ done | yes |
 | 3 — Listings (properties, media pipeline, public API, demo seed, site on the API, admin properties UI) | ✅ done | yes |
 | 4 — CRM & notifications (leads, viewings, customers, notification center, realtime, customer accounts) | ✅ done | yes |
-| 5 — Bookings & payments | ⏳ **next** (nothing written yet) | — |
-| 6 — Branding, licensing, SEO/AEO/GEO | pending | — |
+| 5 — Bookings & payments (quote, locking, state machine, Moyasar, bank transfer, refunds, receipts, admin + site screens) | ✅ done | awaiting the owner's approval |
+| 6 — Branding, licensing, SEO/AEO/GEO | ⏳ **next** | — |
 | 7 — Reports, dashboard, audit screen, hardening | pending | — |
 | 8 — Auctions (feature flag) | pending | — |
 
@@ -121,14 +121,16 @@ Current count: 216 tests (schema 10, backend 197, admin 9).
 | `auth` | Staff login + mandatory TOTP for owner/admin/finance, recovery codes, invites, password reset, re-auth window; customer email OTP + registration (PDPL consent); refresh-token rotation with family revocation | Access JWT 15 min in memory (admin) / sessionStorage (site); refresh in httpOnly cookie (`nx_srt` staff, `nx_rt` customer, path `/api/v1/auth`). **30 s rotation grace window** (QUESTIONS #39). |
 | `common/auth` | Default-deny `AuthGuard`; decorators `@Public`, `@Staff(...perms)`, `@Customer`, `@Authenticated`, `@RecentAuth`; `AccessScopeService` row scopes ("own" for agents) | Out-of-scope rows return **404**, not 403. |
 | `staff`, `settings` | Staff/roles CRUD; 13 settings sections validated by zod (`settings/schemas/*.ts`), cached, audited | Settings keys = docs/07 §10. |
-| `integrations` | `IntegrationsGateway.run()` — circuit breaker, token bucket, retries (idempotent only), timeouts, SSRF guard, redacted call logs; providers in `providers/*.ts`; secrets AES-256-GCM, write-only, masked | **Never call third parties outside the gateway.** Moyasar has only settings + connection test so far. |
+| `integrations` | `IntegrationsGateway.run()` — circuit breaker, token bucket, retries (idempotent only), timeouts, SSRF guard, redacted call logs; providers in `providers/*.ts`; secrets AES-256-GCM, write-only, masked | **Never call third parties outside the gateway.** Payments facade: `gateway.payments()` (Moyasar invoice, fetch, refund, webhook secret; Rize not ready). |
 | `email` | Outbox → BullMQ → Resend; `sendTemplate` (otp, invites…) and `sendNotification` (event emails, brand footer, admin overrides) | Templates: `email/templates.ts`. |
 | `properties`, `media`, `locations`, `public`, `nearby` | Listings CRUD with schema-driven specs (relaxed draft / strict publish), publish rules, status history; R2 presigned uploads + sharp variants; public API (cached in Redis, versioned key `pub:ver`); nearby via gateway | `invalidatePublic()` **before** emitting property events. |
 | `leads`, `viewings` | Public leads (round-robin, idempotency), CRM (board, stages, assign, activities, manual, export), viewings (calendar, confirmation, conflicts on confirmed only), `GET /admin/assignees` | |
 | `customers` | Admin customers (list/profile/block/PDPL export) and `/me` (profile + email verification, favorites, saved searches, viewings, export, deletion → anonymised after 30 days by a job) | |
 | `notifications` | `NotificationsService.dispatch()` (channels from settings + preferences, locked events, in-app + Socket.IO push, deduplicated email), `NotificationRules` (@OnEvent listeners, docs/06 table), `CrmJobsService` (reminders, digest), centers for staff and customers | **To add an event:** emit it after the DB transaction, add a handler in `notification-rules.ts`, keep keys from `events/event-catalog.ts`. |
 | `realtime` | Socket.IO at `/ws` (gateway), Redis adapter (API) + Redis emitter (`RealtimeService`, usable from the worker) | Rooms: `public`, `property:{id}`, `customer:{id}`, `staff`, `staff:{id}`, `role:{key}`. Origin check, connection rate limit, disconnect at token expiry and on `revokeAll`. Payloads minimal. |
-| `webhooks` | Resend (Svix signature) with idempotent `WebhookEvent` | Moyasar webhook to add in Phase 5. |
+| `webhooks` | Resend (Svix signature) with idempotent `WebhookEvent`; Moyasar (`secret_token`) in `payments.controller.ts` | Webhooks never change state directly: they queue a reconcile. |
+| `bookings` | `quote.ts` (pure rules), `BookingsService` (quote, create with row lock + `one_active_booking` index → 409, customer/admin actions, hold expiry), `BookingTransitions` (state machine + property side effects + history + audit) | Change a booking status **only** through `BookingTransitions.apply()`. |
+| `payments` | `PaymentsService` (start, reconcile = server re-fetch with amount/currency/metadata checks, markPaid → receipt number, refunds), `TransfersService` (upload with byte-level type check, review), `ReceiptsService` (Arabic PDF via headless Chromium in the worker), `FileStore` (private R2; `backend/.uploads` in dev/test) | Never mark paid from a browser or webhook body. |
 | `audit` | `AuditService.record()` — call inside the same transaction as the change | Every booking/payment/property/lead state change must be audited. |
 
 Conventions that matter:
@@ -153,9 +155,10 @@ Routes in `src/app/App.tsx` (each wrapped in `Gate permission=…`; unbuilt sect
 (memory token, silent refresh, re-auth prompt, `download()` for CSV/JSON). Realtime:
 `src/lib/realtime.tsx` (`useRealtimeEvent(event, fn)`). Shared labels come from `@nx/schema`
 (aliased to the package source in Vite/TS). Built screens: login/2FA/invite/reset, staff, roles,
-integrations (+ detail), properties (+ editor with map, uploads, licence, SEO preview), settings →
-locations, leads (kanban + drawer), viewings (calendar), customers, notifications (+ bell, broadcast,
-preferences). Styles: `src/styles/{tokens,base,admin}.css` — reuse prototype classes (`panel2`,
+integrations (+ detail), properties (+ editor with map, uploads, licence, SEO preview), leads (kanban +
+drawer), viewings (calendar), customers, notifications (+ bell, broadcast, preferences), bookings (+
+detail), payments, transfer review, settings with section tabs (`pages/settings/SettingsLayout.tsx`:
+booking & payment methods, bank transfer, cities). Wrap tables in `div.tbl-wrap`. Styles: `src/styles/{tokens,base,admin}.css` — reuse prototype classes (`panel2`,
 `tbl`, `pill p-*`, `kpi2`, `drawer2`, `cmp`, `steps2`, `notifs`, `kanban`, `cal`).
 
 ## 6. Public site (frontend/)
@@ -166,13 +169,18 @@ falls back to mock data). `ui.mount(active)` renders header/footer and calls `MZ
 `mountLogin()` for inline use) and `MZ.rt` (Socket.IO client loaded lazily from `/ws/socket.io.js`;
 `MZ.rt.on(event, fn)`, `MZ.rt.subscribe(propertyId)`). Property URLs `/property/{id}-{slug}`;
 clean URLs (no `.html`) in Caddy and nginx; `/account` maps to `account/index.html`.
+Bookings: «احجز العقار» on the property page → `/booking#p-{id}` (`pages/booking.js`) →
+`/account/booking?b={id}` (`pages/account.js`, also `/account/bookings`). `MZ.auth.request` accepts
+`FormData` and `headers`; `MZ.auth.download()` saves receipt PDFs; `MZ.payments.moyasarForm()` loads
+Moyasar's embedded form. Booking/payment labels: `MZ.schema.bookingStatuses` etc. (generated).
 
 ## 7. Infrastructure
 
 - `infra/Caddyfile`: `/api/*` and `/ws*` → api:3000; `/admin/*` SPA (strict CSP, `connect-src`
   allows R2 for uploads); public site CSP; private files blocked; clean-URL redirects; property
-  and account rewrites. Any new third-party origin (e.g. Moyasar form script/frame) must be added
-  to the CSP here **and** documented.
+  and account rewrites. Any new third-party origin must be added to the CSP here **and** documented
+  (Moyasar: script/style/img `cdn.moyasar.com`, connect `api.moyasar.com`, frame `*.moyasar.com`).
+- The `api` image installs Chromium (receipt PDFs, `CHROMIUM_PATH=/usr/bin/chromium`).
 - Images: `infra/docker/Dockerfile` targets `api` (API + worker + CLI), `frontend-static`,
   `admin-static`. CI (`.github/workflows/ci.yml`) runs lint/format/typecheck/migration-drift/tests
   and builds images.
@@ -182,40 +190,31 @@ clean URLs (no `.html`) in Caddy and nginx; `/account` maps to `account/index.ht
 
 ---
 
-## 8. Phase 5 plan (bookings & payments) — where to start
+## 8. Phase 6 plan (branding, licensing, SEO/AEO/GEO) — where to start
 
-Spec: `docs/04-bookings-payments.md`, API `docs/02 §5–7`, screens `a-bookings`, `a-booking-detail`,
-`a-payments`, `a-transfers`, `a-settings-booking`, `a-settings-bank`, `c-checkout-*`, `c-booking-*`,
-`c-bookings`, `m-checkout`, `m-booking-bank`.
+Spec: docs/11 Phase 6, docs/07 (settings «الهوية والمظهر», «التراخيص والاعتمادات», SEO screens),
+docs/08 §1–4 and §10–11 (theme bootstrap, footer licensing badges, property page quick answer, FAQ,
+licence section), screens `a-settings-brand*`, `a-settings-licensing`, `a-seo*`, `c-property-rent`,
+`c-home-site`.
 
-Already in place: Prisma models (`Booking`, `Payment`, `PaymentEvent`, `BankAccount`,
-`BankTransferSubmission`), partial unique index `one_active_booking`, `Property.bookingEnabled` and
-`paymentPolicy`, settings schemas `booking`, `payments`, `bank_transfer` (with defaults), Moyasar
-integration settings + connection test, event keys and email template keys in the catalog,
-customer accounts + notifications + realtime.
+Already in place: settings sections `branding`, `contact`, `licensing`, `seo` (schemas with defaults),
+property fields for licence numbers and SEO, public config endpoint (`/public/config`), Caddy routes
+reserved for SEO paths.
 
-Planned order (tasks):
-1. **Booking core** — pure quote calculation (fixed/percent/min/max, rent period, per-property
-   override, method availability = settings ∧ integration ready ∧ policy); create inside a
-   transaction with `SELECT … FOR UPDATE` on the property + the unique index → `409
-   BOOKING_PROPERTY_UNAVAILABLE`; state machine with property side effects + `PropertyStatusHistory`
-   + audit + events; hold-expiry job; `/me/bookings*` and `/admin/bookings*`; `booking` block in the
-   public property payload.
-2. **Payments** — Moyasar adapter inside the gateway (invoice + embedded form, fetch, refund, webhook
-   verification); `PaymentsService.reconcile()` (row lock, idempotent, amount/currency/metadata
-   check, anomaly → `payment.anomaly`); `/webhooks/moyasar`; `/me/payments/:id/verify`; 5-minute
-   reconcile job; refunds; bank accounts CRUD with IBAN mod-97; transfer upload (multipart, magic-byte
-   check, private storage) and admin review; receipts (number + Arabic PDF rendered by headless
-   Chromium in the worker); Rize adapter stub; notification rules for `booking.*` / `payment.*`.
-3. **Admin UI** — bookings list/detail, payments, transfer review, settings booking/payments/bank.
-4. **Site** — «احجز العقار» on the property page, `booking.html` (2 steps), `account/bookings`,
-   `account/booking` (timeline, pay again, transfer instructions + upload, receipt, cancel, live).
-5. **Acceptance** (docs/11): Moyasar sandbox payment confirms + reserves; concurrent booking → 409;
-   transfer approve/reject notify the customer; expired holds release.
+Suggested order:
+1. **Branding & theme** — settings screen with live preview and contrast guard; `/theme.css`
+   generated from the settings (cached, versioned), favicon pipeline; site and admin read it without
+   a flash of unstyled content.
+2. **Licensing** — settings screen; footer badges (REGA, Ejar) and property-page licence section;
+   add the REGA badge to the checkout summary (QUESTIONS #52).
+3. **SEO module** — global settings, templates, keywords, landing pages, FAQ manager, quick-answer
+   summary, JSON-LD, SSR meta for property/landing routes, sitemaps, robots (AI crawler toggles),
+   `llms.txt`, feed, redirects + 404 log, page score, OG images, consent-gated analytics.
+4. **Acceptance** (docs/11): primary colour change visible on site and admin after refresh without
+   FOUC; Rich Results Test passes for a property page; robots/llms.txt reflect the settings.
 
-Known constraint of the build sandbox: outbound access to moyasar.com/resend.com was blocked, so
-provider HTTP details are implemented from the documented API and tested with recorded responses
-(nock). Verify with sandbox keys before go-live (QUESTIONS #21).
+Before go-live (carried over from Phase 5): run a real Moyasar sandbox payment and refund, and check
+the embedded form version (QUESTIONS #21, #53).
 
 ---
 
@@ -235,6 +234,8 @@ provider HTTP details are implemented from the documented API and tested with re
 - After editing `prisma/schema.prisma`: create a migration (`npx prisma migrate dev --name …`, or
   `prisma migrate diff --from-migrations … --to-schema-datamodel …` in non-interactive shells) and
   keep `resetDb()` in `test/auth-helpers.ts` in sync.
+- Receipt PDFs need Chromium: locally set `CHROMIUM_PATH=/opt/pw-browsers/chromium` (the Playwright
+  browser) for the worker and the backend tests.
 - Browser checks: Playwright is available; serve the stack through Caddy (`infra/Caddyfile`) so
   `/api`, `/ws`, `/admin` and the site share one origin. The owner account forces a password change
   and 2FA on first login; for scripted tests create a `sales_manager` (no mandatory 2FA).

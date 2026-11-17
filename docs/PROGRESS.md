@@ -175,4 +175,41 @@ worker schedules the reminder, digest and anonymisation jobs.
 
 216 automated tests: schema 10, backend 197 (unit + e2e), admin 9.
 
-## Phase 5 — Bookings & payments — next
+## Phase 5 — Bookings & payments — ✅ done
+
+| Task | Status | Where |
+|---|---|---|
+| Settings booking / payments / bank transfer + bank accounts (IBAN mod-97), payment-method readiness | ✅ | `settings/schemas`, `payments/iban.ts`, `payments.controller.ts` |
+| Quote (fixed/percent deposit with min/max, rent period, per-property override, method availability), creation with row lock + `one_active_booking` index, idempotency | ✅ | `bookings/quote.ts`, `bookings.service.ts` |
+| State machine with property side effects + status history + audit + events; customer cancel / pay again; admin confirm / complete / cancel / extend hold | ✅ | `booking-transitions.ts`, `bookings.service.ts` |
+| Moyasar adapter (hosted invoice + embedded form, fetch, refund, webhook `secret_token`), reconcile (webhook → queue, callback, 5-minute job) with amount/currency/metadata checks and anomaly alerts | ✅ | `integrations/providers/moyasar.ts`, `payments.service.ts` |
+| Bank transfer upload (byte-level type check, private storage) and review; refunds (card via Moyasar, manual for transfers) | ✅ | `transfers.service.ts`, `payments.controller.ts` |
+| Receipts: `R-YYYY-NNNNNN`, Arabic PDF (headless Chromium, embedded font), emailed, downloadable | ✅ | `receipts.service.ts`, worker `payments` queue |
+| Hold expiry job, Rize stub (not ready → hidden), notifications for `booking.*` / `payment.*`, live `booking.updated` / `payment.updated` | ✅ | `worker.ts`, `notifications/booking-rules.ts` |
+| Admin: bookings + detail, payments, transfer review, settings tabs (booking & payment methods, bank transfer), payments counter | ✅ | `admin/src/pages/{Bookings,BookingDetail,Payments,Transfers}Page.tsx`, `pages/settings/` |
+| Site: «احجز العقار», `booking.html` checkout, `account/bookings.html`, `account/booking.html` (transfer upload, pay/retry, receipt, cancel, live) | ✅ | `frontend/booking.html`, `pages/booking.js`, `pages/account.js` |
+
+### Acceptance
+
+- ✅ **Moyasar sandbox payment confirms the booking and reserves the property** — e2e against recorded
+  Moyasar responses: hosted invoice → webhook (verified, stored once, queued) → callback re-fetch →
+  paid → confirmed → property reserved; repeats idempotent; amount mismatch → failed + finance alert.
+  ⚠️ A real sandbox transaction was not possible from the build environment (moyasar.com blocked):
+  run one with sandbox keys before go-live (QUESTIONS #21, #53).
+- ✅ **Concurrent booking → 409** — e2e fires two creations at once: one 201, one
+  `409 BOOKING_PROPERTY_UNAVAILABLE`.
+- ✅ **Bank transfer approve/reject notify the customer** — e2e (notification + email for both); in the
+  browser the customer's booking page switched to «تم تأكيد حجزك» live after the approval, and the
+  receipt PDF downloaded.
+- ✅ **Expired holds release correctly** — e2e: the job expires unpaid bookings, the property stays
+  available, the customer is told; bookings awaiting transfer review wait for the reviewer.
+
+Also verified: full customer flow in the browser at 1440 px and 390 px (no horizontal scroll, no page
+errors); admin screens at both widths; Docker stack (migrations, API/worker healthy, payment job
+schedulers registered, CSP allows the Moyasar form).
+
+### Tests
+
+240 automated tests: schema 10, backend 221 (unit + e2e), admin 9.
+
+## Phase 6 — Branding, licensing, SEO/AEO/GEO — next
