@@ -149,6 +149,7 @@ describe('Bookings & payments (e2e, Phase 5)', () => {
       termsVersion: '1',
     });
     expect(q.body.methods.map((m: { method: string }) => m.method)).toEqual(['moyasar', 'bank_transfer']);
+    expect(q.body.bankAccounts[0]).toMatchObject({ bankName: 'مصرف الراجحي', iban: expect.stringMatching(/^SA/) });
     const full = await as(customers.a!, 'post', '/me/bookings/quote')
       .send({ propertyId: p.id, paymentType: 'full' })
       .expect(200);
@@ -178,6 +179,11 @@ describe('Bookings & payments (e2e, Phase 5)', () => {
       reference: winner.body.booking.number,
     });
     expect(winner.body.nextAction.accounts[0]).toMatchObject({ bankName: 'مصرف الراجحي' });
+    // Reopening the booking page gives the same transfer details (read-only).
+    const winnerAs = r1.status === 201 ? customers.a! : customers.b!;
+    const again = await as(winnerAs, 'get', `/me/bookings/${winner.body.booking.id}`).expect(200);
+    expect(again.body.nextAction).toMatchObject({ type: 'bank_transfer', reference: winner.body.booking.number });
+    expect(again.body.payments).toHaveLength(1);
     const pp = await http.get(`/api/v1/public/properties/${p.id}`).expect(200);
     expect(pp.body.booking.busy).toBe(true);
     // Terms must be the current version; idempotent replays return the same booking.

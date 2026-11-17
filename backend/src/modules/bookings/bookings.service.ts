@@ -177,6 +177,8 @@ export class BookingsService {
       cancellationPolicyHtml: c.booking.cancellationPolicyHtml,
       nafathRequired: c.booking.nafathRequiredAbove !== null && amountDue > BigInt(c.booking.nafathRequiredAbove),
       vatNoteAr: c.payments.showVatNote ? c.payments.vatNoteAr : null,
+      // The checkout shows where to transfer before the booking exists (design c-checkout-bank).
+      bankAccounts: methods.includes('bank_transfer') ? await this.payments.transferAccounts() : [],
     };
   }
 
@@ -356,6 +358,32 @@ export class BookingsService {
     const b = await this.prisma.booking.findFirst({ where: { id, customerId: user.id }, include: BOOKING_DETAIL });
     if (!b) throw notFound();
     return present(b);
+  }
+
+  /**
+   * GET /me/bookings/:id: the booking plus, while it waits for payment, what the customer can do next.
+   * Read-only: bank transfer details or an existing Moyasar invoice link; never creates a provider
+   * invoice (that happens on create / «ادفع الآن» via POST /me/bookings/:id/pay).
+   */
+  async mineWithAction(user: AuthUser, id: string) {
+    const booking = await this.mine(user, id);
+    let nextAction: NextAction | null = null;
+    const open = [...booking.payments]
+      .reverse()
+      .find((p) => ['initiated', 'pending', 'rejected', 'under_review'].includes(p.status as string));
+    if (open && (booking.status === 'pending_payment' || booking.status === 'awaiting_transfer_review')) {
+      if (open.method === 'bank_transfer') {
+        const b = await this.prisma.booking.findUniqueOrThrow({
+          where: { id },
+          include: { property: { select: { title: true } } },
+        });
+        const pay = await this.prisma.payment.findUniqueOrThrow({ where: { id: open.id as string } });
+        nextAction = await this.payments.start(b, pay);
+      } else if (open.method === 'moyasar' && open.providerUrl) {
+        nextAction = { type: 'redirect', url: open.providerUrl as string };
+      }
+    }
+    return { ...booking, nextAction };
   }
 
   /** Customer cancel: allowed while pending payment or awaiting transfer review (docs/02 §5). */

@@ -1288,5 +1288,84 @@ window.MZ = window.MZ || {};
     }
   };
 
+  /* الحجوزات والمدفوعات — حالات الحجز والدفع وطرق الدفع (docs/04) */
+  schema.bookingStatuses = {
+    "pending_payment": {
+      "label": "بانتظار الدفع",
+      "pill": "p-gold"
+    },
+    "awaiting_transfer_review": {
+      "label": "بانتظار مراجعة التحويل",
+      "pill": "p-amber"
+    },
+    "confirmed": {
+      "label": "مؤكد",
+      "pill": "p-green"
+    },
+    "completed": {
+      "label": "مكتمل",
+      "pill": "p-blue"
+    },
+    "cancelled": {
+      "label": "ملغي",
+      "pill": "p-gray"
+    },
+    "expired": {
+      "label": "منتهي",
+      "pill": "p-gray"
+    },
+    "refunded": {
+      "label": "مسترد",
+      "pill": "p-gray"
+    }
+  };
+  schema.paymentStatuses = {
+    "initiated": {
+      "label": "بدأت",
+      "pill": "p-gray"
+    },
+    "pending": {
+      "label": "بانتظار الدفع",
+      "pill": "p-gold"
+    },
+    "paid": {
+      "label": "مدفوع",
+      "pill": "p-green"
+    },
+    "failed": {
+      "label": "فشل",
+      "pill": "p-red"
+    },
+    "under_review": {
+      "label": "قيد المراجعة",
+      "pill": "p-amber"
+    },
+    "rejected": {
+      "label": "مرفوض",
+      "pill": "p-red"
+    },
+    "cancelled": {
+      "label": "ملغاة",
+      "pill": "p-gray"
+    },
+    "refunded": {
+      "label": "مسترد",
+      "pill": "p-blue"
+    },
+    "partially_refunded": {
+      "label": "مسترد جزئياً",
+      "pill": "p-blue"
+    }
+  };
+  schema.paymentMethods = {
+    "moyasar": "ميسر",
+    "bank_transfer": "تحويل بنكي",
+    "rize": "رايز"
+  };
+  schema.paymentTypes = {
+    "deposit": "عربون",
+    "full": "كامل"
+  };
+
   MZ.schema = schema;
 })(window.MZ);

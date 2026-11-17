@@ -10,6 +10,7 @@ import {
   statuses,
   types,
 } from './data';
+import { bookingStatuses, paymentMethods, paymentStatuses, paymentTypes } from './crm';
 
 /**
  * Renders the browser IIFE that sets `window.MZ.schema` with the exact public surface of the
@@ -54,6 +55,12 @@ window.MZ = window.MZ || {};
 
   /* أصناف الخدمات القريبة — تُستخدم مع OpenStreetMap (Overpass) أو مع API الخاص بك */
   schema.nearby = ${json(nearby)};
+
+  /* الحجوزات والمدفوعات — حالات الحجز والدفع وطرق الدفع (docs/04) */
+  schema.bookingStatuses = ${json(bookingStatuses)};
+  schema.paymentStatuses = ${json(paymentStatuses)};
+  schema.paymentMethods = ${json(paymentMethods)};
+  schema.paymentTypes = ${json(paymentTypes)};
 
   MZ.schema = schema;
 })(window.MZ);

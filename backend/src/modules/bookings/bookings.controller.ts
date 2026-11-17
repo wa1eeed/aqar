@@ -78,11 +78,11 @@ export class MeBookingsController {
     return this.bookings.myList(user);
   }
 
-  /** One of the customer's bookings. */
+  /** One of the customer's bookings with its next payment action (bank transfer details or existing payment link). */
   @Customer()
   @Get(':id')
   get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    return this.bookings.mine(user, id);
+    return this.bookings.mineWithAction(user, id);
   }
 
   /** Cancel while the booking is pending payment or awaiting transfer review. */

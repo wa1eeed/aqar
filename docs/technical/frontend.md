@@ -26,7 +26,14 @@ Every page script runs inside `window.MZ.boot().then(function () { … })`. `boo
   PDPL consent. `MZ.auth.openLogin(cb)` opens the modal; `MZ.auth.mountLogin(el, cb)` renders it inline.
 - Tokens: access token in sessionStorage for its lifetime (15 min); refresh token in an httpOnly cookie;
   a `mz_auth` hint in localStorage avoids refresh calls for anonymous visitors.
-- `MZ.auth.request(path, { method, body })`: authenticated call with one silent refresh.
+- Booking/payment labels come from the generated schema (`MZ.schema.bookingStatuses`,
+  `paymentStatuses`, `paymentMethods`, `paymentTypes`).
+- `MZ.auth.request(path, { method, body, headers, blob })`: authenticated call with one silent refresh;
+  a `FormData` body is sent as multipart (bank transfer receipts); `blob: true` returns a Blob.
+- `MZ.auth.download(path, filename)`: authenticated file download (receipt PDFs).
+- `MZ.payments.moyasarForm(el, nextAction)`: loads Moyasar's embedded form (pinned version
+  `MOYASAR_VERSION`, from `cdn.moyasar.com`) for a `moyasar_form` next action; card data goes straight
+  to Moyasar, the server re-fetches the result.
 - After login, browser favorites are merged into the account (`PUT /me/favorites`).
 - Header: logged out → «دخول»; logged in → bell (live unread count, last 8) + «حسابي» menu; same items
   in the mobile drawer.
@@ -43,10 +50,12 @@ with backoff and re-subscribes rooms; refreshes the token when the server report
 |---|---|---|
 | `/` | `index.html` | `home.js` |
 | `/properties` | `properties.html` | `listing.js` (filters, «حفظ هذا البحث», live card status) |
-| `/property/{id}-{slug}` (also `#p-{id}`, `?id=`) | `property.html` | `property.js` (viewing modal with consent, live status/price) |
+| `/property/{id}-{slug}` (also `#p-{id}`, `?id=`) | `property.html` | `property.js` (viewing modal with consent, live status/price, «احجز العقار» when the payload's `booking.enabled`; «العقار قيد الحجز حالياً» when `busy`) |
 | `/favorites` | `favorites.html` | `favorites.js` |
 | `/about`, `/contact` | `about.html`, `contact.html` | `static.js`, `contact.js` |
-| `/account` … | `account/{index,viewings,notifications,saved-searches,settings}.html` | `account.js` (login gate inline) |
+| `/booking#p-{id}` (also `?id=`) | `booking.html` | `booking.js` — checkout (docs/04 §3): login step, server quote (deposit/full), available methods, bank accounts preview, terms modal, `POST /me/bookings` with `Idempotency-Key`, then redirect (Moyasar invoice), embedded card form or the booking page |
+| `/account` … | `account/{index,bookings,booking,viewings,notifications,saved-searches,settings}.html` | `account.js` (login gate inline) |
+| `/account/booking?b={id}` | `account/booking.html` | Booking page by state: bank transfer (amount, reference, countdown, accounts, receipt upload), pay / retry, under review, confirmed (receipt + PDF), closed states; cancel; live via `booking.updated` / `payment.updated`. Moyasar returns here with `&p={payment}&id={provider id}` → `POST /me/payments/:id/verify` before showing the result |
 
 Clean URLs: Caddy (and `deploy/nginx.conf`) serve `/x` from `x.html`, redirect `.html` URLs, map
 `/property/{id}-{slug}` to `property.html` and `/account` to `account/index.html`.

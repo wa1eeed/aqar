@@ -213,7 +213,7 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 |---|---|---|---|---|---|---|---|
 | `GET` | `/api/v1/me/bookings` | customer | — |  |  |  | The customer's bookings with payments, transfer submission and timeline. |
 | `POST` | `/api/v1/me/bookings` | customer | — |  |  | 10/1h per ip | Create a booking (row lock + one active booking per property → 409) and start its payment; Idempotency-Key supported. |
-| `GET` | `/api/v1/me/bookings/:id` | customer | — |  |  |  | One of the customer's bookings. |
+| `GET` | `/api/v1/me/bookings/:id` | customer | — |  |  |  | One of the customer's bookings with its next payment action (bank transfer details or existing payment link). |
 | `POST` | `/api/v1/me/bookings/:id/cancel` | customer | — |  |  |  | Cancel while the booking is pending payment or awaiting transfer review. |
 | `POST` | `/api/v1/me/bookings/:id/pay` | customer | — |  |  | 20/1h per ip | Start another payment attempt (e.g. after a failed card payment) within the same hold. |
 | `POST` | `/api/v1/me/bookings/quote` | customer | — |  |  | 60/1min per ip | Amounts, payment types and available methods for booking a property (server-computed). |

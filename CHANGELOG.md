@@ -30,6 +30,16 @@ phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md
   settings sections with tabs (booking & payment methods with live example, bank transfer with
   accounts and customer preview, cities moved under the tabs), «المدفوعات» counter for transfers under
   review; `GET /admin/payments/methods-status`.
+- Site: «احجز العقار» on the property page, checkout `/booking#p-{id}` (deposit/full, payment methods,
+  bank accounts preview, terms, idempotent creation, Moyasar redirect or embedded form), «حجوزاتي» and
+  the booking page (bank transfer with countdown and receipt upload, pay/retry, review state, confirmed
+  with receipt PDF download, cancel, live updates), account overview with active bookings.
+- API: the quote returns the bank accounts when bank transfer is offered; `GET /me/bookings/:id`
+  returns the next payment action (read-only).
+- Booking and payment labels generated into the site's `schema.js` from `@nx/schema`.
+
+### Security
+- Site CSP allows Moyasar's form stylesheet and images (`cdn.moyasar.com`).
 
 ### Fixed
 - The API image failed to start: the transfer upload imported `multer`, which is not a direct

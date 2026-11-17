@@ -25,8 +25,9 @@ const generated = load(renderFrontendSchema());
 const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
 
 describe('generated frontend schema.js', () => {
-  it('exposes the same keys in the same order', () => {
-    expect(Object.keys(generated)).toEqual(Object.keys(original));
+  it('exposes the same keys in the same order (Phase 5 booking labels appended after them)', () => {
+    const added = ['bookingStatuses', 'paymentStatuses', 'paymentMethods', 'paymentTypes'];
+    expect(Object.keys(generated)).toEqual([...Object.keys(original), ...added]);
   });
 
   it('has identical data', () => {

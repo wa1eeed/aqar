@@ -140,7 +140,13 @@ window.MZ.boot().then(function () {
         '<a class="btn btn--wa" href="https://wa.me/' + agent.whatsapp + '?text=' + waText + '" target="_blank" rel="noopener">' + I('whatsapp') + 'واتساب</a>' +
         '<a class="btn btn--ghost" href="tel:' + agent.phone + '">' + I('phone') + 'اتصال</a></div>';
     } else {
-      actions = '<div class="pricebox__btns"><button class="btn btn--primary" type="button" data-book="viewing">' + I('calendar') + 'احجز موعد معاينة</button>' +
+      // «احجز العقار» (docs/04 §3, docs/08 §7): only when the API says booking is open for this listing.
+      var bk = p.booking, canBook = bk && bk.enabled && p.status === 'available';
+      var bookCta = !canBook ? '' : bk.busy
+        ? '<div class="closed-note">' + I('clock') + '<span>العقار قيد الحجز حالياً. يمكنك طلب معاينة أو التواصل معنا.</span></div>'
+        : '<a class="btn btn--primary btn--block" style="margin-top:18px" href="/booking#p-' + p.id + '" data-book-now>' + I('key') + 'احجز العقار' +
+          (bk.depositAmount ? ' <small style="font-weight:500;opacity:.85">· عربون ' + ui.num(bk.depositAmount / 100) + ' ر.س</small>' : '') + '</a>';
+      actions = bookCta + '<div class="pricebox__btns"' + (canBook && !bk.busy ? ' style="margin-top:10px"' : '') + '><button class="btn ' + (canBook && !bk.busy ? 'btn--ghost' : 'btn--primary') + '" type="button" data-book="viewing" style="grid-column:1 / -1">' + I('calendar') + 'احجز موعد معاينة</button>' +
         '<a class="btn btn--wa" href="https://wa.me/' + agent.whatsapp + '?text=' + waText + '" target="_blank" rel="noopener">' + I('whatsapp') + 'واتساب</a>' +
         '<a class="btn btn--ghost" href="tel:' + agent.phone + '">' + I('phone') + 'اتصال</a></div>';
     }

@@ -35,6 +35,7 @@ The baseline requirements are in `docs/10-security-ops.md`.
 | Threat | Mitigation |
 |---|---|
 | Stolen refresh cookie | httpOnly + Secure + SameSite=Lax + narrow path; rotation and reuse detection revoke the family and alert the user |
+| Payments | Card data never reaches our servers (Moyasar hosted invoice or Moyasar's embedded form; the site CSP allows only `cdn.moyasar.com` scripts/styles/images, `api.moyasar.com` connections and `*.moyasar.com` frames); amounts, methods and payment status are decided by the server; receipt uploads are type-checked from their bytes and stored privately | `payments/*`, `infra/Caddyfile` |
 | XSS | Strict CSPs (no inline scripts), output escaping in the vanilla site (`ui.esc`), React escaping in the admin, sanitised rich text |
 | CSRF | SameSite cookies + mandatory custom header on cookie endpoints; bearer tokens elsewhere |
 | IDOR | Scoped queries; customer data always filtered by the token's subject |

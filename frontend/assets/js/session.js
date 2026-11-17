@@ -40,13 +40,16 @@ window.MZ = window.MZ || {};
   /* ---------- HTTP ---------- */
   function raw(path, opts) {
     opts = opts || {};
-    var headers = { Accept: 'application/json', 'X-Requested-With': 'nx' };
-    if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
+    var headers = { Accept: opts.accept || 'application/json', 'X-Requested-With': 'nx' };
+    // FormData (file uploads): the browser sets the multipart boundary itself.
+    var form = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+    if (opts.body !== undefined && !form) headers['Content-Type'] = 'application/json';
+    if (opts.headers) Object.keys(opts.headers).forEach(function (k) { headers[k] = opts.headers[k]; });
     if (state.token && opts.auth !== false) headers.Authorization = 'Bearer ' + state.token;
     return fetch(cfg.apiBase + path, {
       method: opts.method || (opts.body !== undefined ? 'POST' : 'GET'),
       headers: headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      body: opts.body === undefined ? undefined : form ? opts.body : JSON.stringify(opts.body),
       credentials: 'same-origin',
       cache: 'no-store'
     });
@@ -83,7 +86,16 @@ window.MZ = window.MZ || {};
     }).then(function (r) {
       if (!r.ok) return toError(r);
       if (r.status === 204) return null;
-      return r.json();
+      return opts && opts.blob ? r.blob() : r.json();
+    });
+  }
+  /** Authenticated file download (e.g. a receipt PDF): fetch with the token, then save. */
+  function download(path, filename) {
+    return request(path, { blob: true, accept: 'application/pdf, */*' }).then(function (blob) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
     });
   }
 
@@ -149,6 +161,7 @@ window.MZ = window.MZ || {};
   function menuLinks() {
     return [
       ['/account', 'grid', 'حسابي'],
+      ['/account/bookings', 'key', 'حجوزاتي'],
       ['/account/viewings', 'calendar', 'معايناتي'],
       ['/account/saved-searches', 'heart', 'المفضلة'],
       ['/account/notifications', null, 'الإشعارات'],
@@ -457,12 +470,37 @@ window.MZ = window.MZ || {};
     document.dispatchEvent(new CustomEvent('mz:notification', { detail: p }));
   });
 
+  /* ---------- Moyasar embedded form (docs/04 §5, mode `embedded_form`) ----------
+     Card data goes from the browser straight to Moyasar; our server only re-fetches the result.
+     Pinned version: update it together with the CSP (cdn.moyasar.com). */
+  var MOYASAR_VERSION = '1.14.0';
+  function moyasarForm(host, na) {
+    host.innerHTML = '<div class="mysr-form"></div>';
+    var base = 'https://cdn.moyasar.com/mpf/' + MOYASAR_VERSION + '/';
+    if (!document.querySelector('link[data-moyasar]')) {
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'moyasar.css'; l.setAttribute('data-moyasar', '');
+      document.head.appendChild(l);
+    }
+    function go() {
+      window.Moyasar.init({
+        element: host.querySelector('.mysr-form'), amount: na.amount, currency: na.currency, description: na.description,
+        publishable_api_key: na.publishableKey, callback_url: na.callbackUrl, methods: na.methods, metadata: na.metadata
+      });
+    }
+    if (window.Moyasar) return go();
+    var sc = document.createElement('script'); sc.src = base + 'moyasar.js'; sc.onload = go;
+    sc.onerror = function () { host.innerHTML = '<p class="field-err">تعذّر تحميل نموذج الدفع، حاول مرة أخرى.</p>'; };
+    document.head.appendChild(sc);
+  }
+  MZ.payments = { moyasarForm: moyasarForm };
+
   MZ.rt = rt;
   MZ.auth = {
     init: init,
     user: function () { return state.user; },
     token: function () { return state.user && state.exp > Date.now() ? state.token : null; },
     request: request,
+    download: download,
     openLogin: openLogin,
     mountLogin: mountLogin,
     logout: logout,
