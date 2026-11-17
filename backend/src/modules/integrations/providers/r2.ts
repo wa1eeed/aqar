@@ -94,6 +94,22 @@ export async function r2SignedGet(ctx: Ctx, b: BucketName, key: string, ttlSec: 
   });
 }
 
+/** Downloads an object, refusing anything larger than `maxBytes`. */
+export async function r2Get(
+  ctx: Ctx,
+  b: BucketName,
+  key: string,
+  maxBytes: number,
+): Promise<{ body: Buffer; contentType: string | undefined }> {
+  assertSafeKey(key);
+  const { client, bucket: name } = r2Client(ctx);
+  const out = await client.send(new GetObjectCommand({ Bucket: name(b), Key: key }), { abortSignal: ctx.signal });
+  if ((out.ContentLength ?? 0) > maxBytes) throw new IntegrationError('INTEGRATION_BAD_RESPONSE', 'object too large');
+  const bytes = await out.Body!.transformToByteArray();
+  if (bytes.byteLength > maxBytes) throw new IntegrationError('INTEGRATION_BAD_RESPONSE', 'object too large');
+  return { body: Buffer.from(bytes), contentType: out.ContentType };
+}
+
 export async function r2Delete(ctx: Ctx, b: BucketName, key: string): Promise<void> {
   assertSafeKey(key);
   const { client, bucket: name } = r2Client(ctx);

@@ -86,6 +86,9 @@
 				redir @hasQuery {re.slash.1}?{query} 301
 				redir * {re.slash.1} 301
 			}
+			# Property pages: /property/1001-<slug> → property.html (SSR meta arrives in Phase 6).
+			@propertyPage path_regexp propertyPage ^/property/[0-9]+(-[^/]*)?$
+			rewrite @propertyPage /property.html
 			# Inside the same route so redirects see the original path, before /about → /about.html.
 			try_files {path} {path}.html
 			file_server

@@ -1,4 +1,5 @@
 /* صفحة المفضلة */
+window.MZ.boot().then(function () {
 (function (MZ) {
   var ui = MZ.ui; ui.mount('');
   var el = document.querySelector('[data-favs]');
@@ -11,3 +12,4 @@
   document.addEventListener('mz:fav', draw);
   draw();
 })(window.MZ);
+});

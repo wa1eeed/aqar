@@ -1,3 +1,4 @@
+window.MZ.boot().then(function () {
 (function (MZ) {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api, cfg = MZ.config;
 
@@ -344,3 +345,4 @@
   setView(view);
   load();
 })(window.MZ);
+});

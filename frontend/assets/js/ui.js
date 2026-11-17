@@ -103,8 +103,9 @@ window.MZ = window.MZ || {};
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   /* مفتاح رسم محلي (بيانات تجريبية) أو رابط صورة كامل من الباك إند */
   function img(key) {
+    if (!key) return '/assets/img/favicon.svg';
     if (/^(https?:)?\/|^data:/.test(key)) return key;
-    return key.indexOf('.') !== -1 ? 'assets/img/' + key : 'assets/img/props/' + key + '.svg';
+    return key.indexOf('.') !== -1 ? '/assets/img/' + key : '/assets/img/props/' + key + '.svg';
   }
   function priceSuffix(p) { return p.offer === 'rent' && p.rentPeriod ? ' / ' + S.rentPeriods[p.rentPeriod] : ''; }
   function dist(m) { return m < 1000 ? num(Math.round(m / 10) * 10) + ' م' : (m / 1000).toFixed(1) + ' كم'; }
@@ -181,7 +182,7 @@ window.MZ = window.MZ || {};
   function card(p, opts) {
     opts = opts || {};
     var t = S.types[p.type], closed = S.isClosed(p.status), isFav = fav.has(p.id);
-    var href = '/property#p-' + p.id;
+    var href = p.url || '/property#p-' + p.id;
     return '' +
       '<article class="card' + (closed ? ' card--closed' : '') + (opts.row ? ' card--row' : '') + '" data-id="' + p.id + '">' +
         '<a class="card__media" href="' + href + '" tabindex="-1" aria-hidden="true">' +
@@ -215,6 +216,10 @@ window.MZ = window.MZ || {};
   ];
 
   function logo(light) {
+    var custom = light ? (cfg.brand.logoLightUrl || cfg.brand.logoUrl) : cfg.brand.logoUrl;
+    if (custom) {
+      return '<a class="logo' + (light ? ' logo--light' : '') + '" href="/" aria-label="' + cfg.brand.fullName + ' — الرئيسية"><img src="' + esc(custom) + '" alt="' + cfg.brand.fullName + '" style="height:42px;width:auto"></a>';
+    }
     return '<a class="logo' + (light ? ' logo--light' : '') + '" href="/" aria-label="' + cfg.brand.fullName + ' — الرئيسية">' +
       '<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="currentColor"/><path d="M10 29V18l10-7 10 7v11" fill="none" stroke="#C9A86C" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 29v-6h8v6" fill="none" stroke="#FAF7F2" stroke-width="2.4" stroke-linejoin="round"/></svg>' +
       '<span><b>' + cfg.brand.name + '</b><small>للعقارات</small></span></a>';
@@ -360,6 +365,65 @@ window.MZ = window.MZ || {};
       }
     });
   }
+
+  /* ---------- Boot (docs/08 §1.4) ----------
+     يجلب إعدادات الموقع من الباك إند (مخزّنة 5 دقائق في الجلسة) ويدمجها في MZ.config.
+     إن تعذّر الوصول للباك إند يعمل الموقع بالبيانات التجريبية تلقائياً. */
+  var booting = null;
+  function escConfig(v) {
+    if (typeof v === 'string') return esc(v);
+    if (Array.isArray(v)) return v.map(escConfig);
+    if (v && typeof v === 'object') { var o = {}; for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) o[k] = escConfig(v[k]); return o; }
+    return v;
+  }
+  function loadScript(src) {
+    return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  }
+  function cachedJson(key, url) {
+    try { var c = JSON.parse(sessionStorage.getItem(key) || 'null'); if (c && Date.now() - c.at < 300000) return Promise.resolve(c.v); } catch (e) {}
+    return fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (v) { try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), v: v })); } catch (e) {} return v; });
+  }
+  function applyConfig(remote) {
+    var r = escConfig(remote);
+    Object.assign(cfg.brand, { name: r.brand.name, fullName: r.brand.fullName, tagline: r.brand.tagline, logoUrl: r.brand.logoUrl, logoLightUrl: r.brand.logoLightUrl });
+    if (r.licensing.regaFalLicense) cfg.brand.falLicense = r.licensing.regaFalLicense;
+    if (r.licensing.cr) cfg.brand.cr = r.licensing.cr;
+    if (r.contact.address) cfg.brand.address = r.contact.address;
+    Object.assign(cfg.contact, { phone: r.contact.phone, phoneDisplay: r.contact.phoneDisplay, whatsapp: r.contact.whatsapp, email: r.contact.email, hours: r.contact.hours, officeLat: r.contact.officeLat, officeLng: r.contact.officeLng, social: r.contact.social });
+    cfg.licensing = r.licensing;
+    cfg.features = r.features;
+    cfg.booking = r.booking;
+    if (r.nearby && r.nearby.radius) cfg.nearby.radius = r.nearby.radius;
+    if (r.map) {
+      cfg.map.provider = r.map.provider === 'google' && r.map.googleBrowserKey ? 'google' : 'osm';
+      if (r.map.tilesUrl) cfg.map.tiles = remote.map.tilesUrl; // URL template: keep braces unescaped
+      if (r.map.attribution) cfg.map.attribution = remote.map.attribution;
+      cfg.map.googleApiKey = remote.map.googleBrowserKey || '';
+    }
+  }
+  function applySchema(remote) {
+    if (!remote || !Array.isArray(remote.cities) || !remote.cities.length) return;
+    S.cities.length = 0;
+    escConfig(remote.cities).forEach(function (c) { S.cities.push(c); });
+  }
+  function useMock() {
+    cfg.dataSource = 'mock';
+    return MZ.MOCK_PROPERTIES ? Promise.resolve() : loadScript('/data/properties.js');
+  }
+  function boot() {
+    if (booting) return booting;
+    var forceMock = /[?&]mock=1\b/.test(location.search);
+    try { if (localStorage.getItem('mz_mock') === '1') forceMock = true; } catch (e) {}
+    if (forceMock || cfg.dataSource === 'mock') return (booting = useMock());
+    booting = Promise.all([cachedJson('mz_cfg', cfg.apiBase + '/public/config'), cachedJson('mz_schema', cfg.apiBase + '/public/schema')])
+      .then(function (r) { applyConfig(r[0]); applySchema(r[1]); })
+      .catch(function () { return useMock(); });
+    return booting;
+  }
+  MZ.boot = boot;
 
   MZ.ui = {
     icon: icon, num: num, money: money, moneyShort: moneyShort, esc: esc, img: img, ago: ago, dist: dist,

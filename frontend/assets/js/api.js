@@ -11,8 +11,19 @@ window.MZ = window.MZ || {};
   function delay(v) { return new Promise(function (r) { setTimeout(function () { r(v); }, 120); }); }
 
   function http(path, opts) {
-    return fetch(cfg.apiBase + path, Object.assign({ headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' } }, opts || {}))
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    opts = opts || {};
+    var headers = Object.assign({ 'Accept': 'application/json', 'Content-Type': 'application/json' }, opts.headers || {});
+    return fetch(cfg.apiBase + path, Object.assign({}, opts, { headers: headers, credentials: 'same-origin' }))
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (body) {
+          if (!r.ok) { var e = new Error((body.error && body.error.message) || ('HTTP ' + r.status)); e.status = r.status; e.code = body.error && body.error.code; throw e; }
+          return body;
+        });
+      });
+  }
+  function idempotencyKey() {
+    var a = new Uint8Array(16); (window.crypto || window.msCrypto).getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
   }
 
   function qs(obj) {
@@ -133,56 +144,25 @@ window.MZ = window.MZ || {};
     return out.sort(function (a, b) { return a.distance - b.distance; });
   }
 
-  function osmNearby(p) {
-    var r = cfg.nearby.radius;
-    var body = '[out:json][timeout:20];(' + Object.keys(S.nearby).map(function (cat) {
-      return 'nwr' + S.nearby[cat].osm + '(around:' + r + ',' + p.lat + ',' + p.lng + ');';
-    }).join('') + ');out center 200;';
-    return fetch(cfg.nearby.overpassUrl, { method: 'POST', body: 'data=' + encodeURIComponent(body), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
-      .then(function (r) { if (!r.ok) throw new Error('overpass'); return r.json(); })
-      .then(function (j) {
-        var items = [];
-        (j.elements || []).forEach(function (e) {
-          var t = e.tags || {}, lat = e.lat || (e.center && e.center.lat), lng = e.lon || (e.center && e.center.lon);
-          if (!lat) return;
-          var cat = null;
-          if (t.amenity === 'place_of_worship') cat = 'mosque';
-          else if (t.amenity === 'school' || t.amenity === 'kindergarten') cat = 'school';
-          else if (t.amenity === 'hospital' || t.amenity === 'clinic') cat = 'health';
-          else if (t.amenity === 'pharmacy') cat = 'pharmacy';
-          else if (t.shop === 'supermarket' || t.shop === 'convenience') cat = 'grocery';
-          else if (t.shop === 'mall') cat = 'mall';
-          else if (t.amenity === 'restaurant' || t.amenity === 'cafe') cat = 'food';
-          else if (t.leisure === 'park') cat = 'park';
-          else if (t.amenity === 'fuel') cat = 'fuel';
-          else if (t.amenity === 'bank' || t.amenity === 'atm') cat = 'bank';
-          if (!cat) return;
-          items.push({ id: e.type + e.id, cat: cat, name: t['name:ar'] || t.name || S.nearby[cat].label.replace(/ات$|ون$/, ''), lat: lat, lng: lng, distance: haversine(p.lat, p.lng, lat, lng) });
-        });
-        if (!items.length) throw new Error('empty');
-        return items.sort(function (a, b) { return a.distance - b.distance; });
-      });
-  }
-
   /* ---------- Public API ---------- */
   MZ.api = {
     /* GET /properties */
     listProperties: function (q) {
       q = q || {};
-      if (cfg.dataSource === 'api') return http('/properties' + qs(q));
+      if (cfg.dataSource === 'api') return http('/public/properties' + qs(q));
       var list = sortList(applyFilters(all(), q), q.sort);
       var size = +q.pageSize || cfg.pageSize, page = Math.max(1, +q.page || 1);
       return delay({ items: list.slice((page - 1) * size, page * size), total: list.length, page: page, pageSize: size, pages: Math.max(1, Math.ceil(list.length / size)) });
     },
     /* GET /properties/:id */
     getProperty: function (id) {
-      if (cfg.dataSource === 'api') return http('/properties/' + encodeURIComponent(id));
+      if (cfg.dataSource === 'api') return http('/public/properties/' + encodeURIComponent(id));
       var p = all().filter(function (x) { return String(x.id) === String(id); })[0];
       return p ? delay(p) : Promise.reject(new Error('not_found'));
     },
     /* GET /properties/:id/similar */
     getSimilar: function (p, limit) {
-      if (cfg.dataSource === 'api') return http('/properties/' + p.id + '/similar?limit=' + (limit || 3));
+      if (cfg.dataSource === 'api') return http('/public/properties/' + p.id + '/similar?limit=' + (limit || 3));
       var list = all().filter(function (x) { return x.id !== p.id && !S.isClosed(x.status); });
       list.sort(function (a, b) {
         function score(x) { return (x.type === p.type ? 3 : 0) + (x.offer === p.offer ? 2 : 0) + (x.city === p.city ? 1 : 0); }
@@ -190,21 +170,16 @@ window.MZ = window.MZ || {};
       });
       return delay(list.slice(0, limit || 3));
     },
-    /* GET /properties/:id/nearby  — أو OpenStreetMap مباشرة */
+    /* GET /public/properties/:id/nearby — يُجلب عبر الباك إند (بوابة التكاملات + تخزين مؤقت) */
     getNearby: function (p) {
-      var src = cfg.nearby.source;
-      var primary = src === 'api' && cfg.dataSource === 'api'
-        ? http('/properties/' + p.id + '/nearby?radius=' + cfg.nearby.radius).then(function (r) { return r.items; })
-        : src === 'osm' ? osmNearby(p) : Promise.reject(new Error('sample'));
-      return primary.then(function (items) { return { source: src, items: items }; })
-        .catch(function () {
-          if (!cfg.nearby.fallbackToSample) return { source: 'none', items: [] };
-          return { source: 'sample', items: sampleNearby(p) };
-        });
+      if (cfg.dataSource !== 'api') return Promise.resolve({ source: 'sample', items: sampleNearby(p) });
+      return http('/public/properties/' + p.id + '/nearby?radius=' + cfg.nearby.radius)
+        .then(function (r) { return { source: r.source, items: r.items || [] }; })
+        .catch(function () { return { source: 'none', items: [] }; });
     },
     /* GET /stats */
     getStats: function () {
-      if (cfg.dataSource === 'api') return http('/stats');
+      if (cfg.dataSource === 'api') return http('/public/stats');
       var list = all(), byType = {}, byCity = {}, byOffer = {};
       list.forEach(function (p) {
         if (S.isClosed(p.status)) return;
@@ -217,12 +192,15 @@ window.MZ = window.MZ || {};
     /* GET /properties?ids=… (للمفضلة) */
     getMany: function (ids) {
       if (!ids.length) return Promise.resolve([]);
-      if (cfg.dataSource === 'api') return http('/properties?ids=' + ids.join(',')).then(function (r) { return r.items; });
+      if (cfg.dataSource === 'api') return http('/public/properties?pageSize=100&ids=' + ids.join(',')).then(function (r) { return r.items; });
       return delay(all().filter(function (p) { return ids.indexOf(String(p.id)) !== -1; }));
     },
-    /* POST /leads — طلبات التواصل والمعاينة وعرض العقار */
+    /* POST /public/leads — طلبات التواصل والمعاينة وعرض العقار (docs/02 §2.2) */
     submitLead: function (payload) {
-      if (cfg.dataSource === 'api') return http('/leads', { method: 'POST', body: JSON.stringify(payload) });
+      if (cfg.dataSource === 'api') {
+        return http('/public/leads', { method: 'POST', body: JSON.stringify(payload), headers: { 'Idempotency-Key': idempotencyKey() } })
+          .then(function (r) { return { id: r.number || r.id, number: r.number }; });
+      }
       return delay({ ok: true, demo: true, id: 'L-' + Date.now().toString().slice(-6) });
     },
     annualised: annualised,

@@ -22,9 +22,9 @@ MZ.config = {
   },
 
   /* مصدر البيانات:
-     'mock' = بيانات تجريبية من data/properties.js
-     'api'  = الباك إند (راجع API.md لشكل الطلبات والردود) */
-  dataSource: 'mock',
+     'api'  = الباك إند (الافتراضي). إن تعذّر الوصول إليه يتحوّل الموقع تلقائياً للبيانات التجريبية.
+     'mock' = بيانات تجريبية من data/properties.js (للتطوير: أضف ?mock=1 للرابط) */
+  dataSource: 'api',
   apiBase: '/api/v1',
 
   /* الخريطة: 'osm' (افتراضي، مجاني) أو 'google' (يحتاج مفتاح) */
@@ -35,15 +35,11 @@ MZ.config = {
     attribution: '&copy; مساهمو OpenStreetMap'
   },
 
-  /* الخدمات القريبة:
-     'osm' = بحث مباشر من OpenStreetMap (Overpass API)
-     'api' = من الباك إند: GET {apiBase}/properties/:id/nearby
-     عند فشل المصدر تُعرض بيانات تجريبية مع تنبيه واضح */
+  /* الخدمات القريبة: من الباك إند GET {apiBase}/public/properties/:id/nearby
+     (البيانات التوضيحية تظهر في وضع البيانات التجريبية فقط) */
   nearby: {
-    source: 'osm',
-    radius: 2000,
-    overpassUrl: 'https://overpass-api.de/api/interpreter',
-    fallbackToSample: true
+    source: 'api',
+    radius: 2000
   },
 
   pageSize: 12,

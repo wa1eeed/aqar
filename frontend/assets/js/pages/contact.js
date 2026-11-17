@@ -1,3 +1,4 @@
+window.MZ.boot().then(function () {
 (function (MZ) {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api, cfg = MZ.config, I = ui.icon;
   ui.mount('contact');
@@ -37,7 +38,7 @@
     document.querySelector('[data-err="consent"]').hidden = f.consent.checked;
     if (!ok || !pOk || !f.consent.checked) { (f.querySelector('[aria-invalid="true"]') || f.consent).focus(); return; }
     var btn = f.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'جارِ الإرسال…';
-    api.submitLead({ type: f.request.value, name: f.name.value.trim(), phone: f.phone.value, email: f.email.value, city: f.city.value, propertyType: f.type.value, budget: f.budget.value, message: f.message.value })
+    api.submitLead({ type: f.request.value, name: f.name.value.trim(), phone: f.phone.value, email: f.email.value, city: f.city.value, propertyType: f.type.value, budget: f.budget.value, message: f.message.value, consent: true })
       .then(function (r) {
         document.querySelector('[data-form-panel]').innerHTML = '<div class="success"><div class="ic-wrap">' + I('check') + '</div><h2 style="font-size:24px">استلمنا طلبك</h2>' +
           '<p class="muted">سيتواصل معك أحد مستشارينا خلال يوم عمل. رقم الطلب: <bdi>' + r.id + '</bdi></p>' +
@@ -64,3 +65,4 @@
     if (m) m.marker(office[0], office[1], MZ.map.homePin(), { title: cfg.brand.fullName });
   });
 })(window.MZ);
+});

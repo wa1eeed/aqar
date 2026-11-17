@@ -13,6 +13,9 @@ import { EmailModule } from './modules/email/email.module';
 import { EmailService, type EmailJob } from './modules/email/email.service';
 import { IntegrationsGateway } from './modules/integrations/gateway.service';
 import { IntegrationsCoreModule } from './modules/integrations/integrations.module';
+import { MediaCoreModule } from './modules/media/media.module';
+import { MediaService, type MediaJob } from './modules/media/media.service';
+import { PropertiesModule } from './modules/properties/properties.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
@@ -33,6 +36,8 @@ import { RedisModule } from './redis/redis.module';
     QueueModule,
     IntegrationsCoreModule,
     EmailModule,
+    PropertiesModule,
+    MediaCoreModule,
   ],
 })
 class WorkerModule {}
@@ -56,6 +61,15 @@ async function main(): Promise<void> {
     { connection: queueConnection(env.REDIS_URL), concurrency: 5 },
   );
 
+  const media = app.get(MediaService);
+  const mediaWorker = new Worker<MediaJob>(QUEUES.media, (job) => media.process(job.data.mediaId), {
+    connection: queueConnection(env.REDIS_URL),
+    concurrency: 2,
+  });
+  mediaWorker.on('failed', (job) => {
+    if (job && job.attemptsMade >= (job.opts.attempts ?? 1)) void media.markFailed(job.data.mediaId);
+  });
+
   const integrationsWorker = new Worker(
     QUEUES.integrations,
     async (job) => {
@@ -73,7 +87,7 @@ async function main(): Promise<void> {
   await queue.upsertJobScheduler('integrations-health', { every: HEALTH_EVERY_MS }, { name: 'health' });
   await queue.upsertJobScheduler('maintenance-prune', { every: PRUNE_EVERY_MS }, { name: 'prune' });
 
-  for (const w of [emailWorker, integrationsWorker]) {
+  for (const w of [emailWorker, integrationsWorker, mediaWorker]) {
     w.on('failed', (job, err) =>
       log.warn({ queue: w.name, jobId: job?.id, attempt: job?.attemptsMade, err: err.message }, 'job failed'),
     );
@@ -81,7 +95,7 @@ async function main(): Promise<void> {
 
   const shutdown = async () => {
     log.log('worker shutting down');
-    await Promise.allSettled([emailWorker.close(), integrationsWorker.close()]);
+    await Promise.allSettled([emailWorker.close(), integrationsWorker.close(), mediaWorker.close()]);
     await app.close();
     process.exit(0);
   };

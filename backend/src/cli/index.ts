@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { rotateEncryptionKey } from './rotate-encryption-key';
+import { seedDemo } from './seed-demo';
 
 /** `pnpm cli <command>` — operational commands (docs/10). */
 async function main(): Promise<void> {
@@ -22,7 +23,18 @@ async function main(): Promise<void> {
     }
     return;
   }
-  throw new Error('commands: rotate-encryption-key --new <key>');
+  if (command === 'seed-demo') {
+    const prisma = new PrismaClient();
+    try {
+      const i = args.indexOf('--from');
+      const r = await seedDemo(prisma, { from: i >= 0 ? args[i + 1] : undefined });
+      console.log(`demo: ${r.agents} agents, ${r.properties} properties created`);
+    } finally {
+      await prisma.$disconnect();
+    }
+    return;
+  }
+  throw new Error('commands: rotate-encryption-key --new <key> | seed-demo [--from <file>]');
 }
 
 main().catch((e: unknown) => {

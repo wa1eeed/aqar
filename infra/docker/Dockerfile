@@ -44,6 +44,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-cert
 ENV NODE_ENV=production PORT=3000
 WORKDIR /app
 COPY --from=build --chown=node:node /out ./
+# Demo listings for staging (`node dist/cli/index.js seed-demo`); never used in production.
+COPY --chown=node:node frontend/data/properties.js ./demo/properties.js
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \

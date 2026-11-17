@@ -30,7 +30,8 @@
       "prisma",
       "argon2",
       "esbuild",
-      "@nestjs/core"
+      "@nestjs/core",
+      "sharp"
     ],
     "overrides": {
       "multer@2": "2.5.0",

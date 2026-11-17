@@ -11,7 +11,7 @@ import { IntegrationStore, type Resolved } from './integration-store.service';
 import { googleNearby } from './providers/google';
 import { overpassNearby } from './providers/overpass';
 import type { NearbyItem } from './providers/places';
-import { r2Delete, r2PresignPut, r2PublicUrl, r2Put, r2SignedGet, type BucketName } from './providers/r2';
+import { r2Delete, r2Get, r2PresignPut, r2PublicUrl, r2Put, r2SignedGet, type BucketName } from './providers/r2';
 import { resendSend, type OutgoingMessage } from './providers/resend';
 import {
   IntegrationError,
@@ -410,6 +410,15 @@ export class IntegrationsGateway {
           idempotent: true,
           timeoutMs: 30_000,
         }),
+      get: (bucket: BucketName, key: string, maxBytes: number) =>
+        this.run(k, 'get', (ctx) => r2Get(ctx as never, bucket, key, maxBytes), {
+          idempotent: true,
+          timeoutMs: 30_000,
+        }),
+      isReady: async (): Promise<boolean> => {
+        const r = await this.store.resolve(k);
+        return r.row.enabled && !!r.config.accountId && !!r.secrets.accessKeyId && !!r.secrets.secretAccessKey;
+      },
       signedGet: (bucket: BucketName, key: string, ttlSec: number) =>
         this.run(k, 'signedGet', (ctx) => r2SignedGet(ctx as never, bucket, key, ttlSec)),
       delete: (bucket: BucketName, key: string) =>

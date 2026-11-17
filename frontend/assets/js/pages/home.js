@@ -1,3 +1,4 @@
+window.MZ.boot().then(function () {
 (function (MZ) {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api;
   ui.mount('home');
@@ -93,7 +94,7 @@
         '<div class="icard__media"><img src="' + ui.img(p.images[0]) + '" alt="" loading="lazy">' +
           '<div class="card__top">' + ui.statusBadge(p) + '</div></div>' +
         '<div class="icard__body">' +
-          '<h3><a href="/property#p-' + p.id + '">' + ui.esc(p.title) + '</a></h3>' +
+          '<h3><a href="' + (p.url || '/property#p-' + p.id) + '">' + ui.esc(p.title) + '</a></h3>' +
           '<p class="icard__loc">' + ui.icon('pin') + p.district + '، ' + p.cityLabel + '</p>' +
           '<div class="kpis">' +
             '<div><span>قيمة الاستثمار</span><b>' + ui.moneyShort(p.price) + '</b></div>' +
@@ -122,9 +123,10 @@
       if (!m) return;
       var riyadh = r.items.filter(function (p) { return p.city === 'riyadh'; });
       riyadh.forEach(function (p) {
-        m.marker(p.lat, p.lng, MZ.map.pricePin(p), { onClick: function () { location.href = '/property#p-' + p.id; }, title: p.title });
+        m.marker(p.lat, p.lng, MZ.map.pricePin(p), { onClick: function () { location.href = p.url || '/property#p-' + p.id; }, title: p.title });
       });
       m.fit(riyadh.map(function (p) { return [p.lat, p.lng]; }), 50);
     });
   });
 })(window.MZ);
+});

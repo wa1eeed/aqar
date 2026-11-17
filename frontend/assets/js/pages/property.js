@@ -1,9 +1,13 @@
+window.MZ.boot().then(function () {
 (function (MZ) {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api, cfg = MZ.config, I = ui.icon;
   ui.mount('properties');
   var root = document.querySelector('[data-prop]');
 
+  /* /property/1001-slug (docs/08 §2) ثم #p-1001 ثم ?id=1001 */
   function getId() {
+    var path = location.pathname.match(/^\/property\/(\d+)/);
+    if (path) return path[1];
     var m = location.hash.match(/^#p-(\d+)/);
     if (m) return m[1];
     try { return new URLSearchParams(location.search).get('id'); } catch (e) { return null; }
@@ -266,6 +270,8 @@
         '<div class="field"><label for="b-date">التاريخ المفضل</label><input id="b-date" class="input" type="date" name="date" min="' + today + '" required></div>' +
         '<div class="field"><label for="b-time">الفترة</label><select id="b-time" class="select" name="slot"><option value="morning">صباحاً (9 – 12)</option><option value="afternoon">عصراً (4 – 6)</option><option value="evening">مساءً (7 – 9)</option></select></div>') +
         '<div class="field full"><label for="b-notes">ملاحظات (اختياري)</label><textarea id="b-notes" class="textarea" name="notes" rows="3"></textarea></div>' +
+        '<label class="check full"><input type="checkbox" name="consent" required>أوافق على تواصل ' + cfg.brand.fullName + ' معي بخصوص هذا الطلب</label>' +
+        '<span class="err full" data-err="consent" hidden>يلزم الموافقة على التواصل لإرسال الطلب</span>' +
         '<div class="full"><button class="btn btn--primary btn--block" type="submit">' + (isWait ? 'سجّل اهتمامي' : 'تأكيد طلب المعاينة') + '</button></div>' +
       '</form>', { label: isWait ? 'تسجيل الاهتمام' : 'حجز موعد معاينة' });
 
@@ -276,9 +282,10 @@
       [f.name, f.phone, f.date].forEach(function (el) { if (el) { var bad = !el.value.trim(); el.setAttribute('aria-invalid', bad); if (bad) ok = false; } });
       var phoneOk = ui.validPhone(phone);
       f.phone.setAttribute('aria-invalid', !phoneOk); m.querySelector('[data-err="phone"]').hidden = phoneOk || !phone;
-      if (!ok || !phoneOk) { (f.querySelector('[aria-invalid="true"]') || f.name).focus(); return; }
+      m.querySelector('[data-err="consent"]').hidden = f.consent.checked;
+      if (!ok || !phoneOk || !f.consent.checked) { (f.querySelector('[aria-invalid="true"]') || f.consent).focus(); return; }
       var btn = f.querySelector('[type=submit]'); btn.disabled = true; btn.textContent = 'جارِ الإرسال…';
-      api.submitLead({ type: kind, propertyId: p.id, name: f.name.value.trim(), phone: phone, date: f.date ? f.date.value : null, slot: f.slot ? f.slot.value : null, notes: f.notes.value.trim() })
+      api.submitLead({ type: kind, propertyId: p.id, name: f.name.value.trim(), phone: phone, date: f.date ? f.date.value : null, slot: f.slot ? f.slot.value : null, notes: f.notes.value.trim(), consent: true })
         .then(function (r) {
           m.querySelector('.modal__box').innerHTML = '<button class="icon-btn modal__x" type="button" data-modal-close aria-label="إغلاق">' + I('close') + '</button>' +
             '<div class="success"><div class="ic-wrap">' + I('check') + '</div><h3>' + (isWait ? 'سجّلنا اهتمامك' : 'استلمنا طلب المعاينة') + '</h3>' +
@@ -299,7 +306,7 @@
       var note = root.querySelector('[data-nb-note]');
       note.innerHTML = I('info') + (data.source === 'sample'
         ? 'بيانات توضيحية للمعاينة — تُجلب الخدمات الفعلية من OpenStreetMap بعد الرفع على السيرفر.'
-        : data.source === 'osm' ? 'المصدر: مساهمو OpenStreetMap ضمن نطاق ' + (cfg.nearby.radius / 1000) + ' كم.' : 'ضمن نطاق ' + (cfg.nearby.radius / 1000) + ' كم.');
+        : (data.source === 'places.overpass' || data.source === 'osm') ? 'المصدر: مساهمو OpenStreetMap ضمن نطاق ' + (cfg.nearby.radius / 1000) + ' كم.' : 'ضمن نطاق ' + (cfg.nearby.radius / 1000) + ' كم.');
 
       /* summary: nearest per key category */
       var keyCats = ['mosque', 'school', 'health', 'grocery', 'mall'];
@@ -353,3 +360,4 @@
     });
   }
 })(window.MZ);
+});
