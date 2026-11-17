@@ -4,6 +4,9 @@ You are implementing the backend, the admin panel and the remaining frontend wor
 platform that one real-estate company (or brokerage office) runs on its own server.
 The public frontend already exists in `frontend/` and is approved: **do not redesign it**.
 
+**Continuing an existing build?** Start with `docs/HANDOVER.md` (current state, how to run, architecture,
+next steps), then `docs/PROGRESS.md` and `docs/QUESTIONS.md`.
+
 Read these files completely, in this order, before writing any code:
 
 1. `docs/00-overview.md`            — scope, architecture, stack, repository layout
