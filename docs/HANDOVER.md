@@ -17,7 +17,7 @@
 | 2 — Integrations (gateway, providers, email queue, nearby cache, admin integrations UI) | ✅ done | yes |
 | 3 — Listings (properties, media pipeline, public API, demo seed, site on the API, admin properties UI) | ✅ done | yes |
 | 4 — CRM & notifications (leads, viewings, customers, notification center, realtime, customer accounts) | ✅ done | yes |
-| 5 — Bookings & payments (quote, locking, state machine, Moyasar, bank transfer, refunds, receipts, admin + site screens) | ✅ done | awaiting the owner's approval |
+| 5 — Bookings & payments (quote, locking, state machine, Moyasar, bank transfer, refunds, receipts, admin + site screens) | ✅ done | yes |
 | 6 — Branding, licensing, SEO/AEO/GEO | ⏳ **next** | — |
 | 7 — Reports, dashboard, audit screen, hardening | pending | — |
 | 8 — Auctions (feature flag) | pending | — |
