@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import type { Prisma, ViewingStatus } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { AccessScopeService } from '../../common/auth/access-scope.service';
 import { AppException } from '../../common/errors/app-exception';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -9,7 +9,6 @@ import type { AuthUser } from '../auth/auth.types';
 import type { CreateViewingInput, UpdateViewingInput, ViewingsQueryInput } from './dto';
 
 const notFound = () => new AppException('NOT_FOUND', 404, 'الموعد غير موجود');
-const ACTIVE: ViewingStatus[] = ['requested', 'confirmed'];
 const MAX_RANGE_MS = 62 * 86_400_000;
 
 const SELECT = {
@@ -81,13 +80,16 @@ export class ViewingsService {
     return agentId;
   }
 
-  /** One agent cannot be in two viewings at once (requested or confirmed). */
+  /**
+   * One agent cannot have two confirmed viewings at the same time. Requested viewings are customer
+   * wishes (several customers may ask for the same slot), so only confirmed ones block.
+   */
   private async assertFree(agentId: string, at: Date, durationMin: number, exceptId?: string): Promise<void> {
     const end = new Date(at.getTime() + durationMin * 60_000);
     const others = await this.prisma.viewing.findMany({
       where: {
         agentId,
-        status: { in: ACTIVE },
+        status: 'confirmed',
         ...(exceptId ? { id: { not: exceptId } } : {}),
         scheduledAt: { lt: end, gte: new Date(at.getTime() - 4 * 3600_000) },
       },
@@ -120,8 +122,8 @@ export class ViewingsService {
     }
     const agentId = await this.resolveAgent(user, b.agentId, property.agentId);
     const at = new Date(b.scheduledAt);
-    await this.assertFree(agentId, at, b.durationMin);
     const status = b.status ?? 'confirmed';
+    if (status === 'confirmed') await this.assertFree(agentId, at, b.durationMin);
     const v = await this.prisma.$transaction(async (tx) => {
       const created = await tx.viewing.create({
         data: {
@@ -188,7 +190,9 @@ export class ViewingsService {
     const duration = b.durationMin ?? before.durationMin;
     const agentId = b.agentId !== undefined ? await this.resolveAgent(user, b.agentId, before.agentId) : before.agentId;
     const status = b.status ?? before.status;
-    if (ACTIVE.includes(status) && (b.scheduledAt || b.durationMin || b.agentId || !ACTIVE.includes(before.status))) {
+    const changed =
+      at.getTime() !== before.scheduledAt.getTime() || duration !== before.durationMin || agentId !== before.agentId;
+    if (status === 'confirmed' && (before.status !== 'confirmed' || changed)) {
       await this.assertFree(agentId, at, duration, id);
     }
     await this.prisma.$transaction(async (tx) => {

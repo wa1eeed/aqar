@@ -185,9 +185,13 @@ describe('CRM, notifications and realtime (e2e, Phase 4)', () => {
       expect(n.eventKey).toBe('viewing.confirmed');
       expect(n.title).toMatch(/^تم تأكيد موعد معاينتك يوم .+ عصراً$/);
       expect((await count).unread).toBe(1);
-      const mail =
-        app.get(PrismaService) &&
-        (await prisma.emailLog.findFirstOrThrow({ where: { to: 'noura@example.sa', template: 'viewing-confirmed' } }));
+      // The in-app push goes out first; the email row follows a moment later.
+      let mail = null;
+      for (let i = 0; i < 20 && !mail; i++) {
+        mail = await prisma.emailLog.findFirst({ where: { to: 'noura@example.sa', template: 'viewing-confirmed' } });
+        if (!mail) await tick(50);
+      }
+      if (!mail) throw new Error('viewing-confirmed email not queued');
       expect(mail.subject).toBe(n.title);
 
       const mine = await as(customer, 'get', '/me/notifications').expect(200);
@@ -228,11 +232,22 @@ describe('CRM, notifications and realtime (e2e, Phase 4)', () => {
         .expect(409);
       expect(clash.body.error.code).toBe('VIEWING_CONFLICT');
       await as(agentB, 'patch', `/admin/viewings/${viewingId}`).send({ status: 'cancelled' }).expect(404);
+      // Confirming a second request for the same slot is refused too.
+      const second = await as(manager, 'post', '/admin/viewings')
+        .send({ propertyId, agentId: agentAId, status: 'requested', scheduledAt: v.scheduledAt.toISOString() })
+        .expect(201);
+      const conf = await as(manager, 'patch', `/admin/viewings/${second.body.id}`)
+        .send({ status: 'confirmed' })
+        .expect(409);
+      expect(conf.body.error.code).toBe('VIEWING_CONFLICT');
+      await as(manager, 'patch', `/admin/viewings/${second.body.id}`).send({ status: 'cancelled' }).expect(200);
       const range = `from=${encodeURIComponent(new Date().toISOString())}&to=${encodeURIComponent(
         new Date(Date.now() + 30 * 86_400_000).toISOString(),
       )}`;
       expect((await as(agentB, 'get', `/admin/viewings?${range}`).expect(200)).body.items).toHaveLength(0);
-      expect((await as(agentA, 'get', `/admin/viewings?${range}`).expect(200)).body.items).toHaveLength(1);
+      expect(
+        (await as(agentA, 'get', `/admin/viewings?${range}&status=confirmed`).expect(200)).body.items,
+      ).toHaveLength(1);
     });
 
     it('the customer can cancel their own upcoming viewing', async () => {

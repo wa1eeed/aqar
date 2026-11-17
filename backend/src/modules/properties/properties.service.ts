@@ -305,6 +305,7 @@ export class PropertiesService {
       );
       return p;
     });
+    await this.invalidatePublic();
     this.events.emit('property.changed', { id });
     if (updated.price < before.price && updated.visibility === 'published') {
       this.events.emit('property.price_dropped', {
@@ -313,7 +314,6 @@ export class PropertiesService {
         to: Number(updated.price),
       });
     }
-    await this.invalidatePublic();
     return this.get(user, id);
   }
 
@@ -349,6 +349,8 @@ export class PropertiesService {
         tx,
       );
     });
+    // Public caches first, so clients reacting to the event read fresh data.
+    await this.invalidatePublic();
     this.events.emit('property.status_changed', {
       propertyId: id,
       from: before.status,
@@ -356,7 +358,6 @@ export class PropertiesService {
       agentId: before.agentId,
       actorId: user.id,
     });
-    await this.invalidatePublic();
     return this.get(user, id);
   }
 
@@ -380,8 +381,8 @@ export class PropertiesService {
       });
       await this.audit.record({ action: 'property.publish', entityType: 'property', entityId: String(id) }, tx);
     });
-    this.events.emit('property.published', { id });
     await this.invalidatePublic();
+    this.events.emit('property.published', { id });
     return this.get(user, id);
   }
 
@@ -391,8 +392,8 @@ export class PropertiesService {
       await tx.property.update({ where: { id }, data: { visibility: 'draft', updatedById: user.id } });
       await this.audit.record({ action: 'property.unpublish', entityType: 'property', entityId: String(id) }, tx);
     });
-    this.events.emit('property.unpublished', { id });
     await this.invalidatePublic();
+    this.events.emit('property.unpublished', { id });
     return this.get(user, id);
   }
 

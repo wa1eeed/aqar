@@ -13,6 +13,9 @@ window.MZ = window.MZ || {};
   function http(path, opts) {
     opts = opts || {};
     var headers = Object.assign({ 'Accept': 'application/json', 'Content-Type': 'application/json' }, opts.headers || {});
+    // A logged-in customer's requests (e.g. a viewing request) are linked to their account.
+    var token = MZ.auth && MZ.auth.token();
+    if (token && !headers.Authorization) headers.Authorization = 'Bearer ' + token;
     return fetch(cfg.apiBase + path, Object.assign({}, opts, { headers: headers, credentials: 'same-origin' }))
       .then(function (r) {
         return r.json().catch(function () { return {}; }).then(function (body) {
@@ -26,6 +29,16 @@ window.MZ = window.MZ || {};
     return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
   }
 
+  /* نفس قواعد qs لكن ككائن نصوص (للبحث المحفوظ) */
+  function params(obj) {
+    var out = {};
+    Object.keys(obj).forEach(function (k) {
+      var v = obj[k];
+      if (v === undefined || v === null || v === '' || v === false || (Array.isArray(v) && !v.length)) return;
+      out[k] = Array.isArray(v) ? v.join(',') : String(v === true ? 1 : v);
+    });
+    return out;
+  }
   function qs(obj) {
     var parts = [];
     Object.keys(obj).forEach(function (k) {
@@ -146,6 +159,7 @@ window.MZ = window.MZ || {};
 
   /* ---------- Public API ---------- */
   MZ.api = {
+    params: params,
     /* GET /properties */
     listProperties: function (q) {
       q = q || {};

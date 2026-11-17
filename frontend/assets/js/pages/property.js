@@ -21,12 +21,31 @@ window.MZ.boot().then(function () {
   window.addEventListener('hashchange', function () { if (/^#p-\d+/.test(location.hash)) { window.scrollTo(0, 0); load(); } });
   load();
 
+  /* حالة العقار لحظياً (docs/08 §7.5) */
+  if (MZ.rt && cfg.dataSource === 'api') {
+    var liveId = getId();
+    if (liveId) MZ.rt.subscribe(liveId);
+    MZ.rt.on('property.updated', function (u) {
+      if (String(u.id) !== String(getId())) return;
+      // The event carries the new status and price (SAR); no refetch, so no stale HTTP cache.
+      if (!current || (current.status === u.status && current.price === u.price)) return;
+      var p = Object.assign({}, current, { status: u.status, price: u.price });
+      var y = window.scrollY;
+      render(p);
+      window.scrollTo(0, y);
+      ui.toast('تم تحديث حالة العقار');
+    });
+    MZ.rt.on('property.unpublished', function (u) { if (String(u.id) === String(getId())) notFound(); });
+  }
+
   function notFound() {
     root.innerHTML = '<div class="page-head"></div><div class="empty">' + I('search') + '<h3>لم نعثر على هذا العقار</h3><p>ربما تم حذف الإعلان أو انتهى ترخيصه. تصفّح العقارات المتاحة.</p><a class="btn btn--primary" href="/properties">كل العقارات</a></div>';
   }
 
   /* ---------------------------------------------------------------- */
+  var current = null;
   function render(p) {
+    current = p;
     var t = S.types[p.type], s = p.specs, closed = S.isClosed(p.status);
     var fields = S.fieldsFor(p.type, p.offer);
     document.title = p.title + ' — ' + p.district + '، ' + p.cityLabel + ' | منزلة العقارية';

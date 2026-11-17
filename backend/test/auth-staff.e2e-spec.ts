@@ -183,7 +183,18 @@ describe('Staff authentication (e2e, docs/03)', () => {
       expect(rotated).not.toBe(s.cookie);
       await get('/auth/me', r1.body.accessToken).expect(200);
 
-      // An attacker replays the old cookie → family revoked, every token of the user rejected.
+      // A second tab presenting the old cookie within the grace window gets the same successor.
+      const race = await post('/auth/refresh')
+        .set(CSRF)
+        .set('Cookie', `nx_srt=${s.cookie}`)
+        .send({ audience: 'staff' })
+        .expect(200);
+      expect(cookieFrom(race, 'nx_srt')).toBe(rotated);
+
+      // After the window, replaying the old cookie is theft → family revoked, every token rejected.
+      const redis = app.get<Redis>(REDIS);
+      const graceKeys = await redis.keys('auth:rt-grace:*');
+      if (graceKeys.length) await redis.del(...graceKeys);
       const reuse = await post('/auth/refresh')
         .set(CSRF)
         .set('Cookie', `nx_srt=${s.cookie}`)
@@ -192,6 +203,18 @@ describe('Staff authentication (e2e, docs/03)', () => {
       expect(reuse.body.error.code).toBe('SESSION_EXPIRED');
       await post('/auth/refresh').set(CSRF).set('Cookie', `nx_srt=${rotated}`).send({ audience: 'staff' }).expect(401);
       await get('/auth/me', r1.body.accessToken).expect(401);
+    });
+
+    it('parallel refreshes from two tabs both succeed with one successor', async () => {
+      const s = await ownerSession(2);
+      const [a, b] = await Promise.all(
+        [0, 1].map(() =>
+          post('/auth/refresh').set(CSRF).set('Cookie', `nx_srt=${s.cookie}`).send({ audience: 'staff' }),
+        ),
+      );
+      expect([a!.status, b!.status]).toEqual([200, 200]);
+      expect(cookieFrom(a!, 'nx_srt')).toBe(cookieFrom(b!, 'nx_srt'));
+      await get('/auth/me', b!.body.accessToken).expect(200);
     });
 
     it('logout ends the session', async () => {

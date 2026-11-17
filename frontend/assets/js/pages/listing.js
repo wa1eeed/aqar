@@ -341,6 +341,52 @@ window.MZ.boot().then(function () {
   });
   document.addEventListener('mz:fav', function () {});
 
+  /* ---------- «حفظ هذا البحث» (docs/08 §8، للعميل المسجّل) ---------- */
+  function saveSearchBtn() {
+    var end = document.querySelector('.toolbar__end'), btn = document.querySelector('[data-save-search]');
+    var on = MZ.auth && MZ.auth.enabled() && !(cfg.features && cfg.features.savedSearches === false);
+    if (!end || !on) return;
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'btn btn--ghost btn--sm save-search'; btn.setAttribute('data-save-search', '');
+      btn.innerHTML = ui.icon('heart') + 'حفظ هذا البحث';
+      end.insertBefore(btn, end.firstChild);
+      btn.addEventListener('click', function () {
+        if (!MZ.auth.user()) { MZ.auth.openLogin(function () { btn.click(); }); return; }
+        var q = MZ.api.params(state); delete q.page; delete q.sort;
+        var name = window.prompt('اسم البحث المحفوظ', defaultName());
+        if (name === null) return;
+        name = name.trim() || defaultName();
+        MZ.auth.request('/me/saved-searches', { body: { name: name.slice(0, 80), query: q, alertEnabled: true } })
+          .then(function () { ui.toast('تم حفظ البحث — سنبلغك بالعقارات الجديدة المطابقة'); })
+          .catch(function (e) { ui.toast(ui.esc(e.message || 'تعذّر حفظ البحث')); });
+      });
+    }
+  }
+  function defaultName() {
+    var parts = [];
+    if (state.types.length === 1) parts.push(S.types[state.types[0]].plural);
+    else parts.push('عقارات');
+    if (state.offer) parts.push(S.offers[state.offer].label);
+    var c = S.city(state.city); if (c) parts.push('في ' + c.label);
+    if (state.district) parts.push('حي ' + state.district);
+    return parts.join(' ');
+  }
+  saveSearchBtn();
+
+  /* ---------- تحديث حالة البطاقات لحظياً (docs/08 §8) ---------- */
+  if (MZ.rt) {
+    MZ.rt.on('property.updated', function (u) {
+      if (!lastItems) return;
+      var p = lastItems.filter(function (x) { return x.id === u.id; })[0];
+      if (!p || (p.status === u.status && p.price === u.price)) return;
+      p.status = u.status; p.price = u.price;
+      var el = els.results.querySelector('article[data-id="' + u.id + '"]');
+      if (el) el.outerHTML = ui.card(p, { row: view === 'list' });
+    });
+    MZ.rt.connect();
+  }
+
   renderFilters();
   setView(view);
   load();

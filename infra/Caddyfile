@@ -89,6 +89,9 @@
 			# Property pages: /property/1001-<slug> → property.html (SSR meta arrives in Phase 6).
 			@propertyPage path_regexp propertyPage ^/property/[0-9]+(-[^/]*)?$
 			rewrite @propertyPage /property.html
+			# «حسابي»: /account → account/index.html (a directory, so no {path}.html match).
+			@accountHome path /account
+			rewrite @accountHome /account/index.html
 			# Inside the same route so redirects see the original path, before /about → /about.html.
 			try_files {path} {path}.html
 			file_server

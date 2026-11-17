@@ -5,6 +5,7 @@ import type Redis from 'ioredis';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { REDIS } from '../../redis/redis.module';
+import { EncryptionService } from '../crypto/encryption.service';
 import { RealtimeService } from '../realtime/realtime.service';
 import { CUSTOMER_REFRESH_TTL_SEC, STAFF_REFRESH_TTL_SEC, type Audience } from './auth.types';
 import { KeyedHashService } from './keyed-hash.service';
@@ -14,6 +15,12 @@ export type RotateResult =
   | { ok: false; reason: 'invalid' | 'expired' | 'reused' };
 
 const MIN_IAT_TTL_SEC = 24 * 3600; // > access token lifetime
+/**
+ * Two tabs (or a tab and a retry) can present the same refresh token within milliseconds. For this
+ * short window after a rotation, the old token yields the same successor instead of being treated as
+ * theft. The successor is kept encrypted in Redis, keyed by the old token's hash.
+ */
+export const ROTATION_GRACE_SEC = 30;
 
 /**
  * Refresh tokens (docs/03 §1): opaque random values stored only as keyed hashes, rotated on every
@@ -29,7 +36,32 @@ export class SessionService {
     private readonly events: EventEmitter2,
     @Inject(REDIS) private readonly redis: Redis,
     private readonly realtime: RealtimeService,
+    private readonly crypto: EncryptionService,
   ) {}
+
+  private graceKey(tokenHash: string): string {
+    return `auth:rt-grace:${tokenHash}`;
+  }
+
+  /** Successor of a token rotated in the last ROTATION_GRACE_SEC seconds, if any. */
+  private async graceSuccessor(tokenHash: string, family: string): Promise<{ token: string; expiresAt: Date } | null> {
+    const raw = await this.redis.getBuffer(this.graceKey(tokenHash));
+    if (!raw) return null;
+    try {
+      const v = JSON.parse(this.crypto.decrypt(raw, `rt-grace:${tokenHash}`).toString('utf8')) as {
+        token: string;
+        expiresAt: string;
+      };
+      // The successor must still be live (not logged out / revoked since).
+      const next = await this.prisma.refreshToken.findUnique({
+        where: { tokenHash: this.hasher.hash('refresh-token', v.token) },
+      });
+      if (!next || next.revokedAt || next.family !== family) return null;
+      return { token: v.token, expiresAt: new Date(v.expiresAt) };
+    } catch {
+      return null;
+    }
+  }
 
   private ttl(typ: Audience): number {
     return typ === 'staff' ? STAFF_REFRESH_TTL_SEC : CUSTOMER_REFRESH_TTL_SEC;
@@ -67,6 +99,8 @@ export class SessionService {
     if (!row || row.subjectType !== typ) return { ok: false, reason: 'invalid' };
 
     if (row.revokedAt) {
+      const successor = await this.graceSuccessor(tokenHash, row.family);
+      if (successor) return { ok: true, subjectId: row.subjectId, family: row.family, ...successor };
       await this.revokeFamily(row.family);
       await this.revokeAccessTokens(typ, row.subjectId);
       this.events.emit('security.session_revoked', {
@@ -83,9 +117,26 @@ export class SessionService {
       where: { id: row.id, revokedAt: null },
       data: { revokedAt: new Date() },
     });
-    if (claimed.count !== 1) return { ok: false, reason: 'reused' };
+    if (claimed.count !== 1) {
+      // Lost a race with a concurrent request that is rotating this very token.
+      for (let i = 0; i < 10; i++) {
+        const successor = await this.graceSuccessor(tokenHash, row.family);
+        if (successor) return { ok: true, subjectId: row.subjectId, family: row.family, ...successor };
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return { ok: false, reason: 'reused' };
+    }
 
     const next = await this.issue(typ, row.subjectId, meta, row.family);
+    await this.redis.set(
+      this.graceKey(tokenHash),
+      this.crypto.encrypt(
+        JSON.stringify({ token: next.token, expiresAt: next.expiresAt.toISOString() }),
+        `rt-grace:${tokenHash}`,
+      ),
+      'EX',
+      ROTATION_GRACE_SEC,
+    );
     return { ok: true, subjectId: row.subjectId, family: row.family, token: next.token, expiresAt: next.expiresAt };
   }
 

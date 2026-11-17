@@ -709,3 +709,42 @@ p { margin: 0; }
 .hero__box::before { z-index: 0; opacity: .05; }
 .hero__content { position: relative; z-index: 1; }
 @media (max-width: 680px) { .hero__sky::after { background: linear-gradient(0deg, rgba(10, 47, 37, .95) 0%, rgba(10, 47, 37, .8) 55%, rgba(10, 47, 37, .55) 100%); } }
+
+/* ---------- حساب العميل في الهيدر + الدخول برمز (المرحلة 4، docs/08 §3) ---------- */
+.hdr-auth { display: contents; }
+.hdr-pop { position: relative; }
+.hdr-me { gap: 8px; }
+.hdr-menu { position: absolute; top: calc(100% + 10px); inset-inline-end: 0; min-width: 240px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow-lg); padding: 8px; z-index: 60; display: flex; flex-direction: column; }
+.hdr-menu[hidden] { display: none; }
+.hdr-menu--wide { width: min(360px, calc(100vw - 32px)); padding: 0; }
+.hdr-menu a, .hdr-menu button[role=menuitem] { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; font-weight: 500; font-size: 15px; color: var(--ink-2); background: none; border: 0; text-align: start; cursor: pointer; font-family: inherit; }
+.hdr-menu a:hover, .hdr-menu button[role=menuitem]:hover { background: var(--green-50); color: var(--green); }
+.hdr-menu .ic { width: 20px; height: 20px; color: var(--muted); }
+.hdr-menu__who { display: flex; gap: 10px; align-items: center; padding: 8px 10px 12px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.hdr-menu__who b { display: block; font-size: 15px; }
+.hdr-menu__who small { color: var(--muted); font-size: 12px; }
+.hdr-menu__head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.hdr-menu__all { justify-content: center; font-weight: 700 !important; border-top: 1px solid var(--line); border-radius: 0 !important; }
+.hdr-notifs { max-height: 380px; overflow: auto; }
+.hdr-notif { display: flex !important; flex-direction: column; align-items: flex-start !important; gap: 2px !important; padding: 12px 16px !important; border-radius: 0 !important; border-bottom: 1px solid var(--sand-100); }
+.hdr-notif b { font-size: 14px; color: var(--ink); }
+.hdr-notif span { font-size: 13px; color: var(--ink-2); }
+.hdr-notif small { font-size: 12px; color: var(--muted); }
+.hdr-notif.is-unread { background: #FBF7EE; }
+.drawer__acc { display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.drawer__acc button { background: none; border: 0; font: inherit; cursor: pointer; }
+button.link { background: none; border: 0; cursor: pointer; font-family: inherit; font-size: inherit; padding: 0; }
+.auth-card { display: flex; flex-direction: column; gap: 16px; text-align: center; padding: 10px 6px; }
+.auth-ic { width: 64px; height: 64px; border-radius: 18px; background: var(--green-50); color: var(--green); display: grid; place-items: center; margin: 0 auto; }
+.auth-ic .ic { width: 26px; height: 26px; }
+.auth-title { font-size: 28px; }
+.auth-form { display: flex; flex-direction: column; gap: 14px; text-align: start; }
+.auth-form > small, .auth-form > [data-resend], .auth-form > .link { text-align: center; }
+.field-err { color: var(--st-sold); font-size: 13px; min-height: 0; }
+.field-err:empty { display: none; }
+.otp-row { display: flex; gap: 10px; justify-content: center; }
+.otp-box { width: 52px; height: 60px; border: 1px solid var(--line-2); border-radius: 12px; text-align: center; font: 700 24px var(--f-display); background: #fff; color: var(--ink); }
+.otp-box:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-50); }
+.btn.is-busy { opacity: .7; pointer-events: none; }
+.save-search { white-space: nowrap; }
+@media (max-width: 480px) { .otp-box { width: 44px; height: 54px; font-size: 20px; } .otp-row { gap: 6px; } }

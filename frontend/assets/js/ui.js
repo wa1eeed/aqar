@@ -145,11 +145,24 @@ window.MZ = window.MZ || {};
     has: function (id) { return fav.list().indexOf(String(id)) !== -1; },
     toggle: function (id) {
       id = String(id);
-      var l = fav.list().slice(), i = l.indexOf(id);
-      if (i === -1) l.push(id); else l.splice(i, 1);
+      var on = !fav.has(id);
+      fav.set(id, on);
+      if (fav.onToggle) fav.onToggle(id, on); // account sync (session.js)
+      return on;
+    },
+    /* يضبط حالة عقار في المفضلة دون مزامنة (للتراجع أو للدمج بعد الدخول) */
+    set: function (id, on) {
+      id = String(id);
+      var l = fav.list().filter(function (x) { return x !== id; });
+      if (on) l.push(id);
       memFav = l; store('fav', l); updateFavCount();
-      return i === -1;
-    }
+      document.querySelectorAll('[data-fav="' + id + '"]').forEach(function (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+    },
+    replace: function (ids) {
+      memFav = ids.map(String); store('fav', memFav); updateFavCount();
+      document.querySelectorAll('[data-fav]').forEach(function (b) { var on = fav.has(b.getAttribute('data-fav')); b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+    },
+    onToggle: null
   };
   function updateFavCount() {
     var n = fav.list().length;
@@ -235,7 +248,9 @@ window.MZ = window.MZ || {};
         logo() +
         '<nav class="nav" aria-label="القائمة الرئيسية">' + links + '</nav>' +
         '<div class="header-actions">' +
+          '<span class="hdr-auth" data-auth-in></span>' +
           '<a class="icon-btn" href="/favorites" aria-label="المفضلة">' + icon('heart') + '<span class="dot-count" data-fav-count hidden></span></a>' +
+          '<span class="hdr-auth" data-auth-out></span>' +
           '<a class="btn btn--primary btn--sm hide-sm" href="/contact#list">' + icon('plus') + 'اعرض عقارك</a>' +
           '<button class="icon-btn show-sm" type="button" data-menu-open aria-label="فتح القائمة" aria-expanded="false">' + icon('menu') + '</button>' +
         '</div>' +
@@ -243,6 +258,7 @@ window.MZ = window.MZ || {};
       '<div class="drawer" data-menu hidden><div class="drawer__panel" role="dialog" aria-modal="true" aria-label="القائمة">' +
         '<div class="drawer__head">' + logo() + '<button class="icon-btn" type="button" data-menu-close aria-label="إغلاق القائمة">' + icon('close') + '</button></div>' +
         '<nav class="drawer__nav">' + links + '<a href="/favorites" class="nav__link">المفضلة</a></nav>' +
+        '<div data-auth-drawer></div>' +
         '<a class="btn btn--primary btn--block" href="/contact#list">' + icon('plus') + 'اعرض عقارك</a>' +
       '</div></div>';
   }
@@ -326,6 +342,8 @@ window.MZ = window.MZ || {};
     if (h) h.outerHTML = header(active);
     if (f) f.outerHTML = footer();
     updateFavCount();
+    // حساب العميل والإشعارات (session.js، المرحلة 4)
+    if (MZ.auth) { MZ.auth.renderHeader(); MZ.auth.init(); }
 
     var drawer = document.querySelector('[data-menu]'), opener = document.querySelector('[data-menu-open]');
     function setMenu(open) {
