@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AuthGuard } from './common/auth/auth.guard';
 import { correlationMiddleware } from './common/context/correlation.middleware';
+import { jsonShapeMiddleware } from './common/http/json-shape.middleware';
 import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
 import { loggerParams } from './common/logging';
 import { RateLimitGuard } from './common/rate-limit/rate-limit.guard';
@@ -44,6 +45,6 @@ import { RedisModule } from './redis/redis.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(correlationMiddleware).forRoutes('*');
+    consumer.apply(correlationMiddleware, jsonShapeMiddleware).forRoutes('*');
   }
 }

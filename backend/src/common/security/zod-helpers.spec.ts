@@ -36,3 +36,15 @@ describe('input helpers', () => {
     expect(hexColor.safeParse('red;}body{display:none').success).toBe(false);
   });
 });
+
+describe('boundedArray', () => {
+  it('rejects oversized arrays with a single issue', async () => {
+    const { boundedArray } = await import('./zod-helpers');
+    const { z } = await import('zod');
+    const r = boundedArray(z.string(), 5).safeParse(Array(100_000).fill(1));
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues).toHaveLength(1);
+    expect(boundedArray(z.string(), 5).safeParse(['a', 'b']).success).toBe(true);
+    expect(boundedArray(z.string(), 5).safeParse([1]).success).toBe(false);
+  });
+});

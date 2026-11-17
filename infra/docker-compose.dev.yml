@@ -1,0 +1,15 @@
+# Local stack at http://localhost:8080 (docs/00 §6):
+#   docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml --env-file infra/.env.dev up --build
+services:
+  caddy:
+    environment:
+      SITE_ADDRESS: ':80'
+    ports: !override
+      - '127.0.0.1:8080:80'
+  # Same production images; NODE_ENV=staging keeps JSON logs and never sends real provider traffic.
+  api:
+    environment:
+      NODE_ENV: staging
+  worker:
+    environment:
+      NODE_ENV: staging

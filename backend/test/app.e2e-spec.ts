@@ -96,6 +96,14 @@ describe('HTTP foundation (e2e)', () => {
       expect(res.body.error.code).toBe('PAYLOAD_TOO_LARGE');
     });
 
+    it('huge arrays or deep nesting → 413 before validation runs', async () => {
+      const res = await http
+        .post('/api/v1/test/echo')
+        .send({ name: Array(5000).fill('x') })
+        .expect(413);
+      expect(res.body.error.code).toBe('PAYLOAD_TOO_COMPLEX');
+    });
+
     it('validation → 400 VALIDATION_FAILED with fields; unknown keys rejected', async () => {
       const res = await http.post('/api/v1/test/echo').send({ name: 'a', phone: '123', isAdmin: true }).expect(400);
       expect(res.body.error.code).toBe('VALIDATION_FAILED');

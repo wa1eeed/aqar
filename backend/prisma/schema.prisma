@@ -4,6 +4,8 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
+  // native = developer machines/CI; debian-openssl-3.0.x = the production image (node:20-bookworm-slim + OpenSSL 3).
+  binaryTargets   = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {

@@ -2,6 +2,15 @@ import type { Params } from 'nestjs-pino';
 import type { Env } from '../config/env';
 import { requestContext } from './context/request-context';
 
+function prettyAvailable(): boolean {
+  try {
+    require.resolve('pino-pretty');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Pino JSON logs with correlation id; credentials and cookies are never written (docs/10 §5). */
 export function loggerParams(env: Env): Params {
   return {
@@ -27,7 +36,7 @@ export function loggerParams(env: Env): Params {
         res: (res: { statusCode: number }) => ({ statusCode: res.statusCode }),
       },
       autoLogging: { ignore: (req) => req.url === '/api/v1/health' || req.url === '/api/v1/ready' },
-      ...(env.NODE_ENV === 'development'
+      ...(env.NODE_ENV === 'development' && prettyAvailable()
         ? { transport: { target: 'pino-pretty', options: { singleLine: true } } }
         : {}),
     },

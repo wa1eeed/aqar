@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+design
+docs
+spec-assets
+*.md
+!frontend/**/*.md
+frontend/Dockerfile
+frontend/deploy
