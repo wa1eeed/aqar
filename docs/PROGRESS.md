@@ -145,4 +145,34 @@ Verified on the Docker stack: worker starts, schedules the health and prune jobs
 
 186 automated tests: schema 10, backend 177 (86 unit + 91 e2e), admin 9.
 
-## Phase 4 — CRM & notifications — next
+## Phase 4 — CRM & notifications — ✅ done
+
+| Task | Status | Where |
+|---|---|---|
+| Notification pipeline: channels from settings + preferences (locked events), in-app + live push, deduplicated emails with brand footer and admin overrides | ✅ | `modules/notifications` |
+| Rules for the docs/06 events available so far (leads, viewings, property status/price, saved searches, integrations, bounces, security) | ✅ | `notification-rules.ts` |
+| Socket.IO `/ws`: rooms of docs/02 §9, Redis adapter + emitter (API and worker), origin check, connection rate limit, disconnect on token expiry and on revocation | ✅ | `modules/realtime` |
+| Leads: list, kanban board, detail, stage (lost reason), assign, activities, manual lead, link/create customer, CSV export (re-auth) | ✅ | `modules/leads` |
+| Viewings: calendar API, create/edit, confirmation → customer, conflict check on confirmed viewings | ✅ | `modules/viewings` |
+| Customers admin (list, profile, block, PDPL export) and `/me` (profile + email verification, favorites, saved searches, viewings, notifications, preferences, export, deletion) | ✅ | `modules/customers` |
+| Jobs: viewing reminders (24 h / 2 h), daily saved-search digest, PDPL anonymisation after 30 days | ✅ | `crm-jobs.service.ts`, `worker.ts` |
+| Admin: leads kanban + drawer, viewings calendar, customers, notification center, live bell, broadcast, preferences | ✅ | `admin/src/pages/{Leads,LeadDrawer,Viewings,Customers,Notifications}*` |
+| Site: login modal (email code), header bell + account menu, `account/*` pages, favorites sync, saved searches, live property status | ✅ | `frontend/assets/js/session.js`, `frontend/account/`, `pages/account.js` |
+
+### Acceptance
+
+- ✅ **A viewing request shows a notification in the agent's admin within 2 s and sends an email** —
+  e2e test over a real Socket.IO connection (asserts < 2 s, one email to the agent, nothing leaked to
+  another agent). In the browser through Caddy: the admin board and bell update live.
+- ✅ **The customer receives `viewing.confirmed` in-app + email after admin confirmation** — e2e
+  (live `notification.new` + `notification.count`, email row, notification center). In the browser:
+  the customer's bell updated 32–41 ms after the manager confirmed.
+
+Also verified on the Docker stack: `/ws` through Caddy, a foreign `Origin` is refused (403), the
+worker schedules the reminder, digest and anonymisation jobs.
+
+### Tests
+
+216 automated tests: schema 10, backend 197 (unit + e2e), admin 9.
+
+## Phase 5 — Bookings & payments — next

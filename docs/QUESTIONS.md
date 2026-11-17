@@ -100,3 +100,33 @@ work could continue; please confirm or correct.
 32. **R2 uploads go directly from the browser** with presigned URLs. The R2 bucket needs a CORS rule
     allowing `PUT` from the admin origin (`https://<domain>`) with header `Content-Type`; the admin CSP
     already allows `https://*.r2.cloudflarestorage.com`.
+33. **Who gets `lead.created`** — the assignee and users with the `sales_manager` role; when nobody is
+    assigned (manager-only routing), everyone who can assign leads. For a viewing request the
+    listing's agent receives `viewing.requested` instead, so they get one email, not two.
+34. **SMS** — the SMS channel is stored in preferences but nothing is sent until an SMS integration
+    exists (docs/05). Quiet hours (SMS only) will apply then. Customer phone changes are saved as
+    "not verified" for the same reason.
+35. **Email templates** are rendered by a small built-in HTML renderer (RTL, brand colour, legal
+    footer, plain-text part) instead of react-email, to avoid a heavy dependency. Subject/intro
+    overrides from `settings.notifications.templateOverrides` are applied. The admin page for
+    template preview/test email (`/admin/email-templates/:key`) is not built yet — with the settings
+    screens? Non-transactional emails link to the notification preferences; a one-click
+    `List-Unsubscribe` header needs a signed unsubscribe endpoint (to add with that page).
+36. **Customer lead/viewing status labels** on «طلباتي ومعايناتي» are written for customers
+    (تم الاستلام، قيد المتابعة، مؤكد…) rather than the internal stage names. Please confirm or send the
+    preferred wording.
+37. **A customer cancelling a viewing** is logged on the lead and in the audit log, but the catalog has
+    no event for it, so the agent is not notified. Add `viewing.cancelled` (agent, in-app + email)?
+38. **Viewing conflicts** — only confirmed viewings block an agent's time; several customers may
+    request the same slot, and staff choose which to confirm.
+39. **Refresh-token rotation grace window** (30 s): two tabs refreshing at the same moment get the same
+    new token instead of being treated as token theft (which logged customers out at random). A
+    replay after the window still revokes the whole session.
+40. **Account pages** are separate pages as in docs/08 §5 (`/account`, `/account/viewings`,
+    `/account/notifications`, `/account/saved-searches`, `/account/settings`); the prototype used one
+    page with hash routes. «حجوزاتي» appears in Phase 5 with the bookings pages. The session code lives
+    in `assets/js/session.js` (loaded after `ui.js`) to keep `ui.js` readable.
+41. **Consent text** at sign-up is not linked to a privacy page yet; `privacy.html`/`terms.html` come
+    with the legal pages (docs/08 §11).
+42. **Admin home dashboard** KPIs (docs/07 §2) are not in the Phase 4 plan; the dashboard stays as
+    is until the reports phase unless you want it earlier.
