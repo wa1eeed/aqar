@@ -85,7 +85,7 @@ export function refreshSession(): Promise<boolean> {
 
 export async function api<T>(
   path: string,
-  opts: { method?: string; body?: unknown; retry?: boolean } = {},
+  opts: { method?: string; body?: unknown; retry?: boolean; blob?: boolean } = {},
 ): Promise<T> {
   const init: RequestInit = { method: opts.method ?? (opts.body === undefined ? 'GET' : 'POST') };
   if (opts.body !== undefined) init.body = opts.body instanceof FormData ? opts.body : JSON.stringify(opts.body);
@@ -110,7 +110,18 @@ export async function api<T>(
   // At most one retry per call: anything still failing is returned to the caller.
   if (!res.ok) throw await toError(res);
   if (res.status === 204) return undefined as T;
+  if (opts.blob) return (await res.blob()) as T;
   return (await res.json()) as T;
+}
+
+/** Downloads a file endpoint (CSV/JSON exports) through the same auth/re-auth handling. */
+export async function download(path: string, filename: string): Promise<void> {
+  const blob = await api<Blob>(path, { blob: true });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 /** Arabic messages for validation codes returned by the API. */

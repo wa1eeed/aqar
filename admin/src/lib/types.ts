@@ -158,3 +158,90 @@ export interface CityRow {
   isActive: boolean;
   districts: Array<{ id: string; nameAr: string; isActive: boolean; lat: number | null; lng: number | null }>;
 }
+
+export type LeadStageKey = 'new' | 'contacted' | 'viewing' | 'negotiation' | 'won' | 'lost';
+
+export interface LeadRow {
+  id: string;
+  number: string;
+  type: string;
+  stage: LeadStageKey;
+  source: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  preferredDate: string | null;
+  preferredSlot: string | null;
+  lostReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  property: { id: number; code: string; title: string } | null;
+  assignedTo: { id: string; name: string } | null;
+}
+
+export interface LeadActivityRow {
+  id: string;
+  type: string;
+  body: string | null;
+  meta: Record<string, unknown> | null;
+  actorId: string | null;
+  actorName: string | null;
+  createdAt: string;
+}
+
+export interface LeadDetail extends Omit<LeadRow, 'property'> {
+  message: string | null;
+  budget: string | null;
+  closedAt: string | null;
+  property: {
+    id: number;
+    code: string;
+    title: string;
+    price: number;
+    offer: string;
+    rentPeriod: string | null;
+    status: string;
+    cover: string | null;
+  } | null;
+  customer: { id: string; name: string; email: string | null; phone: string | null } | null;
+  activities: LeadActivityRow[];
+  viewings: Array<{ id: string; scheduledAt: string; status: string; agent: { id: string; name: string } }>;
+}
+
+export interface ViewingRow {
+  id: string;
+  scheduledAt: string;
+  durationMin: number;
+  status: 'requested' | 'confirmed' | 'completed' | 'no_show' | 'cancelled';
+  notes: string | null;
+  property: { id: number; code: string; title: string };
+  agent: { id: string; name: string };
+  lead: { id: string; number: string; name: string; phone: string } | null;
+  customer: { id: string; name: string; phone: string | null } | null;
+}
+
+export interface CustomerRow {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  status: 'active' | 'blocked' | 'deleted';
+  emailVerifiedAt: string | null;
+  phoneVerifiedAt: string | null;
+  nafathVerifiedAt: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+  leadsCount: number;
+  bookingsCount: number;
+}
+
+export interface NotificationRow {
+  id: string;
+  eventKey: string;
+  title: string;
+  body: string;
+  link: string | null;
+  priority: 'low' | 'normal' | 'high';
+  readAt: string | null;
+  createdAt: string;
+}

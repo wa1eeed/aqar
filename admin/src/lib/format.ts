@@ -17,3 +17,26 @@ export function sar(halalas: number | null | undefined): string {
 export function date(iso: string | null | undefined): string {
   return iso ? new Date(iso).toISOString().slice(0, 10) : '—';
 }
+
+const DAY = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'Asia/Riyadh',
+});
+const TIME = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'Asia/Riyadh',
+});
+/** «الخميس، 19 نوفمبر» in Riyadh time. */
+export const dayLabel = (iso: string | Date): string => DAY.format(new Date(iso));
+/** «4:00 م» in Riyadh time. */
+export const timeLabel = (iso: string | Date): string => TIME.format(new Date(iso));
+
+/** +966 55 123 4567 */
+export function phoneLabel(e164: string | null | undefined): string {
+  if (!e164) return '—';
+  const m = /^\+966(5\d)(\d{3})(\d{4})$/.exec(e164);
+  return m ? `+966 ${m[1]} ${m[2]} ${m[3]}` : e164;
+}

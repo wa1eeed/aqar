@@ -1,21 +1,34 @@
 import { Route, Routes } from 'react-router-dom';
+import { CustomersPage } from '../pages/CustomersPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { IntegrationDetailPage } from '../pages/IntegrationDetailPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
+import { LeadsPage } from '../pages/LeadsPage';
 import { LocationsPage } from '../pages/LocationsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { NotificationsPage } from '../pages/NotificationsPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { PropertiesPage } from '../pages/PropertiesPage';
 import { PropertyEditorPage } from '../pages/PropertyEditorPage';
 import { RolesPage } from '../pages/RolesPage';
 import { StaffPage } from '../pages/StaffPage';
+import { ViewingsPage } from '../pages/ViewingsPage';
 import { AcceptInvitePage, ForgotPasswordPage, ResetPasswordPage } from '../pages/TokenPages';
 import { NAV } from './nav';
 import { RequireAuth, useSession } from './session';
 import { Shell } from './Shell';
 
-const BUILT = new Set(['/', '/staff', '/integrations', '/properties']);
+const BUILT = new Set([
+  '/',
+  '/staff',
+  '/integrations',
+  '/properties',
+  '/leads',
+  '/viewings',
+  '/customers',
+  '/notifications',
+]);
 
 function Gate({ permission, children }: { permission: string | null; children: JSX.Element }) {
   const { can } = useSession();
@@ -94,6 +107,31 @@ export function App() {
             </Gate>
           }
         />
+        <Route
+          path="leads"
+          element={
+            <Gate permission="leads.view">
+              <LeadsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="viewings"
+          element={
+            <Gate permission="viewings.manage">
+              <ViewingsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="customers"
+          element={
+            <Gate permission="customers.view">
+              <CustomersPage />
+            </Gate>
+          }
+        />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route
           path="settings/locations"
           element={

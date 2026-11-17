@@ -1,5 +1,11 @@
 /* SVG paths from frontend/assets/js/ui.js (same icon set as the public site). */
 export const ICON_PATHS: Record<string, string> = {
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  whatsapp:
+    '<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1c-1 0-2-1-2-2l1-1-1-2z"/>',
+  chevL: '<path d="m15 6-6 6 6 6"/>',
+  chevR: '<path d="m9 6 6 6-6 6"/>',
+  expand: '<path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>',
   building:
     '<rect x="4" y="6" width="16" height="15" rx="1"/><path d="M4 6l8-3 8 3M8 10h2M14 10h2M8 14h2M14 14h2M10 21v-3h4v3"/>',

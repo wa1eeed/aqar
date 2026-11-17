@@ -1,12 +1,26 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { Logo } from '../components/Logo';
+import { NotificationBell } from '../components/NotificationBell';
+import { api } from '../lib/api';
+import { useRealtimeEvent } from '../lib/realtime';
 import { GROUP_LABELS, visibleNav } from './nav';
 import { useSession } from './session';
 
 export function Shell() {
-  const { me, signOut } = useSession();
+  const { me, signOut, can } = useSession();
+  // Sidebar counters (design/screenshots: «الطلبات» shows open new leads).
+  const [newLeads, setNewLeads] = useState(0);
+  const loadCounts = useCallback(async () => {
+    if (!can('leads.view')) return;
+    const r = await api<{ total: number }>('/admin/leads?stage=new&pageSize=1').catch(() => null);
+    if (r) setNewLeads(r.total);
+  }, [can]);
+  useEffect(() => void loadCounts(), [loadCounts]);
+  useRealtimeEvent('lead.created', () => void loadCounts());
+  useRealtimeEvent('lead.updated', () => void loadCounts());
+  const counts: Record<string, number> = { '/leads': newLeads };
   const [open, setOpen] = useState(false);
   const location = useLocation();
   // Feature flags come from settings.features (Phase 2+); auctions stay hidden until then.
@@ -37,6 +51,7 @@ export function Shell() {
                 >
                   <Icon name={n.icon} />
                   {n.label}
+                  {counts[n.to] ? <span className="cnt">{counts[n.to]}</span> : null}
                 </NavLink>
               </div>
             );
@@ -82,9 +97,7 @@ export function Shell() {
             <Icon name="eye" />
             عرض الموقع
           </a>
-          <NavLink className="icon-btn" to="/notifications" aria-label="الإشعارات">
-            <Icon name="bell" />
-          </NavLink>
+          <NotificationBell />
         </header>
         <main className="adm-body" key={location.pathname}>
           <Outlet />
