@@ -321,15 +321,13 @@ describe('Bookings & payments (e2e, Phase 5)', () => {
 
   it('cancel after payment, then a full Moyasar refund → payment refunded, booking refunded, audited', async () => {
     const p = await property();
-    nock(MOYASAR)
-      .post('/v1/invoices')
-      .reply(201, {
-        id: 'inv_r',
-        status: 'initiated',
-        amount: 5_000_000,
-        currency: 'SAR',
-        url: 'https://checkout.moyasar.com/invoices/inv_r',
-      });
+    nock(MOYASAR).post('/v1/invoices').reply(201, {
+      id: 'inv_r',
+      status: 'initiated',
+      amount: 5_000_000,
+      currency: 'SAR',
+      url: 'https://checkout.moyasar.com/invoices/inv_r',
+    });
     const r = await as(customers.b!, 'post', '/me/bookings')
       .send({ propertyId: p.id, paymentType: 'deposit', paymentMethod: 'moyasar', termsVersion: '1' })
       .expect(201);
