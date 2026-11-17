@@ -1,6 +1,7 @@
 # HANDOVER — continuing the build from any Claude Code session
 
-> Read this file first, then `CLAUDE.md`, then the spec files it lists (`docs/00` … `docs/11`).
+> Read this file first, then `CLAUDE.md`, then the technical documentation in `docs/technical/`
+> (start at `docs/technical/README.md`), then the spec files (`docs/00` … `docs/11`).
 > `docs/PROGRESS.md` is the per-phase checklist; `docs/QUESTIONS.md` holds every decision taken where
 > the spec was silent or ambiguous (numbered — keep appending, never renumber).
 > Last updated: end of **Phase 4**, start of **Phase 5** (bookings & payments).
@@ -218,7 +219,15 @@ provider HTTP details are implemented from the documented API and tested with re
 
 ---
 
-## 9. Tips for a fresh session
+## 9. Documentation (continuous)
+
+- Technical guides: `docs/technical/*.md` — update the affected guide with every change.
+- Generated reference: `pnpm docs` writes `docs/technical/reference/*` from the code (endpoints with
+  permissions, environment, roles, events, settings defaults, error codes, data model); CI runs
+  `pnpm docs:check`. An endpoint without a JSDoc description makes `pnpm docs` fail.
+- `CHANGELOG.md`: one line per change under **Unreleased**.
+
+## 10. Tips for a fresh session
 
 - Services: `pg_ctlcluster 16 main start` (or your own Postgres), `redis-server --daemonize yes`.
 - After editing `packages/schema`: `pnpm --filter @nx/schema build` (backend uses `dist`), and

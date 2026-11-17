@@ -11,12 +11,14 @@ import { StaffService } from './staff.service';
 export class StaffController {
   constructor(private readonly staff: StaffService) {}
 
+  /** Team members with role, 2FA state, invitation state and last login. */
   @Staff('staff.manage')
   @Get('staff')
   list() {
     return this.staff.list();
   }
 
+  /** Invite a staff member (creates the account and emails a 72-hour invitation link). */
   @Staff('staff.manage')
   @RecentAuth()
   @Post('staff')
@@ -24,6 +26,7 @@ export class StaffController {
     return this.staff.invite(user, body);
   }
 
+  /** Update a staff member (profile, role, active flag); the last owner cannot be removed. */
   @Staff('staff.manage')
   @RecentAuth()
   @Patch('staff/:id')
@@ -31,6 +34,7 @@ export class StaffController {
     return this.staff.update(user, id, body);
   }
 
+  /** Reset a staff member's 2FA (they must set it up again; sessions end). */
   @Staff('staff.manage')
   @RecentAuth()
   @Post('staff/:id/reset-2fa')
@@ -39,6 +43,7 @@ export class StaffController {
     await this.staff.reset2fa(user, id);
   }
 
+  /** Send a new invitation link (the previous one stops working). */
   @Staff('staff.manage')
   @Post('staff/:id/resend-invite')
   @HttpCode(204)
@@ -46,12 +51,14 @@ export class StaffController {
     await this.staff.resendInvite(user, id);
   }
 
+  /** System and custom roles with their permissions. */
   @Staff('roles.manage')
   @Get('roles')
   roles() {
     return this.staff.listRoles();
   }
 
+  /** Create a custom role. */
   @Staff('roles.manage')
   @RecentAuth()
   @Post('roles')
@@ -59,6 +66,7 @@ export class StaffController {
     return this.staff.createRole(body);
   }
 
+  /** Update a custom role (system roles are read-only). */
   @Staff('roles.manage')
   @RecentAuth()
   @Patch('roles/:id')

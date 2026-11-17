@@ -4,8 +4,9 @@ You are implementing the backend, the admin panel and the remaining frontend wor
 platform that one real-estate company (or brokerage office) runs on its own server.
 The public frontend already exists in `frontend/` and is approved: **do not redesign it**.
 
-**Continuing an existing build?** Start with `docs/HANDOVER.md` (current state, how to run, architecture,
-next steps), then `docs/PROGRESS.md` and `docs/QUESTIONS.md`.
+**Continuing an existing build?** Start with `docs/HANDOVER.md` (current state, how to run, next steps),
+then the technical documentation in `docs/technical/` (architecture, conventions, operations, generated
+reference), `docs/PROGRESS.md` and `docs/QUESTIONS.md`.
 
 Read these files completely, in this order, before writing any code:
 
@@ -73,3 +74,8 @@ Behaviour comes from `docs/`; appearance comes from the screenshots.
 3. UI matches its screenshot in `design/screenshots/` and the copy in the docs; works at 390px and 1440px wide.
 4. Permissions enforced server-side according to `docs/03-auth-roles.md`.
 5. Audit log + domain events emitted where the docs require them.
+6. Documentation updated in the same commit (continuous, never deferred): run `pnpm docs` (generated
+   reference in `docs/technical/reference/`, checked by CI), update the affected guides in
+   `docs/technical/` and add a line to `CHANGELOG.md`. Every new endpoint needs a one-line JSDoc (it
+   becomes its API reference entry). At the end of a phase also update `docs/PROGRESS.md` and
+   `docs/HANDOVER.md`. See `docs/technical/contributing.md`.

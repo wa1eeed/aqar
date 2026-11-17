@@ -31,6 +31,7 @@ class ReorderDto extends createZodDto(z.object({ ids: boundedArray(z.string().mi
 export class MediaController {
   constructor(private readonly media: MediaService) {}
 
+  /** Presigned R2 upload URL for a property photo or floor plan (type and size bound). */
   @Staff('properties.edit')
   @Post('media/presign')
   @HttpCode(200)
@@ -38,12 +39,14 @@ export class MediaController {
     return this.media.presign(user, body);
   }
 
+  /** Attach a YouTube or Vimeo video link to a property. */
   @Staff('properties.edit')
   @Post('media/video')
   video(@CurrentUser() user: AuthUser, @Body() body: VideoDto) {
     return this.media.addVideo(user, body.propertyId, body.url);
   }
 
+  /** Mark an upload finished and queue image processing (variants, EXIF removal). */
   @Staff('properties.edit')
   @Post('media/:id/complete')
   @HttpCode(202)
@@ -51,12 +54,14 @@ export class MediaController {
     return this.media.complete(user, id);
   }
 
+  /** Edit a media item (alt text, sort, cover). */
   @Staff('properties.edit')
   @Patch('media/:id')
   update(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() body: MediaPatchDto) {
     return this.media.update(user, id, body);
   }
 
+  /** Delete a media item and its stored files. */
   @Staff('properties.edit')
   @Delete('media/:id')
   @HttpCode(204)
@@ -64,6 +69,7 @@ export class MediaController {
     await this.media.remove(user, id);
   }
 
+  /** Reorder a property's photos. */
   @Staff('properties.edit')
   @Post('properties/:id/media/reorder')
   @HttpCode(204)

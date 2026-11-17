@@ -41,12 +41,14 @@ class StatusDto extends createZodDto(z.object({ status: z.enum(['active', 'block
 export class AdminCustomersController {
   constructor(private readonly customers: CustomersService) {}
 
+  /** Customers with counts of leads and bookings; agents see customers linked to them. */
   @Staff('customers.view')
   @Get()
   list(@CurrentUser() user: AuthUser, @Query() q: CustomersQuery) {
     return this.customers.list(user, q);
   }
 
+  /** CSV export of the filtered customers (re-authentication required). */
   @Staff('customers.view')
   @RecentAuth()
   @Get('export.csv')
@@ -57,12 +59,14 @@ export class AdminCustomersController {
     return this.customers.exportCsv(user, q);
   }
 
+  /** Customer profile with leads, viewings, favorites and saved searches. */
   @Staff('customers.view')
   @Get(':id')
   get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.customers.get(user, id);
   }
 
+  /** Block or unblock a customer (blocking ends all their sessions). */
   @Staff('customers.manage')
   @Patch(':id')
   setStatus(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() b: StatusDto) {
@@ -127,12 +131,14 @@ export class MeController {
     private readonly sessions: SessionService,
   ) {}
 
+  /** The customer's profile. */
   @Customer()
   @Get('profile')
   profile(@CurrentUser() user: AuthUser) {
     return this.customers.profile(user);
   }
 
+  /** Update name, phone and marketing consent; a new email is applied only after code verification. */
   @Customer()
   @RateLimit({ name: 'me-profile', limit: 20, windowSec: 3600, by: 'ip' })
   @Patch('profile')
@@ -140,6 +146,7 @@ export class MeController {
     return this.customers.updateProfile(user, { ...b, ...(b.phone === '' ? { phone: null } : {}) });
   }
 
+  /** Confirm a new email address with the code sent to it. */
   @Customer()
   @RateLimit({ name: 'me-verify-email', limit: 10, windowSec: 3600, by: 'ip' })
   @HttpCode(200)
@@ -148,6 +155,7 @@ export class MeController {
     return this.customers.verifyEmail(user, b.email, b.code);
   }
 
+  /** PDPL deletion request: signs out everywhere; personal data is anonymised after 30 days. */
   @Customer()
   @HttpCode(200)
   @Delete()
@@ -155,6 +163,7 @@ export class MeController {
     return this.customers.requestDeletion(user);
   }
 
+  /** PDPL export of everything stored about the customer (JSON). */
   @Customer()
   @RateLimit({ name: 'me-export', limit: 5, windowSec: 3600, by: 'ip' })
   @Header('Cache-Control', 'no-store')
@@ -172,48 +181,56 @@ export class MeController {
     await this.sessions.revokeAll('customer', user.id);
   }
 
+  /** Ids of the customer's favorite published properties. */
   @Customer()
   @Get('favorites')
   favorites(@CurrentUser() user: AuthUser) {
     return this.customers.favorites(user);
   }
 
+  /** Merge the browser's local favorites into the account (on login). */
   @Customer()
   @Put('favorites')
   merge(@CurrentUser() user: AuthUser, @Body() b: FavoritesDto) {
     return this.customers.mergeFavorites(user, b.ids);
   }
 
+  /** Add a property to favorites. */
   @Customer()
   @Put('favorites/:propertyId')
   add(@CurrentUser() user: AuthUser, @Param('propertyId', ParseIntPipe) id: number) {
     return this.customers.addFavorite(user, id);
   }
 
+  /** Remove a property from favorites. */
   @Customer()
   @Delete('favorites/:propertyId')
   removeFavorite(@CurrentUser() user: AuthUser, @Param('propertyId', ParseIntPipe) id: number) {
     return this.customers.removeFavorite(user, id);
   }
 
+  /** The customer's saved searches. */
   @Customer()
   @Get('saved-searches')
   saved(@CurrentUser() user: AuthUser) {
     return this.customers.savedSearches(user);
   }
 
+  /** Save a search (public list query) with a daily alert. */
   @Customer()
   @Post('saved-searches')
   createSaved(@CurrentUser() user: AuthUser, @Body() b: SavedSearchDto) {
     return this.customers.createSavedSearch(user, b);
   }
 
+  /** Rename a saved search or toggle its alert. */
   @Customer()
   @Patch('saved-searches/:id')
   updateSaved(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() b: SavedSearchUpdateDto) {
     return this.customers.updateSavedSearch(user, id, b);
   }
 
+  /** Delete a saved search. */
   @Customer()
   @HttpCode(204)
   @Delete('saved-searches/:id')
@@ -221,12 +238,14 @@ export class MeController {
     await this.customers.deleteSavedSearch(user, id);
   }
 
+  /** The customer's viewings and requests. */
   @Customer()
   @Get('viewings')
   viewings(@CurrentUser() user: AuthUser) {
     return this.customers.myViewings(user);
   }
 
+  /** Cancel one of the customer's upcoming viewings. */
   @Customer()
   @HttpCode(200)
   @Post('viewings/:id/cancel')

@@ -87,6 +87,7 @@ export class LocationsController {
     };
   }
 
+  /** Add a city. */
   @Staff('settings.locations')
   @Post('cities')
   async createCity(@Body() b: CityDto) {
@@ -98,6 +99,7 @@ export class LocationsController {
     return c;
   }
 
+  /** Edit a city (name, coordinates, order, active). */
   @Staff('settings.locations')
   @Patch('cities/:id')
   async updateCity(@Param('id') id: string, @Body() b: CityUpdateDto) {
@@ -127,6 +129,7 @@ export class LocationsController {
     }
   }
 
+  /** Edit a district (name, coordinates, active). */
   @Staff('settings.locations')
   @Patch('districts/:id')
   async updateDistrict(@Param('id') id: string, @Body() b: DistrictUpdateDto) {

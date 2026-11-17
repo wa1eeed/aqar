@@ -50,6 +50,8 @@ jobs:
           pnpm --filter @nx/backend exec prisma generate
       - name: Generated frontend schema is up to date
         run: pnpm --filter @nx/schema check:frontend
+      - name: Generated technical reference is up to date (docs/technical/reference)
+        run: pnpm docs:check
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck

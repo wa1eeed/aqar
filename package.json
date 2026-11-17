@@ -12,7 +12,9 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "schema:frontend": "pnpm --filter @nx/schema build:frontend"
+    "schema:frontend": "pnpm --filter @nx/schema build:frontend",
+    "docs": "pnpm --filter @nx/backend docs",
+    "docs:check": "pnpm --filter @nx/backend docs:check"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",

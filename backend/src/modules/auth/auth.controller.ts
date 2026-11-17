@@ -70,6 +70,7 @@ export class AuthController {
 
   // ───────────────────────────── staff ─────────────────────────────
 
+  /** Staff login with email + password; returns tokens or the next step (TOTP, password change, 2FA setup). */
   @Public()
   @RateLimit(IP_15MIN('staff-login', 10))
   @Post('staff/login')
@@ -78,6 +79,7 @@ export class AuthController {
     return this.loginResponse(res, await this.staff.login(body.email, body.password, clientMeta(req)));
   }
 
+  /** Complete staff login with a TOTP or recovery code for the login challenge. */
   @Public()
   @RateLimit(IP_15MIN('staff-2fa', 20))
   @Post('staff/2fa')
@@ -86,6 +88,7 @@ export class AuthController {
     return this.loginResponse(res, await this.staff.verifySecondFactor(body.challengeId, body.code, clientMeta(req)));
   }
 
+  /** First-login forced password change (inside the login challenge). */
   @Public()
   @RateLimit(IP_15MIN('staff-2fa', 20))
   @Post('staff/password/initial')
@@ -101,6 +104,7 @@ export class AuthController {
     );
   }
 
+  /** Start mandatory 2FA setup during login: returns the QR code and secret. */
   @Public()
   @RateLimit(IP_15MIN('staff-2fa', 20))
   @Post('staff/2fa/setup')
@@ -110,6 +114,7 @@ export class AuthController {
     return this.staff.totpSetupStart(body.challengeId);
   }
 
+  /** Confirm 2FA setup with a TOTP code; returns recovery codes and finishes login. */
   @Public()
   @RateLimit(IP_15MIN('staff-2fa', 20))
   @Post('staff/2fa/enable')
@@ -119,6 +124,7 @@ export class AuthController {
     return { recoveryCodes, ...this.loginResponse(res, result) };
   }
 
+  /** Request a staff password-reset link by email (same response whether or not the email exists). */
   @Public()
   @RateLimit(
     { name: 'forgot-email', limit: 5, windowSec: 3600, by: 'body:email' },
@@ -130,6 +136,7 @@ export class AuthController {
     await this.staff.forgotPassword(body.email);
   }
 
+  /** Set a new staff password from a reset link token (single use, 30 minutes). */
   @Public()
   @RateLimit({ name: 'reset', limit: 10, windowSec: 3600, by: 'ip' })
   @Post('staff/password/reset')
@@ -138,6 +145,7 @@ export class AuthController {
     await this.staff.resetPassword(body.token, body.newPassword);
   }
 
+  /** Accept a staff invitation: set the password from the invite token. */
   @Public()
   @RateLimit({ name: 'invite-accept', limit: 10, windowSec: 3600, by: 'ip' })
   @Post('staff/invite/accept')
@@ -146,6 +154,7 @@ export class AuthController {
     await this.staff.acceptInvite(body.token, body.password);
   }
 
+  /** Confirm identity (password or TOTP) to open the 10-minute re-authentication window. */
   @Staff()
   @RateLimit(IP_15MIN('reauth', 10))
   @Post('staff/reauth')
@@ -154,6 +163,7 @@ export class AuthController {
     return this.staff.reauth(user, body);
   }
 
+  /** Change the signed-in staff member's password (ends other sessions). */
   @Staff()
   @RateLimit(IP_15MIN('password-change', 10))
   @Post('staff/password/change')
@@ -162,6 +172,7 @@ export class AuthController {
     await this.staff.changePassword(user, body.currentPassword, body.newPassword);
   }
 
+  /** Start optional 2FA setup for a signed-in staff member. */
   @Staff()
   @Post('staff/me/2fa/setup')
   @HttpCode(200)
@@ -169,6 +180,7 @@ export class AuthController {
     return this.staff.selfTotpStart(user);
   }
 
+  /** Confirm optional 2FA setup with a TOTP code; returns recovery codes. */
   @Staff()
   @RateLimit(IP_15MIN('staff-2fa', 20))
   @Post('staff/me/2fa/enable')
@@ -179,6 +191,7 @@ export class AuthController {
 
   // ───────────────────────────── customer ─────────────────────────────
 
+  /** Send a 6-digit login code to a customer's email (no account enumeration). */
   @Public()
   @RateLimit(
     { name: 'otp-dest', limit: 5, windowSec: 3600, by: 'body:destination', failClosed: true },
@@ -190,6 +203,7 @@ export class AuthController {
     await this.customers.sendOtp(body.channel, body.destination);
   }
 
+  /** Verify a customer login code: returns tokens, or a registration token for new customers. */
   @Public()
   @RateLimit(
     { name: 'otp-verify-dest', limit: 10, windowSec: 3600, by: 'body:destination', failClosed: true },
@@ -207,6 +221,7 @@ export class AuthController {
     return { ...this.respond(res, r.session), customer: r.customer, isNew: r.isNew };
   }
 
+  /** Complete a new customer's account (name, Saudi mobile, PDPL consent) and sign in. */
   @Public()
   @RateLimit(IP_15MIN('register', 10))
   @Post('customer/register')
@@ -217,6 +232,7 @@ export class AuthController {
     return { ...this.respond(res, r.session), customer: r.customer, isNew: true };
   }
 
+  /** Customer login with email + password (only if the customer set one). */
   @Public()
   @RateLimit(IP_15MIN('customer-login', 10))
   @Post('customer/password/login')
@@ -230,6 +246,7 @@ export class AuthController {
     return { ...this.respond(res, r.session), customer: r.customer, isNew: false };
   }
 
+  /** Set or change the signed-in customer's optional password. */
   @Customer()
   @Post('customer/password/set')
   @HttpCode(204)
@@ -239,6 +256,7 @@ export class AuthController {
 
   // ───────────────────────────── both ─────────────────────────────
 
+  /** Rotate the refresh cookie and issue a new access token (30-second grace for parallel tabs). */
   @Public()
   @RequireCsrfHeader()
   @RateLimit({ name: 'refresh', limit: 60, windowSec: 60, by: 'ip' })
@@ -260,6 +278,7 @@ export class AuthController {
     }
   }
 
+  /** End the current session (revokes the refresh-token family and clears the cookie). */
   @Public()
   @RequireCsrfHeader()
   @Post('logout')
@@ -274,6 +293,7 @@ export class AuthController {
     clearRefreshCookie(res, body.audience, this.secureCookies);
   }
 
+  /** The signed-in subject: staff profile with role and permissions, or customer profile. */
   @Authenticated()
   @Get('me')
   async me(@CurrentUser() user: AuthUser) {

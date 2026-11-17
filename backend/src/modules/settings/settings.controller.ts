@@ -23,6 +23,7 @@ export class SettingsController {
     return key;
   }
 
+  /** All settings sections the caller may edit, with current values. */
   @Staff()
   @Get()
   async all(@CurrentUser() user: AuthUser) {
@@ -31,12 +32,14 @@ export class SettingsController {
     return { sections: Object.fromEntries(entries) };
   }
 
+  /** One settings section (current value, defaults applied). */
   @Staff()
   @Get(':section')
   get(@CurrentUser() user: AuthUser, @Param('section') key: string) {
     return this.settings.get(this.section(user, key));
   }
 
+  /** Replace a settings section (validated by its zod schema, audited, cache invalidated). */
   @Staff()
   @Put(':section')
   put(@CurrentUser() user: AuthUser, @Param('section') key: string, @Body() body: unknown) {

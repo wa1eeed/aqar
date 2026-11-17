@@ -18,6 +18,7 @@ class AssigneesQuery extends createZodDto(z.object({ for: z.enum(['leads', 'view
 export class AssigneesController {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** Names of staff a lead or viewing can be given to (agents only see themselves). */
   @Staff()
   @Get()
   async list(@CurrentUser() user: AuthUser, @Query() q: AssigneesQuery) {

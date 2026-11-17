@@ -33,6 +33,7 @@ export class WebhooksController {
     private readonly events: EventEmitter2,
   ) {}
 
+  /** Resend email events (Svix signature verified, idempotent). */
   @Public()
   @RateLimit({ name: 'webhook-resend', limit: 600, windowSec: 60, by: 'ip' })
   @Post('resend')

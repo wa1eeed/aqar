@@ -65,12 +65,14 @@ export class AdminNotificationsController {
     private readonly audit: AuditService,
   ) {}
 
+  /** The staff member's notifications (tabs, unread filter, archive) with the unread count. */
   @Staff()
   @Get('notifications')
   list(@CurrentUser() user: AuthUser, @Query() q: ListQuery) {
     return this.notifications.list(user, listArgs(q));
   }
 
+  /** Mark notifications as read (`ids` or `all`). */
   @Staff()
   @HttpCode(200)
   @Post('notifications/read')
@@ -78,6 +80,7 @@ export class AdminNotificationsController {
     return this.notifications.markRead(user, b);
   }
 
+  /** Archive notifications. */
   @Staff()
   @HttpCode(200)
   @Post('notifications/archive')
@@ -85,12 +88,14 @@ export class AdminNotificationsController {
     return this.notifications.archive(user, b.ids);
   }
 
+  /** The staff member's notification preferences per event (in-app / email). */
   @Staff()
   @Get('notification-preferences')
   prefs(@CurrentUser() user: AuthUser) {
     return this.notifications.preferences(user);
   }
 
+  /** Update the staff member's notification preferences (locked events cannot be turned off). */
   @Staff()
   @Put('notification-preferences')
   setPrefs(@CurrentUser() user: AuthUser, @Body() b: PrefsDto) {
@@ -136,12 +141,14 @@ export class AdminNotificationsController {
 export class MeNotificationsController {
   constructor(private readonly notifications: NotificationsService) {}
 
+  /** The customer's notifications with the unread count. */
   @Customer()
   @Get('notifications')
   list(@CurrentUser() user: AuthUser, @Query() q: ListQuery) {
     return this.notifications.list(user, listArgs(q));
   }
 
+  /** Mark the customer's notifications as read (`ids` or `all`). */
   @Customer()
   @HttpCode(200)
   @Post('notifications/read')
@@ -149,6 +156,7 @@ export class MeNotificationsController {
     return this.notifications.markRead(user, b);
   }
 
+  /** Archive the customer's notifications. */
   @Customer()
   @HttpCode(200)
   @Post('notifications/archive')
@@ -156,12 +164,14 @@ export class MeNotificationsController {
     return this.notifications.archive(user, b.ids);
   }
 
+  /** The customer's notification preferences per event. */
   @Customer()
   @Get('notification-preferences')
   prefs(@CurrentUser() user: AuthUser) {
     return this.notifications.preferences(user);
   }
 
+  /** Update the customer's notification preferences (locked events cannot be turned off). */
   @Customer()
   @Put('notification-preferences')
   setPrefs(@CurrentUser() user: AuthUser, @Body() b: PrefsDto) {

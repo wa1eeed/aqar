@@ -17,6 +17,7 @@ class NearbyQuery extends createZodDto(
 export class NearbyController {
   constructor(private readonly nearby: NearbyService) {}
 
+  /** Nearby places around a property through the places provider, cached. */
   @Public()
   @Get(':id/nearby')
   async get(@Param('id', ParseIntPipe) id: number, @Query() q: NearbyQuery, @Res({ passthrough: true }) res: Response) {

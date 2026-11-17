@@ -44,6 +44,7 @@ export class HealthController {
   }
 
   // The status code depends on the checks, so the response is written directly.
+  /** Liveness and dependency checks (database, Redis, queue lag). */
   @Get('health')
   async health(@Res() res: Response): Promise<void> {
     const checks = await this.checks();
@@ -54,6 +55,7 @@ export class HealthController {
       .json({ status: ok ? 'ok' : 'degraded', checks, uptimeSec: Math.round(process.uptime()) });
   }
 
+  /** Readiness for load balancers. */
   @Get('ready')
   async ready(@Res() res: Response): Promise<void> {
     const checks = await this.checks();

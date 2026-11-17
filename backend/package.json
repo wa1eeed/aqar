@@ -17,7 +17,9 @@
     "seed": "tsx src/cli/seed.ts",
     "seed:prod": "node dist/cli/seed.js",
     "cli": "node dist/cli/index.js",
-    "cli:dev": "tsx src/cli/index.ts"
+    "cli:dev": "tsx src/cli/index.ts",
+    "docs": "tsx src/cli/docs.ts",
+    "docs:check": "tsx src/cli/docs.ts --check"
   },
   "prisma": {
     "seed": "tsx src/cli/seed.ts"

@@ -34,30 +34,35 @@ export class PublicController {
     private readonly leads: PublicLeadsService,
   ) {}
 
+  /** Everything the static site needs at boot: brand, theme, contact, licensing, map, features (no secrets). */
   @Get('config')
   async config(@Res({ passthrough: true }) res: Response) {
     res.setHeader('Cache-Control', 'public, max-age=60');
     return this.pub.config();
   }
 
+  /** Merged schema: property types/fields from @nx/schema plus active cities and districts. */
   @Get('schema')
   async schema(@Res({ passthrough: true }) res: Response) {
     res.setHeader('Cache-Control', 'public, max-age=300');
     return this.pub.schema();
   }
 
+  /** Published properties with the site's filters, sorting and paging (closed listings last). */
   @Get('properties')
   async list(@Query() q: PublicListQuery, @Res({ passthrough: true }) res: Response) {
     res.setHeader('Cache-Control', PUBLIC_CACHE);
     return this.pub.list(q);
   }
 
+  /** One published property (public payload; location may be approximate). */
   @Get('properties/:id')
   async get(@Param('id', ParseIntPipe) id: number, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     res.setHeader('Cache-Control', PUBLIC_CACHE);
     return this.pub.get(id32(id), req.ip ?? null);
   }
 
+  /** Similar published properties (same type, then offer, then city). */
   @Get('properties/:id/similar')
   async similar(
     @Param('id', ParseIntPipe) id: number,
@@ -68,12 +73,14 @@ export class PublicController {
     return this.pub.similar(id32(id), q.limit);
   }
 
+  /** Counts of published, non-closed properties by type, city and offer. */
   @Get('stats')
   async stats(@Res({ passthrough: true }) res: Response) {
     res.setHeader('Cache-Control', PUBLIC_CACHE);
     return this.pub.stats();
   }
 
+  /** Public card of a listing agent. */
   @Get('agents/:id')
   agent(@Param('id') id: string) {
     if (!/^[a-z0-9]{10,40}$/.test(id)) throw new AppException('NOT_FOUND', 404, 'المستشار غير موجود');

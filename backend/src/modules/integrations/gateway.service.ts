@@ -1,3 +1,4 @@
+import { moyasarCreateInvoice, moyasarFetchInvoice, moyasarFetchPayment, moyasarRefund } from './providers/moyasar';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { NearbyKey } from '@nx/schema';
 import { Prisma } from '@prisma/client';
@@ -397,6 +398,49 @@ export class IntegrationsGateway {
         this.run('email.resend', 'sendEmail', (ctx) => resendSend(ctx as never, msg), { idempotent: true }),
       webhookSecret: async (): Promise<string | undefined> =>
         (await this.store.resolve('email.resend')).secrets.webhookSigningSecret,
+    };
+  }
+
+  /** Payment providers (docs/04 §5). Only Moyasar is live; Rize is prepared (docs/04 §7). */
+  payments() {
+    const k = 'payments.moyasar';
+    return {
+      /** Enabled with a secret key (and a publishable key for the embedded form). */
+      moyasarReady: async (): Promise<{
+        ready: boolean;
+        mode: 'invoice' | 'embedded_form';
+        publishableKey?: string;
+      }> => {
+        const r = await this.store.resolve(k);
+        const mode = (r.config.mode as 'invoice' | 'embedded_form' | undefined) ?? 'invoice';
+        const openUntil = Number((await this.redis.hget(`int:breaker:${k}`, 'openUntil')) ?? 0);
+        const ready =
+          r.row.enabled &&
+          !!r.secrets.secretKey &&
+          (mode === 'invoice' || !!r.secrets.publishableKey) &&
+          openUntil <= Date.now();
+        return {
+          ready,
+          mode,
+          ...(mode === 'embedded_form' && r.secrets.publishableKey
+            ? { publishableKey: String(r.secrets.publishableKey) }
+            : {}),
+        };
+      },
+      createInvoice: (p: Parameters<typeof moyasarCreateInvoice>[1]) =>
+        this.run(k, 'createInvoice', (ctx) => moyasarCreateInvoice(ctx as never, p)),
+      fetchInvoice: (id: string) =>
+        this.run(k, 'fetchInvoice', (ctx) => moyasarFetchInvoice(ctx as never, id), { idempotent: true }),
+      fetchPayment: (id: string) =>
+        this.run(k, 'fetchPayment', (ctx) => moyasarFetchPayment(ctx as never, id), { idempotent: true }),
+      refund: (paymentId: string, amount: bigint) =>
+        this.run(k, 'refund', (ctx) => moyasarRefund(ctx as never, paymentId, amount)),
+      webhookSecret: async (): Promise<string | undefined> => {
+        const v = (await this.store.resolve(k)).secrets.webhookSecret;
+        return typeof v === 'string' ? v : undefined;
+      },
+      /** Rize: the partner API is not signed yet, so the method is never offered (docs/04 §7). */
+      rizeReady: async (): Promise<boolean> => false,
     };
   }
 

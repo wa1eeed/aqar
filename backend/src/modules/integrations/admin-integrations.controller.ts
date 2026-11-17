@@ -52,12 +52,14 @@ export class AdminIntegrationsController {
     return k;
   }
 
+  /** All integrations grouped by category with status, health and environment (no secrets). */
   @Staff('integrations.manage')
   @Get()
   async list() {
     return { items: await this.store.list() };
   }
 
+  /** One integration: config, masked secret hints, generated form definition and status. */
   @Staff('integrations.manage')
   @Get(':key')
   async get(@Param('key') k: string) {
@@ -70,6 +72,7 @@ export class AdminIntegrationsController {
     };
   }
 
+  /** Save config and/or secrets (write-only, encrypted); secrets need a recent re-authentication. */
   @Staff('integrations.manage')
   @Put(':key')
   async update(@CurrentUser() user: AuthUser, @Param('key') k: string, @Body() body: UpdateIntegrationDto) {
@@ -89,6 +92,7 @@ export class AdminIntegrationsController {
     return this.get(key);
   }
 
+  /** Run the provider's connection test through the gateway and record the result. */
   @Staff('integrations.manage')
   @Post(':key/test')
   @HttpCode(200)
@@ -96,6 +100,7 @@ export class AdminIntegrationsController {
     return this.gateway.test(this.key(k));
   }
 
+  /** Enable an integration (refused for prepared integrations or missing credentials). */
   @Staff('integrations.manage')
   @Post(':key/enable')
   @HttpCode(204)
@@ -103,6 +108,7 @@ export class AdminIntegrationsController {
     await this.store.setEnabled(this.key(k), true, user.id);
   }
 
+  /** Disable an integration. */
   @Staff('integrations.manage')
   @Post(':key/disable')
   @HttpCode(204)
@@ -110,6 +116,7 @@ export class AdminIntegrationsController {
     await this.store.setEnabled(this.key(k), false, user.id);
   }
 
+  /** Recent call logs of an integration (redacted, 30-day retention). */
   @Staff('integrations.manage')
   @Get(':key/logs')
   async logs(@Param('key') k: string, @Query() q: LogsQuery) {
