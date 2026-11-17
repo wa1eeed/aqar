@@ -1660,3 +1660,12 @@ button.ev {
 .drawer2 .db > * {
   flex-shrink: 0;
 }
+.nw {
+  white-space: nowrap;
+}
+/* Grid children may shrink below their content (wide tables scroll inside .tbl-wrap). */
+.g2 > *,
+.g3 > *,
+.g2e > * {
+  min-width: 0;
+}

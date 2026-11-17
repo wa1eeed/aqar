@@ -19,7 +19,7 @@
 4. UI matches its screenshot and copy; works at 390 px and 1440 px.
 5. Every state change of a booking, payment, property status or lead is audited and emits its event.
 6. **Documentation updated in the same commit:**
-   - `pnpm docs` — regenerates `docs/technical/reference/*` (CI fails if stale);
+   - `pnpm run docs` — regenerates `docs/technical/reference/*` (CI fails if stale);
    - the hand-written guide(s) in `docs/technical/` affected by the change (architecture, backend,
      admin, frontend, security, operations, integrations, testing);
    - `CHANGELOG.md` (Unreleased section);

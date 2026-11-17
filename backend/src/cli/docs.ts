@@ -3,7 +3,7 @@
  * (docs/technical/reference/*.md), so it can never drift from the platform:
  *   api-endpoints · environment · permissions · events · settings · error-codes · data-model
  *
- *   pnpm docs         → write the files
+ *   pnpm run docs     → write the files
  *   pnpm docs:check   → exit 1 if a file is stale (CI)
  *
  * Nothing is instantiated: routes come from decorator metadata, descriptions from JSDoc (TypeScript
@@ -33,7 +33,7 @@ const ROOT = resolve(__dirname, '../../..');
 const SRC = resolve(ROOT, 'backend/src');
 const OUT = resolve(ROOT, 'docs/technical/reference');
 const HEADER = (title: string) =>
-  `# ${title}\n\n> **Generated** by \`pnpm docs\` from the source code — do not edit by hand.\n> Regenerate after any change; CI runs \`pnpm docs:check\`.\n\n`;
+  `# ${title}\n\n> **Generated** by \`pnpm run docs\` from the source code — do not edit by hand.\n> Regenerate after any change; CI runs \`pnpm docs:check\`.\n\n`;
 
 // ───────────── helpers ─────────────
 
@@ -47,9 +47,10 @@ function walk(dir: string, out: string[] = []): string[] {
 }
 const esc = (s: string) => s.replace(/\|/g, '\\|').replace(/\n+/g, ' ').trim();
 const firstSentence = (s: string) => {
-  const t = s.replace(/\s+/g, ' ').trim();
+  // Abbreviations such as "e.g." / "i.e." do not end a sentence.
+  const t = s.replace(/\s+/g, ' ').trim().replace(/\b(e\.g|i\.e|etc)\./g, '$1\u2024');
   const m = /^(.+?[.!؟?])(\s|$)/.exec(t);
-  return (m ? m[1]! : t).slice(0, 220);
+  return (m ? m[1]! : t).replace(/\u2024/g, '.').slice(0, 220);
 };
 
 /** `Class.method` and `Class` → first sentence of its JSDoc. */
@@ -168,7 +169,7 @@ function apiEndpoints(): string {
   return md;
 }
 
-/** Descriptions are required: adding a variable without documenting it fails `pnpm docs`. */
+/** Descriptions are required: adding a variable without documenting it fails `pnpm run docs`. */
 const ENV_DOCS: Record<string, string> = {
   NODE_ENV: '`development` · `test` · `staging` · `production`. Staging/production never print emails or codes.',
   PORT: 'HTTP port of the API process.',
@@ -375,7 +376,7 @@ function main(): void {
     else writeFileSync(path, content);
   }
   if (check && stale.length) {
-    console.error(`docs/technical/reference is stale: ${stale.join(', ')}\nRun: pnpm docs`);
+    console.error(`docs/technical/reference is stale: ${stale.join(', ')}\nRun: pnpm run docs`);
     process.exit(1);
   }
   console.log(

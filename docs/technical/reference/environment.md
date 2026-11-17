@@ -1,6 +1,6 @@
 # Environment variables (API and worker)
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
 Validated at boot by `backend/src/config/env.ts`: the process refuses to start with a missing or weak

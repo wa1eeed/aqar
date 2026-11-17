@@ -74,7 +74,7 @@ Behaviour comes from `docs/`; appearance comes from the screenshots.
 3. UI matches its screenshot in `design/screenshots/` and the copy in the docs; works at 390px and 1440px wide.
 4. Permissions enforced server-side according to `docs/03-auth-roles.md`.
 5. Audit log + domain events emitted where the docs require them.
-6. Documentation updated in the same commit (continuous, never deferred): run `pnpm docs` (generated
+6. Documentation updated in the same commit (continuous, never deferred): run `pnpm run docs` (generated
    reference in `docs/technical/reference/`, checked by CI), update the affected guides in
    `docs/technical/` and add a line to `CHANGELOG.md`. Every new endpoint needs a one-line JSDoc (it
    becomes its API reference entry). At the end of a phase also update `docs/PROGRESS.md` and

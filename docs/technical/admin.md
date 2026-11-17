@@ -16,12 +16,32 @@ React 18 + Vite 5 + react-router 6, TypeScript strict, Arabic RTL. Served by Cad
 | `src/lib/realtime.tsx` | Socket.IO connection (refreshes token and reconnects with backoff); `useRealtimeEvent(event, fn)` |
 | `src/lib/format.ts` | `sar()`, `date()`, `dayLabel()`, `timeLabel()`, `timeAgo()`, `phoneLabel()` (Gregorian, Latin digits, Riyadh time) |
 | `src/lib/types.ts` | API response types |
-| `src/components/` | Icon, Modal, Toast, States (empty), Pills, MapPicker (Leaflet), CodeInput, ReauthModal, NotificationBell, ViewingModal |
-| `src/pages/` | One file per screen (properties, editor, leads + drawer, viewings, customers, notifications, integrations, staff, roles, locations, auth pages) |
+| `src/components/` | Icon, Modal, Toast, States (empty), Pills, MapPicker (Leaflet), CodeInput, ReauthModal, NotificationBell, ViewingModal, Countdown (hold timer), RefundModal |
+| `src/pages/` | One file per screen (properties, editor, leads + drawer, viewings, customers, notifications, integrations, staff, roles, locations, bookings + detail, payments, transfer review, auth pages); `pages/settings/` holds the settings sections (`SettingsLayout` with section tabs + `Switch`, booking/payments, bank transfer) |
 | `src/styles/` | `tokens.css` (site tokens), `base.css`, `admin.css` (prototype components + additions) |
 
 Shared labels (stages, lead types, viewing statuses, property schema) come from `@nx/schema`
 (aliased to the package source).
+
+## Screens added in Phase 5 (bookings & payments)
+
+| Route | Permission | Screen |
+|---|---|---|
+| `/bookings` | `bookings.view` | Status tabs with counts, search, hold countdown |
+| `/bookings/:id` | `bookings.view` | Timeline, payments (receipt, refund), property, customer, financial summary; confirm / complete / cancel / extend hold (`bookings.manage`) |
+| `/payments` | `payments.view` | Month totals per method, filters, refund, «إعادة التحقق» (reconcile) |
+| `/payments/transfers` | `payments.review` | Receipt preview (streamed through the API), comparison with the amount due, approve / reject with reason |
+| `/settings` | any `settings.*` | Redirects to the first section the user may edit |
+| `/settings/booking` | `settings.booking` | Booking toggles and holds, per-offer policy (deposit fixed/percent, min/max, methods), payment methods with readiness (`GET /admin/payments/methods-status`), terms; live example |
+| `/settings/bank-transfer` | `settings.payments` | Bank accounts (add/edit modal, IBAN check, on/off), instructions, next steps, file types and size; customer preview |
+| `/settings/locations` | `settings.locations` | Cities and districts (now inside the settings tabs) |
+
+The sidebar shows the number of bank transfers awaiting review next to «المدفوعات» (refreshed on the
+`payment.updated` realtime event). To add a settings section, add it to `SETTINGS_TABS` in
+`pages/settings/SettingsLayout.tsx` and route it in `App.tsx`.
+
+Layout notes: wrap every `table.tbl` in `div.tbl-wrap` (horizontal scroll on phones); children of
+`.g2/.g3/.g2e` grids have `min-width: 0` so wide content scrolls instead of widening the page.
 
 ## Adding a screen
 

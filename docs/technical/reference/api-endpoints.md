@@ -1,9 +1,9 @@
 # API endpoints
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
-Base path `/api/v1`. **147 endpoints.** Access: `public` (no token; a valid token is still read),
+Base path `/api/v1`. **148 endpoints.** Access: `public` (no token; a valid token is still read),
 `staff`, `customer` or `any signed-in`. Every listed permission is required. *Re-auth* = password/TOTP
 within the last 10 minutes (`REAUTH_REQUIRED`). *CSRF* = header `X-Requested-With: nx` required.
 Public GETs without a rule share the default limit of 120/min per IP. Request/response schemas:
@@ -106,6 +106,7 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `POST` | `/api/v1/admin/payments/:id/transfer/approve` | staff | `payments.review` |  |  |  | Approve a bank transfer receipt: payment paid, booking confirmed, customer notified. |
 | `GET` | `/api/v1/admin/payments/:id/transfer/receipt` | staff | `payments.review` |  |  |  | The uploaded receipt file (streamed after the permission check; never cached). |
 | `POST` | `/api/v1/admin/payments/:id/transfer/reject` | staff | `payments.review` |  |  |  | Reject a bank transfer receipt with a reason; the customer may upload again until the hold expires. |
+| `GET` | `/api/v1/admin/payments/methods-status` | staff | `settings.payments` |  |  |  | Readiness of each payment method for the booking settings screen (integration + bank accounts). |
 
 ## admin/properties
 
@@ -214,7 +215,7 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `POST` | `/api/v1/me/bookings` | customer | — |  |  | 10/1h per ip | Create a booking (row lock + one active booking per property → 409) and start its payment; Idempotency-Key supported. |
 | `GET` | `/api/v1/me/bookings/:id` | customer | — |  |  |  | One of the customer's bookings. |
 | `POST` | `/api/v1/me/bookings/:id/cancel` | customer | — |  |  |  | Cancel while the booking is pending payment or awaiting transfer review. |
-| `POST` | `/api/v1/me/bookings/:id/pay` | customer | — |  |  | 20/1h per ip | Start another payment attempt (e.g. |
+| `POST` | `/api/v1/me/bookings/:id/pay` | customer | — |  |  | 20/1h per ip | Start another payment attempt (e.g. after a failed card payment) within the same hold. |
 | `POST` | `/api/v1/me/bookings/quote` | customer | — |  |  | 60/1min per ip | Amounts, payment types and available methods for booking a property (server-computed). |
 
 ## me/notifications

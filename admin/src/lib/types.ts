@@ -245,3 +245,96 @@ export interface NotificationRow {
   readAt: string | null;
   createdAt: string;
 }
+
+export type BookingStatusKey =
+  | 'pending_payment'
+  | 'awaiting_transfer_review'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'expired'
+  | 'refunded';
+
+export interface BookingRow {
+  id: string;
+  number: string;
+  status: BookingStatusKey;
+  paymentType: 'deposit' | 'full';
+  paymentMethod: 'moyasar' | 'bank_transfer' | 'rize';
+  amountDue: number;
+  amountPaid: number;
+  holdExpiresAt: string;
+  createdAt: string;
+  property: { id: number; code: string; title: string; media?: Array<{ variants: { thumb?: string } | null }> };
+  customer: { id: string; name: string };
+}
+
+export interface PaymentRow {
+  id: string;
+  method: 'moyasar' | 'bank_transfer' | 'rize';
+  status: string;
+  amount: number;
+  refundedAmount: number;
+  receiptNumber: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  failureReason: string | null;
+  providerPaymentId?: string | null;
+  transfer: TransferInfo | null;
+  events?: Array<{ type: string; createdAt: string }>;
+}
+
+export interface TransferInfo {
+  id?: string;
+  status: 'submitted' | 'approved' | 'rejected';
+  senderName?: string;
+  senderBank?: string;
+  transferReference?: string | null;
+  transferredAt?: string;
+  amount?: number;
+  rejectionReason?: string | null;
+  hasReceipt?: boolean;
+  createdAt: string;
+  bankAccount?: { id: string; bankName: string; iban: string };
+}
+
+export interface BookingDetail extends Omit<BookingRow, 'property' | 'customer'> {
+  priceSnapshot: number;
+  offerSnapshot: string;
+  confirmedAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
+  customerNotes: string | null;
+  property: {
+    id: number;
+    code: string;
+    title: string;
+    status: string;
+    media: Array<{ variants: { card?: string; thumb?: string } | null }>;
+    district: { nameAr: string };
+    agent: { id: string; name: string };
+  };
+  customer: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    emailVerifiedAt: string | null;
+    nafathVerifiedAt: string | null;
+  };
+  payments: PaymentRow[];
+  history: Array<{ action: string; actorType: string; createdAt: string; after: Record<string, unknown> | null }>;
+}
+
+export interface BankAccountRow {
+  id: string;
+  bankName: string;
+  beneficiaryName: string;
+  iban: string;
+  ibanFormatted: string;
+  accountNumber: string | null;
+  swift: string | null;
+  isActive: boolean;
+  sort: number;
+}

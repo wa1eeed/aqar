@@ -1,6 +1,6 @@
 # Roles and permissions
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
 System roles are seeded and read-only (docs/03 §3). "own" scope = agents see only their listings,

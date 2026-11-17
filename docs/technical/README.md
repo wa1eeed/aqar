@@ -2,7 +2,7 @@
 
 Technical documentation of the platform as **built** (the product specification it implements is in
 `docs/00`–`docs/11`). It is maintained with the code: every change updates the relevant guide, and the
-reference section is generated from the source (`pnpm docs`; CI fails when it is stale).
+reference section is generated from the source (`pnpm run docs`; CI fails when it is stale).
 
 ## Who should read what
 

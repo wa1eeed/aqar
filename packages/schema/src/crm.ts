@@ -52,3 +52,43 @@ export const viewingSlots = {
   afternoon: { label: 'عصراً', hour: 16 },
   evening: { label: 'مساءً', hour: 19 },
 } as const;
+
+/** Booking and payment labels (docs/04, design/screenshots/a-bookings.png). */
+export const BOOKING_STATUSES = [
+  'pending_payment',
+  'awaiting_transfer_review',
+  'confirmed',
+  'completed',
+  'cancelled',
+  'expired',
+  'refunded',
+] as const;
+export const bookingStatuses: Record<(typeof BOOKING_STATUSES)[number], { label: string; pill: string }> = {
+  pending_payment: { label: 'بانتظار الدفع', pill: 'p-gold' },
+  awaiting_transfer_review: { label: 'بانتظار مراجعة التحويل', pill: 'p-amber' },
+  confirmed: { label: 'مؤكد', pill: 'p-green' },
+  completed: { label: 'مكتمل', pill: 'p-blue' },
+  cancelled: { label: 'ملغي', pill: 'p-gray' },
+  expired: { label: 'منتهي', pill: 'p-gray' },
+  refunded: { label: 'مسترد', pill: 'p-gray' },
+};
+
+export const paymentStatuses: Record<string, { label: string; pill: string }> = {
+  initiated: { label: 'بدأت', pill: 'p-gray' },
+  pending: { label: 'بانتظار الدفع', pill: 'p-gold' },
+  paid: { label: 'مدفوع', pill: 'p-green' },
+  failed: { label: 'فشل', pill: 'p-red' },
+  under_review: { label: 'قيد المراجعة', pill: 'p-amber' },
+  rejected: { label: 'مرفوض', pill: 'p-red' },
+  cancelled: { label: 'ملغاة', pill: 'p-gray' },
+  refunded: { label: 'مسترد', pill: 'p-blue' },
+  partially_refunded: { label: 'مسترد جزئياً', pill: 'p-blue' },
+};
+
+export const paymentMethods: Record<'moyasar' | 'bank_transfer' | 'rize', string> = {
+  moyasar: 'ميسر',
+  bank_transfer: 'تحويل بنكي',
+  rize: 'رايز',
+};
+
+export const paymentTypes: Record<'deposit' | 'full', string> = { deposit: 'عربون', full: 'كامل' };

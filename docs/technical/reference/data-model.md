@@ -1,6 +1,6 @@
 # Data model
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
 Source of truth: `backend/prisma/schema.prisma` (from docs/01) and its migrations. Money columns are

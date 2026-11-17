@@ -1,6 +1,6 @@
 # Domain events and notification defaults
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
 Keys are final (docs/06 §3). Emitted with `EventEmitter2` **after** the database transaction commits;

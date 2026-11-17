@@ -5,6 +5,7 @@ import { useToast } from '../components/Toast';
 import { api, ApiError } from '../lib/api';
 import type { CityRow } from '../lib/types';
 import { FormError } from './LoginPage';
+import { SettingsLayout } from './settings/SettingsLayout';
 
 type District = CityRow['districts'][number];
 type Editing = { kind: 'city'; row: CityRow | null } | { kind: 'district'; cityId: string; row: District | null };
@@ -42,22 +43,18 @@ export function LocationsPage() {
   };
 
   return (
-    <>
-      <div className="adm-head">
-        <div>
-          <h1>المدن والأحياء</h1>
-          <p>المدن المفعّلة تظهر في البحث وفي نموذج العقار. الإحداثيات تُستخدم لتوسيط الخريطة.</p>
-        </div>
-        <div className="acts">
-          <button
-            className="btn btn--primary btn--sm"
-            type="button"
-            onClick={() => setEditing({ kind: 'city', row: null })}
-          >
-            إضافة مدينة
-          </button>
-        </div>
-      </div>
+    <SettingsLayout
+      subtitle="المدن والأحياء — المدن المفعّلة تظهر في البحث وفي نموذج العقار، والإحداثيات تُستخدم لتوسيط الخريطة."
+      actions={
+        <button
+          className="btn btn--primary btn--sm"
+          type="button"
+          onClick={() => setEditing({ kind: 'city', row: null })}
+        >
+          إضافة مدينة
+        </button>
+      }
+    >
       <FormError error={error} />
       {!cities ? (
         <p className="muted">جارٍ التحميل…</p>
@@ -101,7 +98,7 @@ export function LocationsPage() {
           }}
         />
       ) : null}
-    </>
+    </SettingsLayout>
   );
 }
 

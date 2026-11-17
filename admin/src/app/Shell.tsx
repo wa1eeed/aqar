@@ -11,16 +11,24 @@ import { useSession } from './session';
 export function Shell() {
   const { me, signOut, can } = useSession();
   // Sidebar counters (design/screenshots: «الطلبات» shows open new leads).
+  // «المدفوعات» shows bank transfers awaiting review.
   const [newLeads, setNewLeads] = useState(0);
+  const [underReview, setUnderReview] = useState(0);
   const loadCounts = useCallback(async () => {
-    if (!can('leads.view')) return;
-    const r = await api<{ total: number }>('/admin/leads?stage=new&pageSize=1').catch(() => null);
-    if (r) setNewLeads(r.total);
+    if (can('leads.view')) {
+      const r = await api<{ total: number }>('/admin/leads?stage=new&pageSize=1').catch(() => null);
+      if (r) setNewLeads(r.total);
+    }
+    if (can('payments.view')) {
+      const r = await api<{ underReview: number }>('/admin/payments?pageSize=1').catch(() => null);
+      if (r) setUnderReview(r.underReview);
+    }
   }, [can]);
   useEffect(() => void loadCounts(), [loadCounts]);
   useRealtimeEvent('lead.created', () => void loadCounts());
   useRealtimeEvent('lead.updated', () => void loadCounts());
-  const counts: Record<string, number> = { '/leads': newLeads };
+  useRealtimeEvent('payment.updated', () => void loadCounts());
+  const counts: Record<string, number> = { '/leads': newLeads, '/payments': underReview };
   const [open, setOpen] = useState(false);
   const location = useLocation();
   // Feature flags come from settings.features (Phase 2+); auctions stay hidden until then.

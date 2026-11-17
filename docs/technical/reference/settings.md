@@ -1,6 +1,6 @@
 # Settings sections and defaults
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
 Edited in the admin panel (`GET/PUT /api/v1/admin/settings/:section`), validated by the zod schemas in

@@ -19,7 +19,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { Prisma, type PaymentMethod, type PaymentStatus } from '@prisma/client';
 import type { Queue } from 'bullmq';
 import type { Request, Response } from 'express';
-import { memoryStorage } from 'multer';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { CurrentUser, Customer, RecentAuth, Staff } from '../../common/auth/decorators';
@@ -152,7 +151,8 @@ export class MePaymentsController {
   @HttpCode(200)
   @Post(':id/transfer')
   @UseInterceptors(
-    FileInterceptor('receipt', { storage: memoryStorage(), limits: { fileSize: MAX_UPLOAD, files: 1, fields: 10 } }),
+    // No `dest`/`storage` → multer keeps the file in memory (never on the API's read-only disk).
+    FileInterceptor('receipt', { limits: { fileSize: MAX_UPLOAD, files: 1, fields: 10 } }),
   )
   transfer(
     @CurrentUser() user: AuthUser,
@@ -269,6 +269,14 @@ export class AdminPaymentsController {
       month: month.map((m) => ({ method: m.method, paid: m._sum.amount ?? 0n, refunded: m._sum.refundedAmount ?? 0n })),
       underReview: review,
     };
+  }
+
+  /** Readiness of each payment method for the booking settings screen (integration + bank accounts). */
+  @Staff('settings.payments')
+  @Get('payments/methods-status')
+  async methodsStatus() {
+    const [ready, accounts] = await Promise.all([this.payments.readyMethods(), this.payments.transferAccounts()]);
+    return { ready, activeBankAccounts: accounts.length };
   }
 
   /** Payment details with provider ids, events and the transfer submission. */

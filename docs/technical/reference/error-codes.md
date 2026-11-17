@@ -1,6 +1,6 @@
 # Error codes
 
-> **Generated** by `pnpm docs` from the source code — do not edit by hand.
+> **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
 Every error has the shape `{ "error": { "code", "message", "details", "correlationId" } }` (docs/02 §1).

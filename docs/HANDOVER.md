@@ -222,9 +222,9 @@ provider HTTP details are implemented from the documented API and tested with re
 ## 9. Documentation (continuous)
 
 - Technical guides: `docs/technical/*.md` — update the affected guide with every change.
-- Generated reference: `pnpm docs` writes `docs/technical/reference/*` from the code (endpoints with
+- Generated reference: `pnpm run docs` writes `docs/technical/reference/*` from the code (endpoints with
   permissions, environment, roles, events, settings defaults, error codes, data model); CI runs
-  `pnpm docs:check`. An endpoint without a JSDoc description makes `pnpm docs` fail.
+  `pnpm docs:check`. An endpoint without a JSDoc description makes `pnpm run docs` fail.
 - `CHANGELOG.md`: one line per change under **Unreleased**.
 
 ## 10. Tips for a fresh session

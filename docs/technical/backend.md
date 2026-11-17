@@ -35,7 +35,7 @@ The full endpoint list with permissions is generated: [reference/api-endpoints.m
   `@Customer()` or `@Authenticated()`; add `@RecentAuth()` for sensitive actions (secrets, staff/roles,
   refunds, data exports) and `@RateLimit(...)` where abuse is possible.
 - **Document every handler** with a one-line JSDoc — it becomes its description in the API reference
-  (`pnpm docs` fails on an undocumented endpoint).
+  (`pnpm run docs` fails on an undocumented endpoint).
 - **DTOs**: `class X extends createZodDto(z.object({...}).strict())`. Free text: `plainText(max)`;
   rich text: `richText(max)`; arrays: `boundedArray`. Never trust ids, amounts or statuses from clients.
 - **Row-level access**: AND every staff query with `this.scope.forStaff(user).<entity>()`; customer
@@ -57,12 +57,12 @@ The full endpoint list with permissions is generated: [reference/api-endpoints.m
 1. DTO with zod (`.strict()`), handler with access decorator, JSDoc, rate limit if public.
 2. Service method with scope checks, transaction, audit, event.
 3. e2e test (permissions, validation, happy path) in `backend/test/*.e2e-spec.ts`.
-4. `pnpm docs` (regenerates the reference), update the relevant guide and `CHANGELOG.md`.
+4. `pnpm run docs` (regenerates the reference), update the relevant guide and `CHANGELOG.md`.
 
 ### Add a settings field or section
 Edit/add the zod schema in `modules/settings/schemas/` with a `.default(...)`; register new sections in
 `schemas/index.ts` with the permission that may edit them. Defaults appear in
-[reference/settings.md](./reference/settings.md) after `pnpm docs`.
+[reference/settings.md](./reference/settings.md) after `pnpm run docs`.
 
 ### Add a domain event / notification
 1. Add the key to `events/event-catalog.ts` (default channels, `locked` for transactional events).

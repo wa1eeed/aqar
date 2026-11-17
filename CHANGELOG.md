@@ -24,8 +24,19 @@ phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md
 - Technical documentation set `docs/technical/` (architecture, backend, admin, frontend, security,
   operations, integrations, testing, contributing) and the generated reference
   (`docs/technical/reference/`: API endpoints, environment, permissions, events, settings, error codes,
-  data model) with `pnpm docs` / `pnpm docs:check` (CI). Every API endpoint now carries a description.
+  data model) with `pnpm run docs` / `pnpm docs:check` (CI). Every API endpoint now carries a description.
 - `docs/HANDOVER.md` for continuing the build from any session.
+- Admin: bookings list and detail, payments (month totals, refunds, reconcile), bank transfer review,
+  settings sections with tabs (booking & payment methods with live example, bank transfer with
+  accounts and customer preview, cities moved under the tabs), «المدفوعات» counter for transfers under
+  review; `GET /admin/payments/methods-status`.
+
+### Fixed
+- The API image failed to start: the transfer upload imported `multer`, which is not a direct
+  dependency (memory storage is now the interceptor default).
+- Admin tables no longer widen the page on phones (scroll inside the table).
+- Documentation command is `pnpm run docs` (`pnpm docs` runs pnpm's built-in command); generated
+  descriptions no longer stop at "e.g.".
 
 ## Phase 4 — CRM & notifications (2026-11-17)
 

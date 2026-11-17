@@ -1,4 +1,11 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { BookingDetailPage } from '../pages/BookingDetailPage';
+import { BookingsPage } from '../pages/BookingsPage';
+import { PaymentsPage } from '../pages/PaymentsPage';
+import { TransfersPage } from '../pages/TransfersPage';
+import { BankTransferSettingsPage } from '../pages/settings/BankTransferSettingsPage';
+import { BookingSettingsPage } from '../pages/settings/BookingSettingsPage';
+import { SETTINGS_TABS } from '../pages/settings/SettingsLayout';
 import { CustomersPage } from '../pages/CustomersPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { IntegrationDetailPage } from '../pages/IntegrationDetailPage';
@@ -28,7 +35,17 @@ const BUILT = new Set([
   '/viewings',
   '/customers',
   '/notifications',
+  '/bookings',
+  '/payments',
+  '/settings',
 ]);
+
+/** `/settings` opens the first section the user may edit. */
+function SettingsIndex() {
+  const { can } = useSession();
+  const first = SETTINGS_TABS.find((t) => can(t.permission));
+  return first ? <Navigate to={`/settings/${first.path}`} replace /> : <NotFoundPage />;
+}
 
 function Gate({ permission, children }: { permission: string | null; children: JSX.Element }) {
   const { can } = useSession();
@@ -132,6 +149,55 @@ export function App() {
           }
         />
         <Route path="notifications" element={<NotificationsPage />} />
+        <Route
+          path="bookings"
+          element={
+            <Gate permission="bookings.view">
+              <BookingsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="bookings/:id"
+          element={
+            <Gate permission="bookings.view">
+              <BookingDetailPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="payments"
+          element={
+            <Gate permission="payments.view">
+              <PaymentsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="payments/transfers"
+          element={
+            <Gate permission="payments.review">
+              <TransfersPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="settings/booking"
+          element={
+            <Gate permission="settings.booking">
+              <BookingSettingsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="settings/bank-transfer"
+          element={
+            <Gate permission="settings.payments">
+              <BankTransferSettingsPage />
+            </Gate>
+          }
+        />
+        <Route path="settings" element={<SettingsIndex />} />
         <Route
           path="settings/locations"
           element={
