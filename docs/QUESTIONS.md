@@ -64,3 +64,20 @@ work could continue; please confirm or correct.
 19. **Password policy** (not specified): 12–128 characters, not a common password, at least 5 distinct
     characters, must not contain the email name.
 20. **zod 4 upgrade** (#13) is still pending your decision; zod 3 remains with the mitigation in place.
+
+## Phase 2
+
+21. **Provider HTTP details need a live check before go-live.** This development environment could not
+    reach resend.com, moyasar.com or Google's documentation, so the adapters follow the documented
+    APIs as known at implementation time and are tested against recorded responses. Before enabling
+    each one in production: run «اختبار الاتصال» with sandbox keys, send one test email, and confirm
+    the Resend webhook arrives. Any mismatch is fixed inside the adapter only.
+22. **Webhook processing** — docs/02 §7 says "enqueue a webhooks job". Resend events only update
+    `EmailLog`, so they are processed inline (well under 2 s) after the signature check and the
+    idempotent `WebhookEvent` insert. Payment webhooks (Phase 5) will use the queue.
+23. **Google Places categories** — mapping of our 10 nearby categories to Places API (New) types, one
+    request per category (max 5 results each), cached 30 days: mosque · school/primary/secondary ·
+    hospital/medical_lab/doctor · pharmacy · supermarket/grocery/convenience · shopping_mall ·
+    restaurant/cafe · park · gas_station · bank/atm. Adjust if the company prefers other types.
+24. **SMS providers** appear as three separate cards (Unifonic, Taqnyat, Msegat) instead of one combined
+    card as in the screenshot, because each has its own credentials and only one should be enabled.

@@ -1205,7 +1205,7 @@ body.adm {
   border: 1px solid var(--line);
   background: #fff;
 }
-.secret {
+.totp-secret {
   direction: ltr;
   font:
     600 14px/1.6 ui-monospace,
@@ -1276,4 +1276,53 @@ body.adm {
 }
 .tbl-wrap {
   overflow-x: auto;
+}
+/* Phase 2: integrations */
+.icards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+.icard .hd {
+  color: inherit;
+}
+.icard .hd b {
+  font-size: 15px;
+}
+@media (max-width: 1300px) {
+  .icards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .icards {
+    grid-template-columns: 1fr;
+  }
+}
+.chip {
+  cursor: pointer;
+}
+.copy-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.copy-row .input {
+  direction: ltr;
+  text-align: left;
+  font-family: monospace;
+  font-size: 13px;
+}
+.test-result {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.test-result.ok {
+  background: #e6f2eb;
+  color: #1e7449;
+}
+.test-result.bad {
+  background: #f8e3e1;
+  color: #a3342b;
 }

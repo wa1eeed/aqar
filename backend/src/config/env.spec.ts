@@ -35,3 +35,11 @@ describe('loadEnv', () => {
     }
   });
 });
+
+describe('loadEnv optional values', () => {
+  it('treats empty strings from docker compose as unset', () => {
+    const env = loadEnv({ ...valid(), RESEND_API_KEY: '', R2_PUBLIC_BASE_URL: '' });
+    expect(env.RESEND_API_KEY).toBeUndefined();
+    expect(env.R2_PUBLIC_BASE_URL).toBeUndefined();
+  });
+});

@@ -1,5 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { DashboardPage } from '../pages/DashboardPage';
+import { IntegrationDetailPage } from '../pages/IntegrationDetailPage';
+import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
@@ -10,7 +12,7 @@ import { NAV } from './nav';
 import { RequireAuth, useSession } from './session';
 import { Shell } from './Shell';
 
-const BUILT = new Set(['/', '/staff']);
+const BUILT = new Set(['/', '/staff', '/integrations']);
 
 function Gate({ permission, children }: { permission: string | null; children: JSX.Element }) {
   const { can } = useSession();
@@ -46,6 +48,22 @@ export function App() {
           element={
             <Gate permission="roles.manage">
               <RolesPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="integrations"
+          element={
+            <Gate permission="integrations.manage">
+              <IntegrationsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="integrations/:key"
+          element={
+            <Gate permission="integrations.manage">
+              <IntegrationDetailPage />
             </Gate>
           }
         />

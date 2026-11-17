@@ -42,3 +42,47 @@ export interface RoleRow {
   permissions: string[];
   members: number;
 }
+
+export type Health = 'unknown' | 'ok' | 'degraded' | 'down';
+
+export interface IntegrationSummary {
+  key: string;
+  category: string;
+  nameAr: string;
+  descriptionAr: string;
+  prepared: boolean;
+  enabled: boolean;
+  environment: 'sandbox' | 'live';
+  health: Health;
+  healthCheckedAt: string | null;
+}
+
+export interface FormField {
+  key: string;
+  labelAr: string;
+  helpAr?: string;
+  placeholder?: string;
+  type: 'url' | 'text' | 'select' | 'number' | 'boolean' | 'textarea' | 'multiselect';
+  required: boolean;
+  options?: Array<{ value: string; labelAr: string }>;
+}
+
+export interface IntegrationDetail extends IntegrationSummary {
+  docsUrl: string | null;
+  supportsSandbox: boolean;
+  lastError: string | null;
+  config: Record<string, unknown>;
+  secrets: Record<string, { set: boolean; hint: string | null }>;
+  form: { config: FormField[]; secrets: FormField[] };
+  webhookUrl: string | null;
+}
+
+export interface CallLog {
+  id: string;
+  operation: string;
+  success: boolean;
+  httpStatus: number | null;
+  latencyMs: number;
+  error: string | null;
+  createdAt: string;
+}

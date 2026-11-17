@@ -411,7 +411,7 @@ function TotpSetupStep({
             <img src={setup.qrDataUrl} alt="رمز QR لإضافة الحساب إلى تطبيق المصادقة" />
           </div>
           <p className="hint">لا تستطيع مسح الرمز؟ أدخل هذا المفتاح يدوياً:</p>
-          <div className="secret">{setup.secret.replace(/(.{4})/g, '$1 ').trim()}</div>
+          <div className="totp-secret">{setup.secret.replace(/(.{4})/g, '$1 ').trim()}</div>
           <p className="muted">ثم أدخل الرمز المكوّن من 6 أرقام الظاهر في التطبيق:</p>
           <CodeInput value={code} onChange={setCode} autoFocus />
           <button className="btn btn--primary btn--block" type="submit" disabled={busy || code.length !== 6}>

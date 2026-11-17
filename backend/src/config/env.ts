@@ -64,7 +64,9 @@ export const envSchema = z
 export type Env = z.infer<typeof envSchema>;
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  const parsed = envSchema.safeParse(source);
+  // Compose passes optional variables as empty strings: treat them as unset.
+  const cleaned = Object.fromEntries(Object.entries(source).filter(([, v]) => v !== ''));
+  const parsed = envSchema.safeParse(cleaned);
   if (!parsed.success) {
     // Never print values, only which variables are wrong.
     const problems = parsed.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');

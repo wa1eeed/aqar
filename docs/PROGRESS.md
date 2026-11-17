@@ -86,4 +86,34 @@ no secrets in API responses or the audit log.
 
 124 automated tests: schema 10, backend 112, admin 2.
 
-## Phase 2 — Integrations gateway, storage, email — next
+## Phase 2 — Integrations gateway, storage, email ✅
+
+| Item | Status | Where |
+|---|---|---|
+| Gateway core: resolution, AES-256-GCM secrets (bound to the key), 60 s cache + Redis invalidation, timeouts, retries with backoff + jitter (idempotent only), circuit breaker (5 failures → 60 s, health down), token-bucket rate limit, redacted call logs | ✅ | `modules/integrations/gateway.service.ts`, `integration-store.service.ts` |
+| SSRF guard on every provider call (public https only, no redirects, no private/metadata IPs) | ✅ | `assertPublicHttpsUrl` |
+| Providers: `maps.osm`, `places.overpass`, `maps.google`, `places.google`, `email.resend`, `storage.r2` | ✅ | `providers/*` |
+| `payments.moyasar` settings screen + connection test (payment flows: Phase 5) | ✅ | `providers/moyasar.ts` |
+| Prepared: `payments.rize`, `gov.rega`, `gov.ejar`, `identity.nafath`, `gov.nafith`, `sms.unifonic/taqnyat/msegat` | ✅ | `providers/prepared.ts` |
+| Health job every 15 min, `integration.health_changed`, call-log pruning (30 days) | ✅ | `worker.ts` |
+| Email through BullMQ worker (5 attempts, 1 min → 1 h), Resend webhook (Svix signature, idempotent) | ✅ | `modules/email`, `modules/webhooks` |
+| Nearby via gateway, `NearbyCache` (30 days) + Redis; `GET /public/properties/:id/nearby` | ✅ | `modules/nearby` |
+| `pnpm cli rotate-encryption-key --new <key>` (atomic) | ✅ | `cli/rotate-encryption-key.ts` |
+| Admin integrations UI: grid (a-integrations.png) + generated detail forms (a-integration-moyasar.png), test, enable, environment, logs | ✅ | `admin/src/pages/Integration*` |
+
+### Acceptance
+
+- ✅ **Changing the Resend API key in admin takes effect without restart** — e2e: email sent with key A,
+  key changed through the admin API, next email sent with key B (same process).
+- ✅ **Secrets never appear in API responses or logs** — e2e checks the admin view (hints only), call
+  logs, audit log and stored config; the encrypted column does not contain the plaintext.
+- ✅ **Nearby served from cache on the second call** — e2e: first call hits Overpass, second call makes
+  no HTTP request (network disabled in the test), and the DB cache survives a Redis flush.
+
+Verified on the Docker stack: worker starts, schedules the health and prune jobs, and updates health.
+
+### Tests
+
+164 automated tests: schema 10, backend 152, admin 2.
+
+## Phase 3 — Listings — next

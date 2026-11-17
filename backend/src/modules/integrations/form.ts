@@ -33,11 +33,20 @@ function unwrap(t: ZodTypeAny): { inner: ZodTypeAny; optional: boolean } {
   return { inner, optional };
 }
 
+/** Labels for fields shared by many providers. */
+const COMMON_HINTS: Record<string, UiHint> = {
+  rateLimitPerMin: {
+    labelAr: 'الحد الأقصى للطلبات في الدقيقة',
+    type: 'number',
+    helpAr: 'اتركه فارغاً لاستخدام الحد الافتراضي',
+  },
+};
+
 function fieldsOf(schema: ZodTypeAny, hints: Record<string, UiHint>, secret: boolean): FormField[] {
   const shape = (unwrap(schema).inner._def.shape?.() ?? {}) as Record<string, ZodTypeAny>;
   return Object.entries(shape).map(([key, t]) => {
     const { inner, optional } = unwrap(t);
-    const hint = hints[key] ?? { labelAr: key };
+    const hint = hints[key] ?? COMMON_HINTS[key] ?? { labelAr: key };
     const typeName = inner._def.typeName as string;
     let type: FormField['type'] = hint.type ?? 'text';
     let options: FormField['options'];

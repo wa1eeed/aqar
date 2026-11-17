@@ -1,4 +1,3 @@
- 
 import { PrismaClient } from '@prisma/client';
 import { rotateEncryptionKey } from './rotate-encryption-key';
 
