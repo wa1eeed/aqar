@@ -3,7 +3,7 @@
 > **Generated** by `pnpm run docs` from the source code — do not edit by hand.
 > Regenerate after any change; CI runs `pnpm docs:check`.
 
-Base path `/api/v1`. **148 endpoints.** Access: `public` (no token; a valid token is still read),
+Base path `/api/v1`. **152 endpoints.** Access: `public` (no token; a valid token is still read),
 `staff`, `customer` or `any signed-in`. Every listed permission is required. *Re-auth* = password/TOTP
 within the last 10 minutes (`REAUTH_REQUIRED`). *CSRF* = header `X-Requested-With: nx` required.
 Public GETs without a rule share the default limit of 120/min per IP. Request/response schemas:
@@ -131,6 +131,7 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `GET` | `/api/v1/admin/settings` | staff | — |  |  |  | All settings sections the caller may edit, with current values. |
 | `GET` | `/api/v1/admin/settings/:section` | staff | — |  |  |  | One settings section (current value, defaults applied). |
 | `PUT` | `/api/v1/admin/settings/:section` | staff | — |  |  |  | Replace a settings section (validated by its zod schema, audited, cache invalidated). |
+| `POST` | `/api/v1/admin/settings/branding/assets/:kind` | staff | `settings.branding` |  |  | 30/1h per ip | Upload a logo, dark-background logo, favicon (→ 16/32/180/192/512 PNG), share image or email logo; returns its URL to save in the settings. |
 
 ## admin/staff
 
@@ -249,6 +250,14 @@ Swagger UI at `/api/docs` (non-production, `SWAGGER_ENABLED=true`).
 | `GET` | `/api/v1/public/properties/:id/similar` | public | — |  |  |  | Similar published properties (same type, then offer, then city). |
 | `GET` | `/api/v1/public/schema` | public | — |  |  |  | Merged schema: property types/fields from @nx/schema plus active cities and districts. |
 | `GET` | `/api/v1/public/stats` | public | — |  |  |  | Counts of published, non-closed properties by type, city and offer. |
+
+## site
+
+| Method | Path | Access | Permissions | Re-auth | CSRF | Rate limit | Description |
+|---|---|---|---|---|---|---|---|
+| `GET` | `/brand/:file` | public | — |  |  |  | Uploaded brand files (logos, favicon sizes, share image); content-hashed names, cached forever. |
+| `GET` | `/site.webmanifest` | public | — |  |  |  | Web app manifest built from the branding settings (name, colours, generated icons). |
+| `GET` | `/theme.css` | public | — |  |  |  | Generated theme variables + font import; immutable when requested with the current `?v=`. |
 
 ## webhooks
 

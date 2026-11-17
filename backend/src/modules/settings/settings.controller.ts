@@ -3,7 +3,9 @@ import { ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Staff } from '../../common/auth/decorators';
 import { AppException } from '../../common/errors/app-exception';
 import { REAUTH_WINDOW_SEC, type AuthUser } from '../auth/auth.types';
+import { contrastProblems } from '../theme/theme';
 import { isSettingsKey, SETTINGS_KEYS, SETTINGS_SECTIONS, type SettingsKey } from './schemas';
+import { brandingSettings } from './schemas/branding';
 import { SettingsService } from './settings.service';
 
 /** Sections whose changes need a fresh password/TOTP check (docs/03 §1: payment settings). */
@@ -46,6 +48,17 @@ export class SettingsController {
     const section = this.section(user, key);
     if (SENSITIVE.includes(section) && Date.now() / 1000 - user.authTime > REAUTH_WINDOW_SEC) {
       throw new AppException('REAUTH_REQUIRED', 401, 'يلزم تأكيد هويتك مرة أخرى لإتمام هذا الإجراء');
+    }
+    if (section === 'branding') {
+      // Accessibility guard (docs/07 §10.1): colour pairs below 4.5:1 block saving unless the owner
+      // explicitly saves «رغم التحذير».
+      const b = brandingSettings.parse(body);
+      const problems = contrastProblems(b.theme);
+      if (problems.length && !(b.contrastOverride && user.role === 'owner')) {
+        throw new AppException('THEME_LOW_CONTRAST', 422, 'تباين الألوان أقل من الحد المطلوب (4.5:1)', {
+          pairs: problems,
+        });
+      }
     }
     return this.settings.update(section, body, user.id);
   }

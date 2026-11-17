@@ -21,6 +21,7 @@ import { MediaModule } from './modules/media/media.module';
 import { NearbyModule } from './modules/nearby/nearby.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { PublicModule } from './modules/public/public.module';
+import { ThemeModule } from './modules/theme/theme.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { QueueModule } from './queue/queue.module';
 import { LeadsModule } from './modules/leads/leads.module';
@@ -62,6 +63,7 @@ import { RedisModule } from './redis/redis.module';
     PropertiesModule,
     MediaModule,
     PublicModule,
+    ThemeModule,
     NearbyModule,
     WebhooksModule,
     HealthModule,

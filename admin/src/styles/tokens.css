@@ -1,5 +1,5 @@
 /* Design tokens copied from frontend/assets/css/main.css (docs/00 §3). /theme.css overrides them at runtime. */
-:root {
+:where(:root) {
   --bg: #faf7f2;
   --surface: #ffffff;
   --sand-100: #f3ede3;

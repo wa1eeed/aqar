@@ -11,6 +11,8 @@ import { jsonReplacer } from './common/http/json';
 import { RedisIoAdapter } from './modules/realtime/redis-io.adapter';
 
 export const API_PREFIX = 'api/v1';
+/** Site-level routes served by the API outside /api/v1 (docs/02 §8); Caddy routes them here. */
+export const SITE_ROUTES = ['theme.css', 'site.webmanifest', 'brand/:file'];
 
 /** HTTP hardening shared by main.ts and the e2e tests, so tests exercise the real configuration. */
 export function configureApp(app: NestExpressApplication): INestApplication {
@@ -23,7 +25,7 @@ export function configureApp(app: NestExpressApplication): INestApplication {
   // Client IP for rate limits and audit comes from X-Forwarded-For set by our own proxies only.
   express.set('trust proxy', env.TRUST_PROXY_HOPS);
 
-  app.setGlobalPrefix(API_PREFIX);
+  app.setGlobalPrefix(API_PREFIX, { exclude: SITE_ROUTES });
   app.useBodyParser('json', { limit: '1mb' });
   app.useBodyParser('urlencoded', { extended: false, limit: '100kb' });
   app.use(cookieParser());

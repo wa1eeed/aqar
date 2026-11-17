@@ -1,3 +1,4 @@
+import { ThemeService } from '../theme/theme.service';
 import { Inject, Injectable } from '@nestjs/common';
 import * as S from '@nx/schema';
 import type Redis from 'ioredis';
@@ -24,6 +25,7 @@ export class PublicService {
     private readonly gateway: IntegrationsGateway,
     @Inject(REDIS) private readonly redis: Redis,
     private readonly bookings: BookingsService,
+    private readonly theme: ThemeService,
   ) {}
 
   /** Redis cache keyed by the public data version; any property/location change bumps the version. */
@@ -74,6 +76,7 @@ export class PublicService {
         radius: branding.radius,
         fontDisplay: branding.fontDisplay,
         fontBody: branding.fontBody,
+        version: (await this.theme.current()).version,
       },
       contact: {
         phone: contact.phone,

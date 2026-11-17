@@ -407,6 +407,7 @@ window.MZ = window.MZ || {};
   function applyConfig(remote) {
     var r = escConfig(remote);
     Object.assign(cfg.brand, { name: r.brand.name, fullName: r.brand.fullName, tagline: r.brand.tagline, logoUrl: r.brand.logoUrl, logoLightUrl: r.brand.logoLightUrl });
+    applyFavicon(remote.brand && remote.brand.faviconUrl);
     if (r.licensing.regaFalLicense) cfg.brand.falLicense = r.licensing.regaFalLicense;
     if (r.licensing.cr) cfg.brand.cr = r.licensing.cr;
     if (r.contact.address) cfg.brand.address = r.contact.address;
@@ -421,6 +422,19 @@ window.MZ = window.MZ || {};
       if (r.map.attribution) cfg.map.attribution = remote.map.attribution;
       cfg.map.googleApiKey = remote.map.googleBrowserKey || '';
     }
+  }
+  /* أيقونة الموقع من «الهوية والمظهر» (ملفات /brand/ المولّدة بعدة مقاسات) + manifest */
+  function applyFavicon(url) {
+    if (!/^\/brand\/favicon-[a-f0-9]+-512\.png$/.test(url || '')) return;
+    function link(rel, href, sizes) {
+      var el = document.querySelector('link[rel="' + rel + '"]' + (sizes ? '[sizes="' + sizes + '"]' : '')) || document.createElement('link');
+      el.rel = rel; el.href = href; if (sizes) el.setAttribute('sizes', sizes);
+      if (rel === 'icon') el.type = 'image/png';
+      if (!el.parentNode) document.head.appendChild(el);
+    }
+    link('icon', url.replace('-512.png', '-32.png'));
+    link('apple-touch-icon', url.replace('-512.png', '-180.png'));
+    link('manifest', '/site.webmanifest');
   }
   function applySchema(remote) {
     if (!remote || !Array.isArray(remote.cities) || !remote.cities.length) return;

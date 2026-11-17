@@ -18,7 +18,7 @@ import { join, relative, resolve } from 'node:path';
 import ts from 'typescript';
 import type { z } from 'zod';
 import { AppModule } from '../app.module';
-import { API_PREFIX } from '../bootstrap';
+import { API_PREFIX, SITE_ROUTES } from '../bootstrap';
 import { AUDIENCE, PERMS, RECENT_AUTH } from '../common/auth/decorators';
 import { PERMISSIONS, SYSTEM_ROLES } from '../common/auth/permissions';
 import { IS_PUBLIC } from '../common/auth/public.decorator';
@@ -139,10 +139,12 @@ function apiEndpoints(): string {
           (r) => `${r.limit}/${r.windowSec >= 3600 ? `${r.windowSec / 3600}h` : `${r.windowSec / 60}min`} per ${r.by}`,
         )
         .join(', ');
-      const full = `/${[API_PREFIX, base, path]
+      const local = [base, path]
         .map((s) => s.replace(/^\/|\/$/g, ''))
         .filter(Boolean)
-        .join('/')}`;
+        .join('/');
+      // Site routes (docs/02 §8) are excluded from the /api/v1 prefix.
+      const full = `/${(SITE_ROUTES as readonly string[]).includes(local) ? local : `${API_PREFIX}/${local}`}`;
       const verb = RequestMethod[method];
       const desc = docs.get(`${ctrl.name}.${name}`) ?? '';
       if (!desc) undocumented.push(`${ctrl.name}.${name} ${RequestMethod[method]} ${full}`);

@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { hexColor, optionalHttpUrl, plainText } from '../../../common/security/zod-helpers';
+import { hexColor, httpUrl, plainText } from '../../../common/security/zod-helpers';
+
+/** An absolute http(s) URL or a file uploaded through «الهوية والمظهر» (`/brand/<hashed name>`). */
+const brandAsset = z
+  .union([z.literal(''), httpUrl, z.string().regex(/^\/brand\/[a-z0-9-]{3,80}\.(png|jpg|webp|svg)$/)])
+  .default('');
 
 /** Curated Arabic fonts (docs/07 §10.1). An allow-list keeps /theme.css free of injected CSS. */
 export const FONTS = [
@@ -45,11 +50,11 @@ export const brandingSettings = z
     name: plainText(40).pipe(z.string().min(1)).default('منزلة'),
     fullName: plainText(80).pipe(z.string().min(1)).default('منزلة العقارية'),
     tagline: plainText(120).default('عقارات تليق بمنزلتك'),
-    logoUrl: optionalHttpUrl,
-    logoLightUrl: optionalHttpUrl,
-    faviconUrl: optionalHttpUrl,
-    socialImageUrl: optionalHttpUrl,
-    emailLogoUrl: optionalHttpUrl,
+    logoUrl: brandAsset,
+    logoLightUrl: brandAsset,
+    faviconUrl: brandAsset,
+    socialImageUrl: brandAsset,
+    emailLogoUrl: brandAsset,
     preset: z.enum(THEME_PRESETS).default('default'),
     theme: z
       .object({

@@ -4,7 +4,14 @@ All notable changes to the platform. Format: [Keep a Changelog](https://keepacha
 phases follow `docs/11-implementation-plan.md`. Every change adds a line under **Unreleased**; a
 phase merged into `main` becomes a section. Details per phase: `docs/PROGRESS.md`.
 
-## [Unreleased]
+## [Unreleased] — Phase 6: branding, licensing, SEO/AEO/GEO (in progress)
+
+### Added
+- Theme: `/theme.css` generated from «الهوية والمظهر» (colour tokens, derived tints, fonts, radius;
+  versioned `?v=` with immutable caching, ETag otherwise), WCAG contrast guard on save (owner override),
+  presets; brand uploads (logos incl. sanitised SVG, favicon → 16/32/180/192/512 PNG, share image) served
+  from `/brand/*`; `/site.webmanifest`; site and admin load the theme (admin waits for it, no flash);
+  `main.css` takes every brand colour from variables.
 
 ### Documentation
 - `docs/HANDOVER.md`: new-session checklist, fresh-container bootstrap, open items carried forward,
