@@ -19,7 +19,13 @@ import { PropertiesModule } from './modules/properties/properties.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
-import { INTEGRATIONS_QUEUE, QUEUES, QueueModule, queueConnection } from './queue/queue.module';
+import { CRM_QUEUE, INTEGRATIONS_QUEUE, QUEUES, QueueModule, queueConnection } from './queue/queue.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { CustomersService } from './modules/customers/customers.service';
+import { CrmJobsService } from './modules/notifications/crm-jobs.service';
+import { NotificationsCoreModule } from './modules/notifications/notifications.module';
+import { RealtimeCoreModule } from './modules/realtime/realtime.service';
 import { RedisModule } from './redis/redis.module';
 
 /** Background worker (same image as the API, `node dist/worker`). Queues per docs/10 §6. */
@@ -34,8 +40,12 @@ import { RedisModule } from './redis/redis.module';
     AuditModule,
     SettingsModule,
     QueueModule,
+    RealtimeCoreModule,
     IntegrationsCoreModule,
     EmailModule,
+    AuthModule,
+    NotificationsCoreModule,
+    CustomersModule,
     PropertiesModule,
     MediaCoreModule,
   ],
@@ -83,11 +93,39 @@ async function main(): Promise<void> {
     { connection: queueConnection(env.REDIS_URL), concurrency: 1 },
   );
 
+  const crmJobs = app.get(CrmJobsService);
+  const customers = app.get(CustomersService);
+  const crmWorker = new Worker(
+    QUEUES.crm,
+    async (job) => {
+      if (job.name === 'viewing-reminders') await crmJobs.viewingReminders();
+      if (job.name === 'saved-search-digest') await crmJobs.savedSearchDigest();
+      if (job.name === 'anonymise-deleted') {
+        const n = await customers.anonymiseDeleted();
+        if (n) log.log(`anonymised ${n} deleted customer accounts`);
+      }
+    },
+    { connection: queueConnection(env.REDIS_URL), concurrency: 1 },
+  );
+  const crm = app.get<Queue>(CRM_QUEUE);
+  await crm.upsertJobScheduler('viewing-reminders', { every: 15 * 60 * 1000 }, { name: 'viewing-reminders' });
+  // 09:00 Riyadh (06:00 UTC) daily digest; anonymisation at 03:30 Riyadh.
+  await crm.upsertJobScheduler(
+    'saved-search-digest',
+    { pattern: '0 6 * * *', tz: 'UTC' },
+    { name: 'saved-search-digest' },
+  );
+  await crm.upsertJobScheduler(
+    'anonymise-deleted',
+    { pattern: '30 0 * * *', tz: 'UTC' },
+    { name: 'anonymise-deleted' },
+  );
+
   const queue = app.get<Queue>(INTEGRATIONS_QUEUE);
   await queue.upsertJobScheduler('integrations-health', { every: HEALTH_EVERY_MS }, { name: 'health' });
   await queue.upsertJobScheduler('maintenance-prune', { every: PRUNE_EVERY_MS }, { name: 'prune' });
 
-  for (const w of [emailWorker, integrationsWorker, mediaWorker]) {
+  for (const w of [emailWorker, integrationsWorker, mediaWorker, crmWorker]) {
     w.on('failed', (job, err) =>
       log.warn({ queue: w.name, jobId: job?.id, attempt: job?.attemptsMade, err: err.message }, 'job failed'),
     );
@@ -95,7 +133,7 @@ async function main(): Promise<void> {
 
   const shutdown = async () => {
     log.log('worker shutting down');
-    await Promise.allSettled([emailWorker.close(), integrationsWorker.close(), mediaWorker.close()]);
+    await Promise.allSettled([emailWorker.close(), integrationsWorker.close(), mediaWorker.close(), crmWorker.close()]);
     await app.close();
     process.exit(0);
   };

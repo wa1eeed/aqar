@@ -138,6 +138,9 @@ export class PublicLeadsService {
           utm: dto.utm ? (dto.utm as Prisma.InputJsonValue) : Prisma.DbNull,
         },
       });
+      await tx.leadActivity.create({
+        data: { leadId: l.id, type: 'system', meta: { created: 'website', assignedToId } as Prisma.InputJsonValue },
+      });
       if (dto.type === 'viewing' && property && preferredDate && dto.slot) {
         const at = new Date(preferredDate);
         at.setUTCHours(SLOT_HOUR_UTC[dto.slot], 0, 0, 0);

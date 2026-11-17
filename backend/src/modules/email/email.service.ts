@@ -6,7 +6,18 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { EMAIL_QUEUE } from '../../queue/queue.module';
 import { IntegrationsGateway } from '../integrations/gateway.service';
 import { IntegrationError } from '../integrations/types';
-import { renderTemplate, type TemplateKey } from './templates';
+import { SettingsService } from '../settings/settings.service';
+import type { EMAIL_TEMPLATE_KEYS } from '../settings/schemas/notifications';
+import {
+  type EmailContext,
+  type NotificationEmail,
+  type RenderedEmail,
+  renderNotificationEmail,
+  renderTemplate,
+  type TemplateKey,
+} from './templates';
+
+export type EmailTemplateKey = (typeof EMAIL_TEMPLATE_KEYS)[number];
 
 export interface OutgoingEmail {
   to: string;
@@ -46,7 +57,45 @@ export class EmailService {
     private readonly gateway: IntegrationsGateway,
     @Inject(EMAIL_QUEUE) private readonly queue: Queue,
     @Inject(ENV) private readonly env: Env,
+    private readonly settings: SettingsService,
   ) {}
+
+  /** Brand name, theme colour and legal footer (docs/06 §4) from settings. */
+  async context(manageUrl?: string): Promise<EmailContext> {
+    const [branding, licensing, contact] = await Promise.all([
+      this.settings.get('branding'),
+      this.settings.get('licensing'),
+      this.settings.get('contact'),
+    ]);
+    const footer = [
+      licensing.crNumber ? `سجل تجاري: ${licensing.crNumber}` : '',
+      licensing.regaFalLicense ? `رخصة فال: ${licensing.regaFalLicense}` : '',
+      licensing.ejarMembership ? `عضوية إيجار: ${licensing.ejarMembership}` : '',
+      contact.address,
+    ].filter(Boolean);
+    return { brand: branding.fullName, primary: branding.theme.primary, footer, ...(manageUrl ? { manageUrl } : {}) };
+  }
+
+  /**
+   * Event email (lead-new-staff, viewing-confirmed, …). Applies the admin's subject/intro override
+   * for the template (settings.notifications.templateOverrides). `manageUrl` is set for
+   * non-transactional emails so the recipient can turn them off.
+   */
+  async sendNotification(
+    template: EmailTemplateKey,
+    to: string,
+    content: NotificationEmail,
+    related?: { type: string; id: string },
+    opts: { manageUrl?: string } = {},
+  ): Promise<void> {
+    const override = (await this.settings.get('notifications')).templateOverrides[template];
+    const merged: NotificationEmail = {
+      ...content,
+      ...(override?.subject ? { subject: override.subject } : {}),
+      ...(override?.intro ? { intro: override.intro } : {}),
+    };
+    await this.enqueue(template, to, renderNotificationEmail(merged, await this.context(opts.manageUrl)), related);
+  }
 
   async sendTemplate(
     template: TemplateKey,
@@ -54,7 +103,15 @@ export class EmailService {
     vars: Record<string, string>,
     related?: { type: string; id: string },
   ): Promise<void> {
-    const rendered = renderTemplate(template, vars);
+    await this.enqueue(template, to, renderTemplate(template, vars), related);
+  }
+
+  private async enqueue(
+    template: string,
+    to: string,
+    rendered: RenderedEmail,
+    related?: { type: string; id: string },
+  ): Promise<void> {
     const log = await this.prisma.emailLog.create({
       data: {
         to,

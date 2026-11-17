@@ -1,75 +1,81 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
-import { AccessScopeService } from '../../common/auth/access-scope.service';
-import { CurrentUser, Staff } from '../../common/auth/decorators';
-import { AppException } from '../../common/errors/app-exception';
-import { PrismaService } from '../../prisma/prisma.service';
+import { CurrentUser, RecentAuth, Staff } from '../../common/auth/decorators';
 import type { AuthUser } from '../auth/auth.types';
+import { ActivityDto, AssignDto, LeadsQueryDto, ManualLeadDto, StageDto, UpdateLeadDto } from './dto';
+import { LeadsService } from './leads.service';
 
-class LeadsQuery extends createZodDto(
-  z
-    .object({
-      page: z.coerce.number().int().min(1).default(1),
-      pageSize: z.coerce.number().int().min(1).max(100).default(20),
-      stage: z.enum(['new', 'contacted', 'viewing', 'negotiation', 'won', 'lost']).optional(),
-    })
-    .strict(),
-) {}
-
-const select = {
-  id: true,
-  number: true,
-  type: true,
-  stage: true,
-  source: true,
-  name: true,
-  phone: true,
-  email: true,
-  propertyId: true,
-  assignedToId: true,
-  createdAt: true,
-} as const;
-
-/**
- * Read-only leads (Phase 1) to establish row-level scoping: agents see only leads assigned to them
- * (docs/03 §3). The full CRM (stages, kanban, activities, routing) arrives in Phase 4.
- */
+/** docs/02 §6 Leads [leads.*]; agents are limited to leads assigned to them. */
 @ApiTags('admin/leads')
 @Controller('admin/leads')
 export class LeadsController {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly scope: AccessScopeService,
-  ) {}
+  constructor(private readonly leads: LeadsService) {}
 
   @Staff('leads.view')
   @Get()
-  async list(@CurrentUser() user: AuthUser, @Query() q: LeadsQuery) {
-    const where = { AND: [this.scope.forStaff(user).leads(), q.stage ? { stage: q.stage } : {}] };
-    const [items, total] = await Promise.all([
-      this.prisma.lead.findMany({
-        where,
-        select,
-        orderBy: { createdAt: 'desc' },
-        skip: (q.page - 1) * q.pageSize,
-        take: q.pageSize,
-      }),
-      this.prisma.lead.count({ where }),
-    ]);
-    return { items, total, page: q.page, pageSize: q.pageSize, pages: Math.ceil(total / q.pageSize) };
+  list(@CurrentUser() user: AuthUser, @Query() q: LeadsQueryDto) {
+    return this.leads.list(user, q);
+  }
+
+  @Staff('leads.view')
+  @Get('board')
+  board(@CurrentUser() user: AuthUser, @Query() q: LeadsQueryDto) {
+    return this.leads.board(user, q);
+  }
+
+  /** PII export: re-authentication required (docs/03 §1 "data export"). */
+  @Staff('leads.view')
+  @RecentAuth()
+  @Get('export.csv')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  @Header('Content-Disposition', 'attachment; filename="leads.csv"')
+  @Header('Cache-Control', 'no-store')
+  export(@CurrentUser() user: AuthUser, @Query() q: LeadsQueryDto) {
+    return this.leads.exportCsv(user, q);
+  }
+
+  @Staff('leads.manage')
+  @Post()
+  create(@CurrentUser() user: AuthUser, @Body() b: ManualLeadDto) {
+    return this.leads.create(user, b);
   }
 
   @Staff('leads.view')
   @Get(':id')
-  async get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
-    // Out-of-scope leads answer 404, not 403, so their existence is not revealed.
-    const lead = await this.prisma.lead.findFirst({
-      where: { AND: [{ id }, this.scope.forStaff(user).leads()] },
-      select,
-    });
-    if (!lead) throw new AppException('NOT_FOUND', 404, 'الطلب غير موجود');
-    return lead;
+  get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.leads.get(user, id);
+  }
+
+  @Staff('leads.manage')
+  @Patch(':id')
+  update(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() b: UpdateLeadDto) {
+    return this.leads.update(user, id, b);
+  }
+
+  @Staff('leads.manage')
+  @HttpCode(200)
+  @Post(':id/stage')
+  stage(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() b: StageDto) {
+    return this.leads.changeStage(user, id, b.stage, b.lostReason);
+  }
+
+  @Staff('leads.assign')
+  @HttpCode(200)
+  @Post(':id/assign')
+  assign(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() b: AssignDto) {
+    return this.leads.assign(user, id, b.assignedToId);
+  }
+
+  @Staff('leads.manage')
+  @Post(':id/activities')
+  activity(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() b: ActivityDto) {
+    return this.leads.addActivity(user, id, b.type, b.body);
+  }
+
+  @Staff('leads.manage')
+  @HttpCode(200)
+  @Post(':id/customer')
+  linkCustomer(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.leads.linkCustomer(user, id);
   }
 }

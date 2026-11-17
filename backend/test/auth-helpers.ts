@@ -18,6 +18,10 @@ export function totpNow(secret: string, offsetSteps = 0): string {
 export async function resetDb(app: NestExpressApplication): Promise<void> {
   const prisma = app.get(PrismaService);
   await prisma.$transaction([
+    prisma.notification.deleteMany(),
+    prisma.notificationPreference.deleteMany(),
+    prisma.savedSearch.deleteMany(),
+    prisma.favorite.deleteMany(),
     prisma.viewing.deleteMany(),
     prisma.lead.deleteMany(),
     prisma.property.deleteMany(), // NearbyCache/media cascade

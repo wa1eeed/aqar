@@ -8,6 +8,7 @@ import { patchNestJsSwagger } from 'nestjs-zod';
 import { ENV } from './config/config.module';
 import type { Env } from './config/env';
 import { jsonReplacer } from './common/http/json';
+import { RedisIoAdapter } from './modules/realtime/redis-io.adapter';
 
 export const API_PREFIX = 'api/v1';
 
@@ -49,6 +50,9 @@ export function configureApp(app: NestExpressApplication): INestApplication {
     app.use('/api/docs', helmet({ contentSecurityPolicy: false }));
     SwaggerModule.setup('api/docs', app, doc);
   }
+
+  // Socket.IO at /ws with the Redis adapter (docs/02 §9).
+  app.useWebSocketAdapter(new RedisIoAdapter(app, env.REDIS_URL));
 
   app.enableShutdownHooks();
   return app;

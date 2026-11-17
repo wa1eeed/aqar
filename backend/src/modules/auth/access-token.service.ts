@@ -48,17 +48,18 @@ export class AccessTokenService {
   }
 
   /** Returns the subject and issue time, or null for any invalid/expired/foreign token. */
-  async verify(token: string): Promise<{ user: AuthUser; iatMs: number } | null> {
+  async verify(token: string): Promise<{ user: AuthUser; iatMs: number; exp: number } | null> {
     try {
       const { payload } = await jwtVerify(token, this.key, {
         issuer: ISSUER,
         audience: ['nx-staff', 'nx-customer'],
         algorithms: ['HS256'],
       });
-      const p = payload as unknown as Claims & { sub?: string; iat?: number; aud?: string };
+      const p = payload as unknown as Claims & { sub?: string; iat?: number; exp?: number; aud?: string };
       if (!p.sub || (p.typ !== 'staff' && p.typ !== 'customer') || p.aud !== `nx-${p.typ}`) return null;
       return {
         iatMs: Number(p.iat_ms) || (p.iat ?? 0) * 1000,
+        exp: p.exp ?? 0,
         user: {
           typ: p.typ,
           id: p.sub,

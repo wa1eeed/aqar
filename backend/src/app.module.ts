@@ -24,10 +24,15 @@ import { PublicModule } from './modules/public/public.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { QueueModule } from './queue/queue.module';
 import { LeadsModule } from './modules/leads/leads.module';
+import { CustomersModule } from './modules/customers/customers.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { CryptoModule } from './modules/crypto/crypto.module';
 import { HealthModule } from './modules/health/health.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { NotificationsApiModule } from './modules/notifications/notifications-api.module';
+import { NotificationsCoreModule } from './modules/notifications/notifications.module';
+import { RealtimeCoreModule } from './modules/realtime/realtime.service';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 
@@ -42,11 +47,16 @@ import { RedisModule } from './redis/redis.module';
     AuditModule,
     SettingsModule,
     QueueModule,
+    RealtimeCoreModule,
     IntegrationsModule,
     EmailModule,
     AuthModule,
+    NotificationsCoreModule,
+    RealtimeModule,
+    NotificationsApiModule,
     StaffModule,
     LeadsModule,
+    CustomersModule,
     PropertiesModule,
     MediaModule,
     PublicModule,

@@ -5,6 +5,7 @@ import type Redis from 'ioredis';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { REDIS } from '../../redis/redis.module';
+import { RealtimeService } from '../realtime/realtime.service';
 import { CUSTOMER_REFRESH_TTL_SEC, STAFF_REFRESH_TTL_SEC, type Audience } from './auth.types';
 import { KeyedHashService } from './keyed-hash.service';
 
@@ -27,6 +28,7 @@ export class SessionService {
     private readonly hasher: KeyedHashService,
     private readonly events: EventEmitter2,
     @Inject(REDIS) private readonly redis: Redis,
+    private readonly realtime: RealtimeService,
   ) {}
 
   private ttl(typ: Audience): number {
@@ -105,6 +107,7 @@ export class SessionService {
       data: { revokedAt: new Date() },
     });
     await this.revokeAccessTokens(typ, subjectId);
+    this.realtime.disconnect(typ, subjectId);
   }
 
   private async revokeAccessTokens(typ: Audience, subjectId: string): Promise<void> {

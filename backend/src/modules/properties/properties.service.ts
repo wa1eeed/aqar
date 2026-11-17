@@ -305,6 +305,7 @@ export class PropertiesService {
       );
       return p;
     });
+    this.events.emit('property.changed', { id });
     if (updated.price < before.price && updated.visibility === 'published') {
       this.events.emit('property.price_dropped', {
         propertyId: id,
@@ -353,6 +354,7 @@ export class PropertiesService {
       from: before.status,
       to: status,
       agentId: before.agentId,
+      actorId: user.id,
     });
     await this.invalidatePublic();
     return this.get(user, id);

@@ -5,10 +5,11 @@ import { ENV } from '../config/config.module';
 import type { Env } from '../config/env';
 
 /** BullMQ queues (docs/10 §6). Processors run in the worker container (`node dist/worker`). */
-export const QUEUES = { email: 'email', integrations: 'integrations', media: 'media' } as const;
+export const QUEUES = { email: 'email', integrations: 'integrations', media: 'media', crm: 'crm' } as const;
 export const EMAIL_QUEUE = Symbol('EMAIL_QUEUE');
 export const INTEGRATIONS_QUEUE = Symbol('INTEGRATIONS_QUEUE');
 export const MEDIA_QUEUE = Symbol('MEDIA_QUEUE');
+export const CRM_QUEUE = Symbol('CRM_QUEUE');
 export const QUEUE_CONNECTION = Symbol('QUEUE_CONNECTION');
 
 /** BullMQ requires maxRetriesPerRequest = null on its connection. */
@@ -22,10 +23,11 @@ class QueueShutdown implements OnApplicationShutdown {
     @Inject(EMAIL_QUEUE) private readonly email: Queue,
     @Inject(INTEGRATIONS_QUEUE) private readonly integrations: Queue,
     @Inject(MEDIA_QUEUE) private readonly media: Queue,
+    @Inject(CRM_QUEUE) private readonly crm: Queue,
     @Inject(QUEUE_CONNECTION) private readonly conn: IORedis,
   ) {}
   async onApplicationShutdown(): Promise<void> {
-    await Promise.allSettled([this.email.close(), this.integrations.close(), this.media.close()]);
+    await Promise.allSettled([this.email.close(), this.integrations.close(), this.media.close(), this.crm.close()]);
     await this.conn.quit().catch(() => undefined);
   }
 }
@@ -49,8 +51,13 @@ class QueueShutdown implements OnApplicationShutdown {
       inject: [QUEUE_CONNECTION],
       useFactory: (c: IORedis) => new Queue(QUEUES.media, { connection: c }),
     },
+    {
+      provide: CRM_QUEUE,
+      inject: [QUEUE_CONNECTION],
+      useFactory: (c: IORedis) => new Queue(QUEUES.crm, { connection: c }),
+    },
     QueueShutdown,
   ],
-  exports: [EMAIL_QUEUE, INTEGRATIONS_QUEUE, MEDIA_QUEUE, QUEUE_CONNECTION],
+  exports: [EMAIL_QUEUE, INTEGRATIONS_QUEUE, MEDIA_QUEUE, CRM_QUEUE, QUEUE_CONNECTION],
 })
 export class QueueModule {}
