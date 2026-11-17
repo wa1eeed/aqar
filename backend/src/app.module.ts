@@ -14,6 +14,10 @@ import { CsrfGuard } from './common/security/csrf.guard';
 import { ConfigModule, ENV } from './config/config.module';
 import type { Env } from './config/env';
 import { AuditModule } from './modules/audit/audit.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { EmailModule } from './modules/email/email.module';
+import { LeadsModule } from './modules/leads/leads.module';
+import { StaffModule } from './modules/staff/staff.module';
 import { CryptoModule } from './modules/crypto/crypto.module';
 import { HealthModule } from './modules/health/health.module';
 import { SettingsModule } from './modules/settings/settings.module';
@@ -30,6 +34,10 @@ import { RedisModule } from './redis/redis.module';
     CryptoModule,
     AuditModule,
     SettingsModule,
+    EmailModule,
+    AuthModule,
+    StaffModule,
+    LeadsModule,
     HealthModule,
   ],
   providers: [

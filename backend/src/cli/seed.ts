@@ -10,15 +10,12 @@
  */
 import { cities } from '@nx/schema';
 import { type Prisma, PrismaClient } from '@prisma/client';
-import * as argon2 from 'argon2';
 import { SYSTEM_ROLES } from '../common/auth/permissions';
+import { hashPassword, passwordSchema } from '../modules/auth/password';
 import { INTEGRATION_REGISTRY } from '../modules/integrations/registry';
 import { defaultsFor, SETTINGS_KEYS } from '../modules/settings/schemas';
 
 const prisma = new PrismaClient();
-
-/** docs/03 §1: Argon2id, memoryCost 19456, timeCost 2. */
-export const ARGON2_OPTIONS = { type: argon2.argon2id, memoryCost: 19456, timeCost: 2, parallelism: 1 } as const;
 
 function log(msg: string): void {
   console.log(`[seed] ${msg}`);
@@ -124,19 +121,21 @@ async function seedOwner(): Promise<void> {
     log('owner: skipped (SEED_OWNER_EMAIL / SEED_OWNER_PASSWORD not set)');
     return;
   }
-  if (password.length < 12) throw new Error('SEED_OWNER_PASSWORD must be at least 12 characters');
+  const policy = passwordSchema(email).safeParse(password);
+  if (!policy.success) throw new Error(`SEED_OWNER_PASSWORD rejected: ${policy.error.issues[0]?.message}`);
   const ownerRole = await prisma.role.findUniqueOrThrow({ where: { key: 'owner' } });
   const exists = await prisma.staffUser.findFirst({ where: { roleId: ownerRole.id, deletedAt: null } });
   if (exists) {
     log('owner: exists, unchanged');
     return;
   }
-  // lastLoginAt = null marks "first login": password change + 2FA setup are forced (docs/03 §4, Phase 1).
+  // First login forces a password change and 2FA setup (docs/03 §4).
   await prisma.staffUser.create({
     data: {
       name: 'مالك المنشأة',
       email,
-      passwordHash: await argon2.hash(password, ARGON2_OPTIONS),
+      passwordHash: await hashPassword(password),
+      mustChangePassword: true,
       roleId: ownerRole.id,
       showOnWebsite: false,
     },

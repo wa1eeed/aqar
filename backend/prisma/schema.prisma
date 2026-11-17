@@ -28,25 +28,29 @@ model Role {
 }
 
 model StaffUser {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  phone         String? // E.164 +9665XXXXXXXX
-  whatsapp      String? // digits only 9665XXXXXXXX
-  title         String? // "مستشار عقاري أول"
-  falLicense    String? // رخصة فال الشخصية
-  avatarKey     String? // R2 media key
-  passwordHash  String
-  roleId        String
-  role          Role      @relation(fields: [roleId], references: [id])
-  isActive      Boolean   @default(true)
-  showOnWebsite Boolean   @default(true) // appears as listing agent
-  totpSecretEnc Bytes?
-  totpEnabled   Boolean   @default(false)
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  id                 String    @id @default(cuid())
+  name               String
+  email              String    @unique
+  phone              String? // E.164 +9665XXXXXXXX
+  whatsapp           String? // digits only 9665XXXXXXXX
+  title              String? // "مستشار عقاري أول"
+  falLicense         String? // رخصة فال الشخصية
+  avatarKey          String? // R2 media key
+  passwordHash       String
+  roleId             String
+  role               Role      @relation(fields: [roleId], references: [id])
+  isActive           Boolean   @default(true)
+  showOnWebsite      Boolean   @default(true) // appears as listing agent
+  totpSecretEnc      Bytes?
+  totpEnabled        Boolean   @default(false)
+  // Phase 1 additions (docs/QUESTIONS.md): forced first-login password change and hashed TOTP
+  // recovery codes (docs/03 §1 — 10 one-time codes).
+  mustChangePassword Boolean   @default(false)
+  totpRecoveryCodes  String[]  @default([])
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
 
   properties    Property[] @relation("PropertyAgent")
   assignedLeads Lead[]     @relation("LeadAssignee")
