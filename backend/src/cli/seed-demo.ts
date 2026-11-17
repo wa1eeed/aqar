@@ -44,7 +44,6 @@ interface MockProperty {
 }
 
 function log(msg: string): void {
-   
   console.log(`[seed-demo] ${msg}`);
 }
 
@@ -171,7 +170,6 @@ if (require.main === module) {
   seedDemo(prisma, { from: i > 0 ? process.argv[i + 1] : undefined })
     .then((r) => log(`agents: ${r.agents}, properties created: ${r.properties}`))
     .catch((e: unknown) => {
-       
       console.error(e instanceof Error ? e.message : e);
       process.exitCode = 1;
     })

@@ -2,9 +2,12 @@ import { Route, Routes } from 'react-router-dom';
 import { DashboardPage } from '../pages/DashboardPage';
 import { IntegrationDetailPage } from '../pages/IntegrationDetailPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
+import { LocationsPage } from '../pages/LocationsPage';
 import { LoginPage } from '../pages/LoginPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
+import { PropertiesPage } from '../pages/PropertiesPage';
+import { PropertyEditorPage } from '../pages/PropertyEditorPage';
 import { RolesPage } from '../pages/RolesPage';
 import { StaffPage } from '../pages/StaffPage';
 import { AcceptInvitePage, ForgotPasswordPage, ResetPasswordPage } from '../pages/TokenPages';
@@ -12,7 +15,7 @@ import { NAV } from './nav';
 import { RequireAuth, useSession } from './session';
 import { Shell } from './Shell';
 
-const BUILT = new Set(['/', '/staff', '/integrations']);
+const BUILT = new Set(['/', '/staff', '/integrations', '/properties']);
 
 function Gate({ permission, children }: { permission: string | null; children: JSX.Element }) {
   const { can } = useSession();
@@ -64,6 +67,38 @@ export function App() {
           element={
             <Gate permission="integrations.manage">
               <IntegrationDetailPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="properties"
+          element={
+            <Gate permission="properties.view">
+              <PropertiesPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="properties/new"
+          element={
+            <Gate permission="properties.create">
+              <PropertyEditorPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="properties/:id"
+          element={
+            <Gate permission="properties.view">
+              <PropertyEditorPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="settings/locations"
+          element={
+            <Gate permission="settings.locations">
+              <LocationsPage />
             </Gate>
           }
         />

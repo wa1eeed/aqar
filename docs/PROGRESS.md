@@ -116,4 +116,33 @@ Verified on the Docker stack: worker starts, schedules the health and prune jobs
 
 164 automated tests: schema 10, backend 152, admin 2.
 
-## Phase 3 — Listings — next
+## Phase 3 — Listings — ✅ done
+
+| Task | Status | Where |
+|---|---|---|
+| Locations: cities (activate, order, coordinates), districts CRUD; inline «إضافة حي» from the editor | ✅ | `modules/locations`, `admin/src/pages/LocationsPage.tsx` |
+| Properties CRUD, schema-driven specs (relaxed for drafts, strict on publish), derived fields, slug | ✅ | `modules/properties` |
+| Status changes + history, publish/unpublish, duplicate, soft delete, bulk actions — all audited + events | ✅ | `properties.service.ts` |
+| Publish rules: ad license + FAL licence + valid expiry + ≥1 photo + required specs | ✅ | `property-rules.ts` `publishProblems` |
+| Agents see/edit only their own listings (row scope), editors/managers all | ✅ | `AccessScopeService` |
+| Media: presign → R2 PUT → complete → sharp variants (480/960/1920, JPEG+WebP, EXIF stripped), reorder, cover, alt text, video links | ✅ | `modules/media`, `worker.ts` |
+| Public API matching the frontend contract: config, schema, list/search (`q`), detail, similar, stats, agents, nearby, leads | ✅ | `modules/public` |
+| Demo seed: the 26 listings + 3 agents of the original mock (`seed-demo`, refuses production) | ✅ | `cli/seed-demo.ts` |
+| Frontend: `MZ.boot()`, API mode with mock fallback, `/property/:id-:slug`, client Overpass removed | ✅ | `frontend/assets/js` |
+| Admin: property list (filters, bulk publish, CSV export), editor (all tabs, map picker, uploads, licence, SEO preview, history, autosave) | ✅ | `admin/src/pages/Propert*` |
+
+### Acceptance
+
+- ✅ **All existing public pages work against the API with seeded data, identical look** — browser
+  comparison of every page in API mode vs the original mock data, through the production Docker
+  images: 0.00% pixel difference on all pages; all 26 listings return identical data.
+  The only difference is the order of equally-ranked "similar" cards (see QUESTIONS #26).
+- ✅ **Agent can create/edit only own listings; publish blocked without ad license** — e2e tests
+  (403/404 on another agent's listing; publish returns `PUBLISH_BLOCKED` listing what is missing).
+  Also checked in the browser: new draft → «قبل النشر» lists missing licence/photos/specs.
+
+### Tests
+
+186 automated tests: schema 10, backend 177 (86 unit + 91 e2e), admin 9.
+
+## Phase 4 — CRM & notifications — next

@@ -123,8 +123,33 @@ export const FIELD_MESSAGES: Record<string, string> = {
   invalid_email: 'البريد الإلكتروني غير صحيح',
   invalid_phone: 'رقم الجوال غير صحيح (05XXXXXXXX)',
   invalid_number: 'الرقم غير صحيح',
+  Required: 'حقل إلزامي',
+  unknown_agent: 'المستشار غير موجود',
+  district_not_in_city: 'الحي لا يتبع المدينة المختارة',
+  offer_not_allowed_for_type: 'نوع العرض غير متاح لهذا النوع من العقارات',
+  rent_period_mismatch: 'مدة الإيجار مطلوبة للإيجار فقط',
+  status_not_allowed_for_offer: 'الحالة غير متاحة لنوع العرض',
 };
 
+/** zod's default English messages → Arabic (the API returns them verbatim for generic rules). */
+const ZOD_PATTERNS: Array<[RegExp, (n: string) => string]> = [
+  [/^String must contain at least (\d+) character/, (n) => `يجب ألا يقل عن ${n} أحرف`],
+  [/^String must contain at most (\d+) character/, (n) => `يجب ألا يزيد عن ${n} حرفاً`],
+  [/^Number must be greater than or equal to (-?[\d.]+)/, (n) => `يجب ألا تقل القيمة عن ${n}`],
+  [/^Number must be less than or equal to (-?[\d.]+)/, (n) => `يجب ألا تزيد القيمة عن ${n}`],
+  [/^Number must be greater than (-?[\d.]+)/, (n) => `يجب أن تكون القيمة أكبر من ${n}`],
+  [/^Array must contain at most (\d+) element/, (n) => `الحد الأقصى ${n} عناصر`],
+  [/^Expected number/, () => 'الرقم غير صحيح'],
+  [/^Invalid enum value/, () => 'اختر قيمة من القائمة'],
+];
+
 export function fieldMessage(code: string | undefined): string | undefined {
-  return code ? (FIELD_MESSAGES[code] ?? 'قيمة غير صحيحة') : undefined;
+  if (!code) return undefined;
+  const known = FIELD_MESSAGES[code];
+  if (known) return known;
+  for (const [re, fmt] of ZOD_PATTERNS) {
+    const m = re.exec(code);
+    if (m) return fmt(m[1] ?? '');
+  }
+  return 'قيمة غير صحيحة';
 }

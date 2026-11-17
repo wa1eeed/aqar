@@ -81,3 +81,22 @@ work could continue; please confirm or correct.
     restaurant/cafe · park · gas_station · bank/atm. Adjust if the company prefers other types.
 24. **SMS providers** appear as three separate cards (Unifonic, Taqnyat, Msegat) instead of one combined
     card as in the screenshot, because each has its own credentials and only one should be enabled.
+25. **Public site falls back to the bundled demo data when the API is unreachable** (`MZ.boot()`), so
+    the current frontend-only Coolify deployment keeps working until the full stack is deployed.
+    Remove `frontend/data/properties.js` once production runs on the API.
+26. **Similar listings order** — the API ranks by same type + city, then price closeness, then newest.
+    The old mock broke ties differently, so equally-ranked cards may appear in another order.
+27. **Money inside `specs`** (e.g. service charges) is stored in halalas like all money, and returned in
+    SAR in the public payload to keep the existing frontend contract unchanged.
+28. **Draft vs publish validation** — drafts accept incomplete specs (only types/ranges are checked);
+    publishing re-validates strictly and reports every missing item at once.
+29. **`POST /public/leads` was built in Phase 3** (instead of 4) so the existing viewing/contact forms
+    keep working on the API. A consent checkbox (PDPL) was added to the viewing modal, using the site's
+    existing form styles. Lead routing (round-robin to agents) is basic until Phase 4.
+30. **Viewing time slots** are stored as UTC hours: morning 10:00, afternoon 16:00, evening 19:00
+    (Riyadh). Change if the office uses other hours.
+31. **Demo photos** are served from the site's own `/assets/img` instead of R2, so the demo works before
+    R2 is configured. Real uploads go to R2 through the media pipeline.
+32. **R2 uploads go directly from the browser** with presigned URLs. The R2 bucket needs a CORS rule
+    allowing `PUT` from the admin origin (`https://<domain>`) with header `Content-Type`; the admin CSP
+    already allows `https://*.r2.cloudflarestorage.com`.

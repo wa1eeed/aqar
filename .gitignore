@@ -8,3 +8,4 @@ coverage
 *.log
 .turbo
 admin/dist
+dump.rdb

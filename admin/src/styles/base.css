@@ -470,3 +470,22 @@ p {
   width: 18px;
   height: 18px;
 }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+.badge--sale {
+  background: var(--of-sale);
+}
+.badge--rent {
+  background: var(--of-rent);
+}
+.badge--investment {
+  background: var(--of-investment);
+}

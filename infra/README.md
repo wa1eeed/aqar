@@ -44,3 +44,18 @@ Set `SITE_ADDRESS=<your-domain>` (Caddy issues certificates), point DNS to the s
 - Secrets live only in the environment (`.env` is git-ignored); provider credentials are stored
   encrypted in the database (AES-256-GCM) and edited from the admin panel (Phase 2).
 - Backups are encrypted with `age` before they touch the disk; keep the private key off the server.
+
+## Cloudflare R2 (media uploads)
+
+The admin uploads photos straight to R2 with presigned URLs, so the bucket needs one CORS rule
+(R2 → bucket → Settings → CORS policy):
+
+```json
+[{ "AllowedOrigins": ["https://YOUR-DOMAIN"], "AllowedMethods": ["PUT"], "AllowedHeaders": ["Content-Type"], "MaxAgeSeconds": 3600 }]
+```
+
+Then enter the account id, keys, bucket and public CDN URL in «التكاملات ← Cloudflare R2» and run
+«اختبار الاتصال». Set `CDN_ORIGIN` in `.env` to the same public URL so the site's CSP allows the images.
+
+To load the demo listings on a staging server: `docker compose exec api node dist/cli/index.js seed-demo`
+(refuses to run when `NODE_ENV=production`).

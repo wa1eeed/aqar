@@ -86,3 +86,75 @@ export interface CallLog {
   error: string | null;
   createdAt: string;
 }
+
+export interface MediaItem {
+  id: string;
+  kind: 'photo' | 'floor_plan' | 'document' | 'video_url';
+  status: 'processing' | 'ready' | 'failed';
+  variants: Record<string, string> | null;
+  externalUrl: string | null;
+  altAr: string | null;
+  sort: number;
+  isCover: boolean;
+}
+
+export interface AdminProperty {
+  id: number;
+  code: string;
+  slug: string;
+  type: string;
+  offer: 'sale' | 'rent' | 'investment';
+  status: 'available' | 'negotiation' | 'reserved' | 'sold' | 'rented';
+  visibility: 'draft' | 'published' | 'archived';
+  featured: boolean;
+  title: string;
+  description: string;
+  cityId: string;
+  districtId: string;
+  city: { id: string; nameAr: string };
+  district: { id: string; nameAr: string };
+  lat: number;
+  lng: number;
+  showExactLocation: boolean;
+  price: number;
+  rentPeriod: 'yearly' | 'monthly' | 'daily' | null;
+  negotiable: boolean;
+  annualisedPrice: number;
+  pricePerMeter: number | null;
+  specs: Record<string, unknown>;
+  adLicenseNo: string;
+  falLicenseNo: string;
+  licenseExpiry: string | null;
+  bookingEnabled: boolean;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  focusKeyword: string | null;
+  keywords: string[];
+  noindex: boolean;
+  agentId: string;
+  agent: { id: string; name: string; title: string | null };
+  media: MediaItem[];
+  updatedAt: string;
+  publishedAt: string | null;
+  viewCount: number;
+  canEdit: boolean;
+  publishProblems: Array<{ code: string; message: string }>;
+}
+
+export interface Paged<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+}
+
+export interface CityRow {
+  id: string;
+  nameAr: string;
+  lat: number;
+  lng: number;
+  sort: number;
+  isActive: boolean;
+  districts: Array<{ id: string; nameAr: string; isActive: boolean; lat: number | null; lng: number | null }>;
+}

@@ -8,7 +8,11 @@
     "jsx": "react-jsx",
     "noEmit": true,
     "declaration": false,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@nx/schema": ["../packages/schema/src/index.ts"]
+    }
   },
   "include": ["src", "vite.config.ts"]
 }

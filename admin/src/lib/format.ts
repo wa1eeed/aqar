@@ -7,3 +7,13 @@ export function timeAgo(iso: string | null): string {
   if (sec < 86_400) return `قبل ${Math.round(sec / 3600)} س`;
   return `قبل ${Math.round(sec / 86_400)} يوم`;
 }
+
+/** Prices: en-US digits + «ر.س» (CLAUDE.md). Input in halalas. */
+export function sar(halalas: number | null | undefined): string {
+  if (halalas === null || halalas === undefined) return '—';
+  return `${(halalas / 100).toLocaleString('en-US', { maximumFractionDigits: 2 })} ر.س`;
+}
+
+export function date(iso: string | null | undefined): string {
+  return iso ? new Date(iso).toISOString().slice(0, 10) : '—';
+}
