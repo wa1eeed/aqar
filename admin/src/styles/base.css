@@ -334,3 +334,75 @@ p {
   height: 20px;
   flex: none;
 }
+/* modal + toast from main.css */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translate(-50%, 20px);
+  z-index: 3000;
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s;
+  box-shadow: var(--shadow-lg);
+}
+.toast .ic {
+  color: var(--gold);
+}
+.toast.is-on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(10, 30, 24, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  animation: fade 0.2s;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+.modal h3 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.modal .form-grid {
+  margin-top: 20px;
+}
+.modal__box {
+  position: relative;
+  width: min(520px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  background: var(--bg);
+  border-radius: var(--r-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+}
+.modal__x {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  z-index: 3;
+}
+.modal h3 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.modal .form-grid {
+  margin-top: 20px;
+}

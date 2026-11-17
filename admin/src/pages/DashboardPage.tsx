@@ -11,13 +11,13 @@ const KPIS = [
 ];
 
 export function DashboardPage() {
-  const session = useSession();
+  const { me } = useSession();
   const today = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { dateStyle: 'full' }).format(new Date());
   return (
     <>
       <div className="adm-head">
         <div>
-          <h1>مرحباً، {session.name}</h1>
+          <h1>مرحباً، {me?.staff.name}</h1>
           <p>{today} · إليك ملخص أداء منشأتك</p>
         </div>
       </div>

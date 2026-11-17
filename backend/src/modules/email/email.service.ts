@@ -14,8 +14,9 @@ export interface OutgoingEmail {
 
 /**
  * Email outbox. Every message is recorded in EmailLog. Delivery through Resend is added by the
- * integrations gateway in Phase 2 (docs/05); until then non-production environments keep messages
- * in memory (tests read them) and production marks them failed with a clear reason.
+ * integrations gateway in Phase 2 (docs/05). Until then: test keeps messages in memory, development
+ * also prints them to the console, staging/production mark them failed (codes and links never
+ * reach logs outside a developer's machine).
  */
 @Injectable()
 export class EmailService {
@@ -44,7 +45,7 @@ export class EmailService {
         relatedId: related?.id ?? null,
       },
     });
-    if (this.env.NODE_ENV === 'production') {
+    if (this.env.NODE_ENV === 'production' || this.env.NODE_ENV === 'staging') {
       await this.prisma.emailLog.update({
         where: { id: log.id },
         data: { status: 'failed', error: 'EMAIL_PROVIDER_NOT_CONFIGURED' },
@@ -54,7 +55,7 @@ export class EmailService {
     }
     this.captured.push({ to, template, ...rendered });
     if (this.captured.length > 50) this.captured.shift();
-    if (this.env.NODE_ENV !== 'test') {
+    if (this.env.NODE_ENV === 'development') {
       // Development only: the message (incl. links/codes) is visible to the developer in the console.
       this.logger.warn(`[dev email] to=${to} subject="${rendered.subject}"\n${rendered.text}`);
     }

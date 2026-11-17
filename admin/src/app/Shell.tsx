@@ -6,10 +6,11 @@ import { GROUP_LABELS, visibleNav } from './nav';
 import { useSession } from './session';
 
 export function Shell() {
-  const session = useSession();
+  const { me, signOut } = useSession();
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const items = visibleNav(session.permissions, { auctions: session.features.auctions });
+  // Feature flags come from settings.features (Phase 2+); auctions stay hidden until then.
+  const items = visibleNav(me?.permissions ?? [], { auctions: false });
 
   let lastGroup: string | null = null;
   return (
@@ -43,12 +44,21 @@ export function Shell() {
         </nav>
         <div className="me">
           <span className="avatar" style={{ width: 38, height: 38, fontSize: 15 }} aria-hidden="true">
-            {session.name.slice(0, 1)}
+            {me?.staff.name.slice(0, 1)}
           </span>
           <div>
-            <b>{session.name}</b>
-            <small>{session.roleName}</small>
+            <b>{me?.staff.name}</b>
+            <small>{me?.staff.role.nameAr}</small>
           </div>
+          <button
+            type="button"
+            className="icon-btn me-actions"
+            aria-label="تسجيل الخروج"
+            title="تسجيل الخروج"
+            onClick={() => void signOut()}
+          >
+            <Icon name="logout" />
+          </button>
         </div>
       </aside>
       <div className="adm-main">
