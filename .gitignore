@@ -1,3 +1,19 @@
 .DS_Store
 node_modules
 .env
+.env.*
+!.env.example
+
+# build output
+dist
+build
+coverage
+*.tsbuildinfo
+
+# prisma
+backend/prisma/*.db
+
+# misc
+*.log
+.vite
+.turbo
