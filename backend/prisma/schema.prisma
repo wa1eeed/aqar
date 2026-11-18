@@ -1,0 +1,914 @@
+// منزلة — مخطّط قاعدة البيانات (مصدر الحقيقة: docs/01 + نماذج SEO من docs/07 §13).
+// الأسماء والـ enums والعلاقات نهائية؛ تُضاف الفهارس فقط، ولا يُعاد تسمية شيء.
+// كل الحقول المالية بالهللات (BigInt، 1 ريال = 100). الطوابع الزمنية UTC.
+
+generator client {
+  provider        = "prisma-client-js"
+  // البحث النصّي الكامل يُنفَّذ عبر عمود tsvector مُولَّد وفهرس GIN في هجرة SQL (docs/01).
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm, unaccent]
+}
+
+// ───────────────────────────── Identity ─────────────────────────────
+
+model Role {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  nameAr      String
+  isSystem    Boolean     @default(true)
+  permissions String[]
+  users       StaffUser[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model StaffUser {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  whatsapp      String?
+  title         String?
+  falLicense    String?
+  avatarKey     String?
+  passwordHash  String
+  roleId        String
+  role          Role      @relation(fields: [roleId], references: [id])
+  isActive      Boolean   @default(true)
+  showOnWebsite Boolean   @default(true)
+  totpSecretEnc Bytes?
+  totpEnabled   Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  properties    Property[] @relation("PropertyAgent")
+  assignedLeads Lead[]     @relation("LeadAssignee")
+  viewings      Viewing[]  @relation("ViewingAgent")
+}
+
+enum CustomerStatus {
+  active
+  blocked
+  deleted
+}
+
+model Customer {
+  id               String         @id @default(cuid())
+  name             String
+  email            String?        @unique
+  phone            String?        @unique
+  passwordHash     String?
+  emailVerifiedAt  DateTime?
+  phoneVerifiedAt  DateTime?
+  nafathVerifiedAt DateTime?
+  nationalIdHash   String?
+  nationalIdLast4  String?
+  status           CustomerStatus @default(active)
+  marketingConsent Boolean        @default(false)
+  consentAt        DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+
+  favorites     Favorite[]
+  savedSearches SavedSearch[]
+  leads         Lead[]
+  viewings      Viewing[]
+  bookings      Booking[]
+  wallet        Wallet?
+}
+
+enum SubjectType {
+  staff
+  customer
+}
+
+model RefreshToken {
+  id          String      @id @default(cuid())
+  subjectType SubjectType
+  subjectId   String
+  tokenHash   String      @unique
+  family      String
+  userAgent   String?
+  ip          String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@index([subjectType, subjectId])
+}
+
+enum OtpChannel {
+  email
+  sms
+}
+
+enum OtpPurpose {
+  login
+  verify_email
+  verify_phone
+  reset_password
+  staff_2fa_email
+}
+
+model OtpCode {
+  id          String     @id @default(cuid())
+  channel     OtpChannel
+  destination String
+  purpose     OtpPurpose
+  codeHash    String
+  attempts    Int        @default(0)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([destination, purpose])
+}
+
+// ───────────────────────────── Locations ─────────────────────────────
+
+model City {
+  id         String     @id
+  nameAr     String
+  lat        Decimal    @db.Decimal(9, 6)
+  lng        Decimal    @db.Decimal(9, 6)
+  sort       Int        @default(0)
+  isActive   Boolean    @default(true)
+  districts  District[]
+  properties Property[]
+}
+
+model District {
+  id         String     @id @default(cuid())
+  cityId     String
+  city       City       @relation(fields: [cityId], references: [id])
+  nameAr     String
+  lat        Decimal?   @db.Decimal(9, 6)
+  lng        Decimal?   @db.Decimal(9, 6)
+  isActive   Boolean    @default(true)
+  properties Property[]
+
+  @@unique([cityId, nameAr])
+}
+
+// ───────────────────────────── Listings ─────────────────────────────
+
+enum PropertyOffer {
+  sale
+  rent
+  investment
+}
+
+enum PropertyStatus {
+  available
+  negotiation
+  reserved
+  sold
+  rented
+}
+
+enum RentPeriod {
+  yearly
+  monthly
+  daily
+}
+
+enum ListingVisibility {
+  draft
+  published
+  archived
+}
+
+enum AdLicenseCheck {
+  unknown
+  valid
+  expiring
+  expired
+  invalid
+}
+
+model Property {
+  id                 Int               @id @default(autoincrement())
+  code               String            @unique
+  slug               String
+  type               String
+  offer              PropertyOffer
+  status             PropertyStatus    @default(available)
+  visibility         ListingVisibility @default(draft)
+  featured           Boolean           @default(false)
+  title              String
+  description        String
+  cityId             String
+  city               City              @relation(fields: [cityId], references: [id])
+  districtId         String
+  district           District          @relation(fields: [districtId], references: [id])
+  lat                Decimal           @db.Decimal(9, 6)
+  lng                Decimal           @db.Decimal(9, 6)
+  showExactLocation  Boolean           @default(true)
+  price              BigInt
+  rentPeriod         RentPeriod?
+  negotiable         Boolean           @default(false)
+  annualisedPrice    BigInt
+  pricePerMeter      BigInt?
+  area               Int
+  bedrooms           Int?
+  bathrooms          Int?
+  roi                Decimal?          @db.Decimal(5, 2)
+  specs              Json
+  adLicenseNo        String
+  falLicenseNo       String
+  licenseExpiry      DateTime?
+  adLicenseCheck     AdLicenseCheck    @default(unknown)
+  adLicenseCheckedAt DateTime?
+  bookingEnabled     Boolean           @default(true)
+  paymentPolicy      Json?
+  seoTitle           String?
+  seoDescription     String?
+  focusKeyword       String?
+  keywords           String[]
+  ogImageKey         String?
+  noindex            Boolean           @default(false)
+  agentId            String
+  agent              StaffUser         @relation("PropertyAgent", fields: [agentId], references: [id])
+  createdById        String
+  updatedById        String?
+  publishedAt        DateTime?
+  viewCount          Int               @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+
+  media         PropertyMedia[]
+  statusHistory PropertyStatusHistory[]
+  favorites     Favorite[]
+  leads         Lead[]
+  viewings      Viewing[]
+  bookings      Booking[]
+  nearbyCache   NearbyCache[]
+  auctions      Auction[]
+
+  @@index([visibility, status, offer, type])
+  @@index([cityId, districtId])
+  @@index([annualisedPrice])
+  @@index([createdAt])
+}
+
+enum MediaKind {
+  photo
+  floor_plan
+  document
+  video_url
+}
+
+enum MediaStatus {
+  processing
+  ready
+  failed
+}
+
+model PropertyMedia {
+  id          String      @id @default(cuid())
+  propertyId  Int
+  property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  kind        MediaKind   @default(photo)
+  originalKey String?
+  variants    Json?
+  externalUrl String?
+  width       Int?
+  height      Int?
+  altAr       String?
+  sort        Int         @default(0)
+  isCover     Boolean     @default(false)
+  status      MediaStatus @default(processing)
+  createdAt   DateTime    @default(now())
+
+  @@index([propertyId, sort])
+}
+
+model PropertyStatusHistory {
+  id         String         @id @default(cuid())
+  propertyId Int
+  property   Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  from       PropertyStatus
+  to         PropertyStatus
+  reason     String?
+  bookingId  String?
+  actorType  String
+  actorId    String?
+  createdAt  DateTime       @default(now())
+}
+
+model NearbyCache {
+  id         String   @id @default(cuid())
+  propertyId Int
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  provider   String
+  radius     Int
+  items      Json
+  fetchedAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@unique([propertyId, provider, radius])
+}
+
+model Favorite {
+  customerId String
+  propertyId Int
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([customerId, propertyId])
+}
+
+model SavedSearch {
+  id             String    @id @default(cuid())
+  customerId     String
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name           String
+  query          Json
+  alertEnabled   Boolean   @default(true)
+  lastNotifiedAt DateTime?
+  createdAt      DateTime  @default(now())
+}
+
+// ───────────────────────────── CRM ─────────────────────────────
+
+enum LeadType {
+  viewing
+  waitlist
+  buy
+  rent
+  list
+  invest
+  manage
+  contact
+}
+
+enum LeadStage {
+  new
+  contacted
+  viewing
+  negotiation
+  won
+  lost
+}
+
+enum LeadSource {
+  website
+  whatsapp
+  phone
+  walk_in
+  admin
+}
+
+model Lead {
+  id            String     @id @default(cuid())
+  number        String     @unique
+  type          LeadType
+  stage         LeadStage  @default(new)
+  source        LeadSource @default(website)
+  propertyId    Int?
+  property      Property?  @relation(fields: [propertyId], references: [id])
+  customerId    String?
+  customer      Customer?  @relation(fields: [customerId], references: [id])
+  name          String
+  phone         String
+  email         String?
+  cityId        String?
+  propertyType  String?
+  budget        BigInt?
+  message       String?
+  preferredDate DateTime?
+  preferredSlot String?
+  assignedToId  String?
+  assignedTo    StaffUser? @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  lostReason    String?
+  consent       Boolean    @default(true)
+  utm           Json?
+  meta          Json?
+  closedAt      DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  activities LeadActivity[]
+  viewings   Viewing[]
+
+  @@index([stage, assignedToId])
+  @@index([createdAt])
+}
+
+enum LeadActivityType {
+  note
+  call
+  whatsapp
+  email
+  stage_change
+  assignment
+  viewing
+  booking
+  system
+}
+
+model LeadActivity {
+  id        String           @id @default(cuid())
+  leadId    String
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      LeadActivityType
+  body      String?
+  meta      Json?
+  actorId   String?
+  createdAt DateTime         @default(now())
+}
+
+enum ViewingStatus {
+  requested
+  confirmed
+  completed
+  no_show
+  cancelled
+}
+
+model Viewing {
+  id          String        @id @default(cuid())
+  propertyId  Int
+  property    Property      @relation(fields: [propertyId], references: [id])
+  leadId      String?
+  lead        Lead?         @relation(fields: [leadId], references: [id])
+  customerId  String?
+  customer    Customer?     @relation(fields: [customerId], references: [id])
+  agentId     String
+  agent       StaffUser     @relation("ViewingAgent", fields: [agentId], references: [id])
+  scheduledAt DateTime
+  durationMin Int           @default(45)
+  status      ViewingStatus @default(requested)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([agentId, scheduledAt])
+}
+
+// ───────────────────────────── Bookings & payments ─────────────────────────────
+
+enum BookingStatus {
+  pending_payment
+  awaiting_transfer_review
+  confirmed
+  completed
+  cancelled
+  expired
+  refunded
+}
+
+enum PaymentType {
+  deposit
+  full
+}
+
+enum PaymentMethod {
+  moyasar
+  bank_transfer
+  rize
+}
+
+model Booking {
+  id                 String        @id @default(cuid())
+  number             String        @unique
+  propertyId         Int
+  property           Property      @relation(fields: [propertyId], references: [id])
+  customerId         String
+  customer           Customer      @relation(fields: [customerId], references: [id])
+  offerSnapshot      PropertyOffer
+  priceSnapshot      BigInt
+  rentPeriodSnapshot RentPeriod?
+  paymentType        PaymentType
+  paymentMethod      PaymentMethod
+  amountDue          BigInt
+  amountPaid         BigInt        @default(0)
+  status             BookingStatus @default(pending_payment)
+  holdExpiresAt      DateTime
+  termsVersion       String
+  termsAcceptedAt    DateTime
+  customerNotes      String?
+  cancelReason       String?
+  confirmedAt        DateTime?
+  completedAt        DateTime?
+  cancelledAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  payments Payment[]
+
+  @@index([status, holdExpiresAt])
+  @@index([propertyId, status])
+}
+
+enum PaymentStatus {
+  initiated
+  pending
+  paid
+  failed
+  under_review
+  rejected
+  cancelled
+  refunded
+  partially_refunded
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String
+  booking           Booking       @relation(fields: [bookingId], references: [id])
+  method            PaymentMethod
+  status            PaymentStatus @default(initiated)
+  amount            BigInt
+  refundedAmount    BigInt        @default(0)
+  currency          String        @default("SAR")
+  idempotencyKey    String        @unique
+  providerPaymentId String?       @unique
+  providerInvoiceId String?       @unique
+  providerStatus    String?
+  providerUrl       String?
+  providerPayload   Json?
+  receiptNumber     String?       @unique
+  paidAt            DateTime?
+  failureReason     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  events   PaymentEvent[]
+  transfer BankTransferSubmission?
+}
+
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now())
+}
+
+model BankAccount {
+  id              String   @id @default(cuid())
+  bankName        String
+  beneficiaryName String
+  iban            String
+  accountNumber   String?
+  swift           String?
+  isActive        Boolean  @default(true)
+  sort            Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  submissions BankTransferSubmission[]
+}
+
+enum TransferStatus {
+  submitted
+  approved
+  rejected
+}
+
+model BankTransferSubmission {
+  id                String         @id @default(cuid())
+  paymentId         String         @unique
+  payment           Payment        @relation(fields: [paymentId], references: [id])
+  bankAccountId     String
+  bankAccount       BankAccount    @relation(fields: [bankAccountId], references: [id])
+  senderName        String
+  senderBank        String
+  transferReference String?
+  transferredAt     DateTime
+  amount            BigInt
+  receiptKey        String
+  status            TransferStatus @default(submitted)
+  reviewedById      String?
+  reviewedAt        DateTime?
+  rejectionReason   String?
+  createdAt         DateTime       @default(now())
+}
+
+// ───────────────────────────── Notifications & email ─────────────────────────────
+
+enum NotificationPriority {
+  low
+  normal
+  high
+}
+
+model Notification {
+  id            String               @id @default(cuid())
+  recipientType SubjectType
+  recipientId   String
+  eventKey      String
+  title         String
+  body          String
+  link          String?
+  data          Json?
+  priority      NotificationPriority @default(normal)
+  readAt        DateTime?
+  archivedAt    DateTime?
+  createdAt     DateTime             @default(now())
+
+  @@index([recipientType, recipientId, readAt])
+  @@index([createdAt])
+}
+
+model NotificationPreference {
+  recipientType SubjectType
+  recipientId   String
+  eventKey      String
+  inApp         Boolean     @default(true)
+  email         Boolean     @default(true)
+  sms           Boolean     @default(false)
+
+  @@id([recipientType, recipientId, eventKey])
+}
+
+enum EmailStatus {
+  queued
+  sent
+  delivered
+  bounced
+  complained
+  failed
+}
+
+model EmailLog {
+  id          String      @id @default(cuid())
+  to          String
+  template    String
+  subject     String
+  resendId    String?     @unique
+  status      EmailStatus @default(queued)
+  error       String?
+  relatedType String?
+  relatedId   String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// ───────────────────────────── Settings, integrations, audit ─────────────────────────────
+
+model SettingsSection {
+  key         String   @id
+  value       Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+}
+
+enum IntegrationEnv {
+  sandbox
+  live
+}
+
+enum IntegrationHealth {
+  unknown
+  ok
+  degraded
+  down
+}
+
+model Integration {
+  key             String            @id
+  category        String
+  enabled         Boolean           @default(false)
+  environment     IntegrationEnv    @default(sandbox)
+  config          Json              @default("{}")
+  secretsEnc      Bytes?
+  secretsHint     Json?
+  health          IntegrationHealth @default(unknown)
+  healthCheckedAt DateTime?
+  lastError       String?
+  updatedById     String?
+  updatedAt       DateTime          @updatedAt
+}
+
+model IntegrationCallLog {
+  id             String   @id @default(cuid())
+  integrationKey String
+  operation      String
+  success        Boolean
+  httpStatus     Int?
+  latencyMs      Int
+  correlationId  String
+  request        Json?
+  response       Json?
+  error          String?
+  createdAt      DateTime @default(now())
+
+  @@index([integrationKey, createdAt])
+}
+
+model WebhookEvent {
+  id             String    @id @default(cuid())
+  provider       String
+  externalId     String
+  type           String
+  payload        Json
+  signatureValid Boolean
+  processedAt    DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+
+  @@unique([provider, externalId])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorType  String
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Counter {
+  key   String @id
+  value Int    @default(0)
+}
+
+// ───────────────────────────── SEO (docs/07 §13) ─────────────────────────────
+
+model SeoLandingPage {
+  id              String   @id @default(cuid())
+  path            String   @unique
+  filters         Json
+  h1              String
+  introHtml       String
+  faqIds          String[]
+  focusKeyword    String?
+  keywords        String[]
+  metaTitle       String?
+  metaDescription String?
+  ogImageKey      String?
+  indexable       Boolean  @default(true)
+  inSitemap       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model SeoPageMeta {
+  key             String   @id
+  metaTitle       String?
+  metaDescription String?
+  focusKeyword    String?
+  keywords        String[]
+  ogImageKey      String?
+  faqIds          String[]
+  noindex         Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+}
+
+model SeoKeyword {
+  id         String   @id @default(cuid())
+  keyword    String   @unique
+  intent     String
+  group      String?
+  targetPath String?
+  priority   Int      @default(2)
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model SeoFaq {
+  id          String   @id @default(cuid())
+  question    String
+  answerShort String
+  answerHtml  String?
+  scope       String[]
+  sort        Int      @default(0)
+  isActive    Boolean  @default(true)
+}
+
+model SeoRedirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique
+  toPath    String
+  code      Int      @default(301)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Seo404 {
+  path     String   @id
+  hits     Int      @default(1)
+  referrer String?
+  lastSeen DateTime @default(now())
+}
+
+// ───────────────────────────── Auctions (feature flag `features.auctions`) ─────────────────────────────
+
+enum AuctionStatus {
+  draft
+  scheduled
+  live
+  ended
+  awarded
+  cancelled
+}
+
+model Auction {
+  id                 String        @id @default(cuid())
+  propertyId         Int
+  property           Property      @relation(fields: [propertyId], references: [id])
+  regaAuctionLicense String
+  startsAt           DateTime
+  endsAt             DateTime
+  startingPrice      BigInt
+  minIncrement       BigInt
+  reservePrice       BigInt?
+  depositAmount      BigInt
+  antiSnipingSec     Int           @default(120)
+  status             AuctionStatus @default(draft)
+  winnerCustomerId   String?
+  winningBidId       String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  bids          AuctionBid[]
+  registrations AuctionRegistration[]
+}
+
+enum RegistrationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum GuaranteeType {
+  wallet
+  nafith
+}
+
+model AuctionRegistration {
+  id            String             @id @default(cuid())
+  auctionId     String
+  auction       Auction            @relation(fields: [auctionId], references: [id])
+  customerId    String
+  guaranteeType GuaranteeType
+  nafithNoteId  String?
+  walletHoldId  String?
+  status        RegistrationStatus @default(pending)
+  bidderAlias   String
+  createdAt     DateTime           @default(now())
+
+  @@unique([auctionId, customerId])
+}
+
+model AuctionBid {
+  id         String   @id @default(cuid())
+  auctionId  String
+  auction    Auction  @relation(fields: [auctionId], references: [id])
+  customerId String
+  amount     BigInt
+  createdAt  DateTime @default(now())
+
+  @@index([auctionId, amount])
+}
+
+model Wallet {
+  id         String              @id @default(cuid())
+  customerId String              @unique
+  customer   Customer            @relation(fields: [customerId], references: [id])
+  balance    BigInt              @default(0)
+  held       BigInt              @default(0)
+  transactions WalletTransaction[]
+}
+
+enum WalletTxType {
+  topup
+  hold
+  release
+  capture
+  refund
+  adjustment
+}
+
+model WalletTransaction {
+  id        String       @id @default(cuid())
+  walletId  String
+  wallet    Wallet       @relation(fields: [walletId], references: [id])
+  type      WalletTxType
+  amount    BigInt
+  reference String?
+  createdAt DateTime     @default(now())
+}
