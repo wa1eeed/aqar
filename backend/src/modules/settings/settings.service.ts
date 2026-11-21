@@ -9,6 +9,7 @@ import {
   isSettingsSectionKey,
   type SettingsSectionKey,
 } from './schemas/index.js';
+import { checkBrandingContrast } from '../theme/contrast.js';
 
 interface Actor {
   id?: string | null;
@@ -80,6 +81,16 @@ export class SettingsService {
         message: 'فشل التحقّق من الإعدادات',
         errors: parsed.error.flatten(),
       });
+    }
+
+    // حارس تباين الهوية (docs/07 §10.1): يُحجب الحفظ ما لم يُمرَّر allowLowContrast
+    if (key === 'branding') {
+      const colors = (parsed.data as { colors: Record<string, string> }).colors;
+      const failures = checkBrandingContrast(colors);
+      const override = (value as { allowLowContrast?: boolean })?.allowLowContrast === true;
+      if (failures.length && !override) {
+        throw new BadRequestException({ message: 'تباين ألوان غير كافٍ (WCAG 4.5:1)', code: 'CONTRAST_TOO_LOW', failures });
+      }
     }
 
     const before = await this.prisma.settingsSection.findUnique({

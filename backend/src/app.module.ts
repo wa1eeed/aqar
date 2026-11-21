@@ -21,6 +21,8 @@ import { LeadsModule } from './modules/leads/leads.module.js';
 import { ViewingsModule } from './modules/viewings/viewings.module.js';
 import { CustomersModule } from './modules/customers/customers.module.js';
 import { BookingsModule } from './modules/bookings/bookings.module.js';
+import { ThemeModule } from './modules/theme/theme.module.js';
+import { SeoModule } from './modules/seo/seo.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { PlatformModule } from './modules/platform/platform.module.js';
@@ -52,6 +54,8 @@ import { PlatformModule } from './modules/platform/platform.module.js';
     ViewingsModule,
     CustomersModule,
     BookingsModule,
+    ThemeModule,
+    SeoModule,
     SettingsModule,
     HealthModule,
     PlatformModule,

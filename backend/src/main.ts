@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { RequestMethod } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -16,7 +17,19 @@ import { AllExceptionsFilter } from './common/all-exceptions.filter.js';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.useLogger(app.get(PinoLogger));
-  app.setGlobalPrefix('api/v1');
+  // مسارات تُخدَّم من الجذر (SEO + الثيم) خارج بادئة api/v1
+  app.setGlobalPrefix('api/v1', {
+    exclude: [
+      'theme.css',
+      'robots.txt',
+      'llms.txt',
+      'sitemap.xml',
+      'sitemap-properties.xml',
+      'sitemap-pages.xml',
+      'feeds/properties.json',
+      { path: 'property/:idSlug', method: RequestMethod.GET },
+    ],
+  });
   app.use(helmet());
   app.use(cookieParser());
 

@@ -170,6 +170,29 @@
 
 ---
 
+## المرحلة 6 — الهوية/الثيم و SEO/AEO/GEO (الـ backend مكتمل الأساس)
+
+| المهمة | الحالة | ملاحظات |
+|---|---|---|
+| مولّد `/theme.css` من إعدادات الهوية (ألوان/خطوط/حواف) | ✅ | عام، قابل للتخزين؛ روابطه مضافة لكل صفحات HTML |
+| حارس تباين WCAG عند حفظ الهوية (4.5:1، مع تجاوز) | ✅ | مُختبَر؛ CONTRAST_TOO_LOW |
+| JSON-LD: RealEstateAgent/WebSite/Breadcrumb/RealEstateListing/FAQPage | ✅ | بناة نقيّة مُختبَرة |
+| SSR لصفحة العقار `/property/:id-:slug` (عنوان/وصف/OG/JSON-LD، canonical 301، 410/404) | ✅ | يحقن في property.html |
+| robots.txt (سياسة روبوتات الذكاء الاصطناعي) + llms.txt | ✅ | من settings.seo |
+| خرائط الموقع (index/properties/pages) + feed JSON | ✅ | `/sitemap*.xml`, `/feeds/properties.json` |
+| إدارة SEO: صفحات/هبوط/كلمات/أسئلة/توجيهات + سجلّ 404 | ✅ | `/admin/seo/*` [seo.manage] |
+| توليد favicon/OG صور + تدقيق per-page + SSR صفحات الهبوط | ⏳ | معالجة الصور لاحقاً |
+| تحليلات مشروطة بالموافقة + معاينة حيّة (واجهة) | ⏳ | جولة واجهة |
+
+**التحقّق:** backend 55 اختباراً تمر، البناء وESLint نظيفان.
+
+### معايير القبول (docs/11)
+- [x] تغيير اللون الأساسي في الإدارة يُحدّث الموقع بعد التحديث (مولّد /theme.css + روابطه).
+- [x] JSON-LD لصفحة العقار (RealEstateListing + Breadcrumb) جاهز.
+- [x] robots.txt يعكس مفاتيح روبوتات الذكاء الاصطناعي؛ /llms.txt يخدم المحتوى المُحرَّر.
+
+---
+
 > ملاحظات: `data/properties.js` ما زال مُضمّناً في HTML (غير ضارّ؛ يُستخدم فقط مع ?mock=1).
 > `/theme.css` و/public/leads وربط تسجيل الدخول في الواجهة ضمن المراحل 4–6.
 > النشر والتوسّع السحابي: راجع `docs/14-deployment-scaling.md` (القاعدة Postgres؛ Coolify ثم AWS/GCP/Alibaba).
