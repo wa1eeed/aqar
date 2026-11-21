@@ -11,8 +11,14 @@ A self-hosted real-estate platform for **one** Saudi real-estate company:
 | Admin panel (`admin/`, new) | Company staff | Listings, leads, customers, bookings, payments, notifications, settings, integrations |
 | API + WebSocket (`backend/`, new) | All of the above | Business logic, persistence, real-time, integrations |
 
-Out of scope: multi-tenant SaaS, owner/vendor self-service, mobile apps, ZATCA e-invoicing (phase 2,
+Out of scope: owner/vendor self-service (within a tenant), mobile apps, ZATCA e-invoicing (phase 2,
 see 10 §9).
+
+> **Multi-tenant update (see `docs/12-multi-tenancy.md`).** The platform is now a multi-tenant SaaS:
+> many real-estate offices (tenants) are hosted centrally, each with its own site (path / subdomain /
+> custom domain), isolated data (`tenantId` + Postgres RLS), and a tenant-scoped admin panel. A new
+> super-admin surface (`/super`) manages tenant subscriptions, plans and domains. The tables below
+> describe one tenant's surfaces; add a platform layer above them.
 
 ## 2. Architecture
 

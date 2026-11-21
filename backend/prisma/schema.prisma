@@ -1,10 +1,14 @@
-// منزلة — مخطّط قاعدة البيانات (مصدر الحقيقة: docs/01 + نماذج SEO من docs/07 §13).
-// الأسماء والـ enums والعلاقات نهائية؛ تُضاف الفهارس فقط، ولا يُعاد تسمية شيء.
+// منزلة — مخطّط قاعدة البيانات (multi-tenant).
+// المصدر: docs/01 + نماذج SEO (docs/07 §13) + تعدّد المشتركين (docs/12).
 // كل الحقول المالية بالهللات (BigInt، 1 ريال = 100). الطوابع الزمنية UTC.
+//
+// العزل: كل جدول مملوك لمشترك يحمل `tenantId` (عمود نصّي مفهرس، بلا علاقة Prisma لتفادي
+// عشرات العلاقات العكسية على Tenant). الفرض عبر:
+//   1) امتداد Prisma (tenantGuardExtension) يحقن/يفلتر tenantId من TenantContext.
+//   2) سياسات RLS في هجرة SQL على كل جدول مملوك.
 
 generator client {
   provider        = "prisma-client-js"
-  // البحث النصّي الكامل يُنفَّذ عبر عمود tsvector مُولَّد وفهرس GIN في هجرة SQL (docs/01).
   previewFeatures = ["postgresqlExtensions"]
 }
 
@@ -14,127 +18,116 @@ datasource db {
   extensions = [pg_trgm, unaccent]
 }
 
-// ───────────────────────────── Identity ─────────────────────────────
+// ═════════════════════════════ Platform (غير مملوك لمشترك) ═════════════════════════════
 
-model Role {
-  id          String      @id @default(cuid())
-  key         String      @unique
-  nameAr      String
-  isSystem    Boolean     @default(true)
-  permissions String[]
-  users       StaffUser[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+enum TenantStatus {
+  trial
+  active
+  suspended
+  cancelled
 }
 
-model StaffUser {
+model Tenant {
+  id        String       @id @default(cuid())
+  slug      String       @unique // للمسار /<slug> والنطاق الفرعي الافتراضي
+  code      String       @unique // بادئة أكواد العقارات، مثل MZ / AQ
+  name      String // اسم المكتب العقاري
+  status    TenantStatus @default(trial)
+  planKey   String?
+  ownerName String?
+  ownerEmail String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  deletedAt DateTime?
+
+  domains       TenantDomain[]
+  subscription  Subscription?
+}
+
+enum DomainKind {
+  path
+  subdomain
+  custom
+}
+
+model TenantDomain {
+  id         String     @id @default(cuid())
+  tenantId   String
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  host       String     @unique // aqar-office.com أو office.manzilah.sa
+  kind       DomainKind @default(custom)
+  isPrimary  Boolean    @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([tenantId])
+}
+
+model Plan {
+  id           String   @id @default(cuid())
+  key          String   @unique // free | basic | pro
+  nameAr       String
+  priceMonthly BigInt   @default(0) // هللات
+  maxListings  Int? // null = بلا حد
+  maxStaff     Int?
+  features     Json     @default("{}")
+  isActive     Boolean  @default(true)
+  sort         Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  cancelled
+}
+
+model Subscription {
+  id               String             @id @default(cuid())
+  tenantId         String             @unique
+  tenant           Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId           String
+  plan             Plan               @relation(fields: [planId], references: [id])
+  status           SubscriptionStatus @default(trialing)
+  currentPeriodEnd DateTime?
+  cancelAt         DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model PlatformAdmin {
   id            String    @id @default(cuid())
   name          String
   email         String    @unique
-  phone         String?
-  whatsapp      String?
-  title         String?
-  falLicense    String?
-  avatarKey     String?
   passwordHash  String
-  roleId        String
-  role          Role      @relation(fields: [roleId], references: [id])
-  isActive      Boolean   @default(true)
-  showOnWebsite Boolean   @default(true)
   totpSecretEnc Bytes?
   totpEnabled   Boolean   @default(false)
+  isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
-
-  properties    Property[] @relation("PropertyAgent")
-  assignedLeads Lead[]     @relation("LeadAssignee")
-  viewings      Viewing[]  @relation("ViewingAgent")
 }
 
-enum CustomerStatus {
-  active
-  blocked
-  deleted
+// تكاملات على مستوى المنصّة (مشتركة للجميع): R2، البريد البنيوي، الخرائط المجانية.
+model PlatformIntegration {
+  key             String            @id // storage.r2 | email.resend | maps.osm | places.overpass
+  category        String
+  enabled         Boolean           @default(false)
+  config          Json              @default("{}")
+  secretsEnc      Bytes?
+  secretsHint     Json?
+  health          IntegrationHealth @default(unknown)
+  healthCheckedAt DateTime?
+  lastError       String?
+  updatedById     String?
+  updatedAt       DateTime          @updatedAt
 }
 
-model Customer {
-  id               String         @id @default(cuid())
-  name             String
-  email            String?        @unique
-  phone            String?        @unique
-  passwordHash     String?
-  emailVerifiedAt  DateTime?
-  phoneVerifiedAt  DateTime?
-  nafathVerifiedAt DateTime?
-  nationalIdHash   String?
-  nationalIdLast4  String?
-  status           CustomerStatus @default(active)
-  marketingConsent Boolean        @default(false)
-  consentAt        DateTime?
-  lastLoginAt      DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  deletedAt        DateTime?
-
-  favorites     Favorite[]
-  savedSearches SavedSearch[]
-  leads         Lead[]
-  viewings      Viewing[]
-  bookings      Booking[]
-  wallet        Wallet?
-}
-
-enum SubjectType {
-  staff
-  customer
-}
-
-model RefreshToken {
-  id          String      @id @default(cuid())
-  subjectType SubjectType
-  subjectId   String
-  tokenHash   String      @unique
-  family      String
-  userAgent   String?
-  ip          String?
-  expiresAt   DateTime
-  revokedAt   DateTime?
-  createdAt   DateTime    @default(now())
-
-  @@index([subjectType, subjectId])
-}
-
-enum OtpChannel {
-  email
-  sms
-}
-
-enum OtpPurpose {
-  login
-  verify_email
-  verify_phone
-  reset_password
-  staff_2fa_email
-}
-
-model OtpCode {
-  id          String     @id @default(cuid())
-  channel     OtpChannel
-  destination String
-  purpose     OtpPurpose
-  codeHash    String
-  attempts    Int        @default(0)
-  expiresAt   DateTime
-  consumedAt  DateTime?
-  createdAt   DateTime   @default(now())
-
-  @@index([destination, purpose])
-}
-
-// ───────────────────────────── Locations ─────────────────────────────
-
+// مرجعية مشتركة بين كل المشتركين (تُبذر من packages/schema).
 model City {
   id         String     @id
   nameAr     String
@@ -159,7 +152,144 @@ model District {
   @@unique([cityId, nameAr])
 }
 
-// ───────────────────────────── Listings ─────────────────────────────
+// ═════════════════════════════ Identity (مملوك لمشترك) ═════════════════════════════
+
+model Role {
+  id          String      @id @default(cuid())
+  tenantId    String
+  key         String // owner | admin | sales_manager | agent | finance | content_editor | custom_*
+  nameAr      String
+  isSystem    Boolean     @default(true)
+  permissions String[]
+  users       StaffUser[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+}
+
+model StaffUser {
+  id            String    @id @default(cuid())
+  tenantId      String
+  name          String
+  email         String
+  phone         String?
+  whatsapp      String?
+  title         String?
+  falLicense    String?
+  avatarKey     String?
+  passwordHash  String
+  roleId        String
+  role          Role      @relation(fields: [roleId], references: [id])
+  isActive      Boolean   @default(true)
+  showOnWebsite Boolean   @default(true)
+  totpSecretEnc Bytes?
+  totpEnabled   Boolean   @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  properties    Property[] @relation("PropertyAgent")
+  assignedLeads Lead[]     @relation("LeadAssignee")
+  viewings      Viewing[]  @relation("ViewingAgent")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+enum CustomerStatus {
+  active
+  blocked
+  deleted
+}
+
+model Customer {
+  id               String         @id @default(cuid())
+  tenantId         String
+  name             String
+  email            String?
+  phone            String?
+  passwordHash     String?
+  emailVerifiedAt  DateTime?
+  phoneVerifiedAt  DateTime?
+  nafathVerifiedAt DateTime?
+  nationalIdHash   String?
+  nationalIdLast4  String?
+  status           CustomerStatus @default(active)
+  marketingConsent Boolean        @default(false)
+  consentAt        DateTime?
+  lastLoginAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+
+  favorites     Favorite[]
+  savedSearches SavedSearch[]
+  leads         Lead[]
+  viewings      Viewing[]
+  bookings      Booking[]
+  wallet        Wallet?
+
+  @@unique([tenantId, email])
+  @@unique([tenantId, phone])
+  @@index([tenantId])
+}
+
+enum SubjectType {
+  staff
+  customer
+  platform
+}
+
+model RefreshToken {
+  id          String      @id @default(cuid())
+  tenantId    String? // null لرموز السوبر-أدمن (platform)
+  subjectType SubjectType
+  subjectId   String
+  tokenHash   String      @unique
+  family      String
+  userAgent   String?
+  ip          String?
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@index([subjectType, subjectId])
+  @@index([tenantId])
+}
+
+enum OtpChannel {
+  email
+  sms
+}
+
+enum OtpPurpose {
+  login
+  verify_email
+  verify_phone
+  reset_password
+  staff_2fa_email
+}
+
+model OtpCode {
+  id          String     @id @default(cuid())
+  tenantId    String?
+  channel     OtpChannel
+  destination String
+  purpose     OtpPurpose
+  codeHash    String
+  attempts    Int        @default(0)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([destination, purpose])
+  @@index([tenantId])
+}
+
+// ═════════════════════════════ Listings (مملوك لمشترك) ═════════════════════════════
 
 enum PropertyOffer {
   sale
@@ -196,8 +326,9 @@ enum AdLicenseCheck {
 }
 
 model Property {
-  id                 Int               @id @default(autoincrement())
-  code               String            @unique
+  id                 Int               @id @default(autoincrement()) // مفتاح داخلي عام (غير مكشوف علناً)
+  tenantId           String
+  code               String // {tenant.code}-{YY}-{RAND6} — فريد لكل مشترك
   slug               String
   type               String
   offer              PropertyOffer
@@ -255,10 +386,11 @@ model Property {
   nearbyCache   NearbyCache[]
   auctions      Auction[]
 
-  @@index([visibility, status, offer, type])
-  @@index([cityId, districtId])
-  @@index([annualisedPrice])
-  @@index([createdAt])
+  @@unique([tenantId, code])
+  @@index([tenantId, visibility, status, offer, type])
+  @@index([tenantId, cityId, districtId])
+  @@index([tenantId, annualisedPrice])
+  @@index([tenantId, createdAt])
 }
 
 enum MediaKind {
@@ -276,10 +408,11 @@ enum MediaStatus {
 
 model PropertyMedia {
   id          String      @id @default(cuid())
+  tenantId    String
   propertyId  Int
   property    Property    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   kind        MediaKind   @default(photo)
-  originalKey String?
+  originalKey String? // tenants/{tenantId}/properties/{propertyId}/...
   variants    Json?
   externalUrl String?
   width       Int?
@@ -290,11 +423,13 @@ model PropertyMedia {
   status      MediaStatus @default(processing)
   createdAt   DateTime    @default(now())
 
+  @@index([tenantId])
   @@index([propertyId, sort])
 }
 
 model PropertyStatusHistory {
   id         String         @id @default(cuid())
+  tenantId   String
   propertyId Int
   property   Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   from       PropertyStatus
@@ -304,10 +439,13 @@ model PropertyStatusHistory {
   actorType  String
   actorId    String?
   createdAt  DateTime       @default(now())
+
+  @@index([tenantId])
 }
 
 model NearbyCache {
   id         String   @id @default(cuid())
+  tenantId   String
   propertyId Int
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   provider   String
@@ -317,9 +455,11 @@ model NearbyCache {
   expiresAt  DateTime
 
   @@unique([propertyId, provider, radius])
+  @@index([tenantId])
 }
 
 model Favorite {
+  tenantId   String
   customerId String
   propertyId Int
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -327,10 +467,12 @@ model Favorite {
   createdAt  DateTime @default(now())
 
   @@id([customerId, propertyId])
+  @@index([tenantId])
 }
 
 model SavedSearch {
   id             String    @id @default(cuid())
+  tenantId       String
   customerId     String
   customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   name           String
@@ -338,9 +480,11 @@ model SavedSearch {
   alertEnabled   Boolean   @default(true)
   lastNotifiedAt DateTime?
   createdAt      DateTime  @default(now())
+
+  @@index([tenantId])
 }
 
-// ───────────────────────────── CRM ─────────────────────────────
+// ═════════════════════════════ CRM (مملوك لمشترك) ═════════════════════════════
 
 enum LeadType {
   viewing
@@ -372,7 +516,8 @@ enum LeadSource {
 
 model Lead {
   id            String     @id @default(cuid())
-  number        String     @unique
+  tenantId      String
+  number        String // L-{YY}-{RAND6}
   type          LeadType
   stage         LeadStage  @default(new)
   source        LeadSource @default(website)
@@ -402,8 +547,9 @@ model Lead {
   activities LeadActivity[]
   viewings   Viewing[]
 
-  @@index([stage, assignedToId])
-  @@index([createdAt])
+  @@unique([tenantId, number])
+  @@index([tenantId, stage, assignedToId])
+  @@index([tenantId, createdAt])
 }
 
 enum LeadActivityType {
@@ -420,6 +566,7 @@ enum LeadActivityType {
 
 model LeadActivity {
   id        String           @id @default(cuid())
+  tenantId  String
   leadId    String
   lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
   type      LeadActivityType
@@ -427,6 +574,8 @@ model LeadActivity {
   meta      Json?
   actorId   String?
   createdAt DateTime         @default(now())
+
+  @@index([tenantId])
 }
 
 enum ViewingStatus {
@@ -439,6 +588,7 @@ enum ViewingStatus {
 
 model Viewing {
   id          String        @id @default(cuid())
+  tenantId    String
   propertyId  Int
   property    Property      @relation(fields: [propertyId], references: [id])
   leadId      String?
@@ -454,10 +604,10 @@ model Viewing {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  @@index([agentId, scheduledAt])
+  @@index([tenantId, agentId, scheduledAt])
 }
 
-// ───────────────────────────── Bookings & payments ─────────────────────────────
+// ═════════════════════════════ Bookings & payments (مملوك لمشترك) ═════════════════════════════
 
 enum BookingStatus {
   pending_payment
@@ -482,7 +632,8 @@ enum PaymentMethod {
 
 model Booking {
   id                 String        @id @default(cuid())
-  number             String        @unique
+  tenantId           String
+  number             String // B-{YY}-{RAND6}
   propertyId         Int
   property           Property      @relation(fields: [propertyId], references: [id])
   customerId         String
@@ -508,8 +659,9 @@ model Booking {
 
   payments Payment[]
 
-  @@index([status, holdExpiresAt])
-  @@index([propertyId, status])
+  @@unique([tenantId, number])
+  @@index([tenantId, status, holdExpiresAt])
+  @@index([tenantId, propertyId, status])
 }
 
 enum PaymentStatus {
@@ -526,6 +678,7 @@ enum PaymentStatus {
 
 model Payment {
   id                String        @id @default(cuid())
+  tenantId          String
   bookingId         String
   booking           Booking       @relation(fields: [bookingId], references: [id])
   method            PaymentMethod
@@ -534,12 +687,12 @@ model Payment {
   refundedAmount    BigInt        @default(0)
   currency          String        @default("SAR")
   idempotencyKey    String        @unique
-  providerPaymentId String?       @unique
-  providerInvoiceId String?       @unique
+  providerPaymentId String?
+  providerInvoiceId String?
   providerStatus    String?
   providerUrl       String?
   providerPayload   Json?
-  receiptNumber     String?       @unique
+  receiptNumber     String?
   paidAt            DateTime?
   failureReason     String?
   createdAt         DateTime      @default(now())
@@ -547,19 +700,28 @@ model Payment {
 
   events   PaymentEvent[]
   transfer BankTransferSubmission?
+
+  @@unique([tenantId, providerPaymentId])
+  @@unique([tenantId, providerInvoiceId])
+  @@unique([tenantId, receiptNumber])
+  @@index([tenantId])
 }
 
 model PaymentEvent {
   id        String   @id @default(cuid())
+  tenantId  String
   paymentId String
   payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   type      String
   payload   Json?
   createdAt DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 model BankAccount {
   id              String   @id @default(cuid())
+  tenantId        String
   bankName        String
   beneficiaryName String
   iban            String
@@ -571,6 +733,8 @@ model BankAccount {
   updatedAt       DateTime @updatedAt
 
   submissions BankTransferSubmission[]
+
+  @@index([tenantId])
 }
 
 enum TransferStatus {
@@ -581,6 +745,7 @@ enum TransferStatus {
 
 model BankTransferSubmission {
   id                String         @id @default(cuid())
+  tenantId          String
   paymentId         String         @unique
   payment           Payment        @relation(fields: [paymentId], references: [id])
   bankAccountId     String
@@ -596,9 +761,11 @@ model BankTransferSubmission {
   reviewedAt        DateTime?
   rejectionReason   String?
   createdAt         DateTime       @default(now())
+
+  @@index([tenantId])
 }
 
-// ───────────────────────────── Notifications & email ─────────────────────────────
+// ═════════════════════════════ Notifications & email (مملوك لمشترك) ═════════════════════════════
 
 enum NotificationPriority {
   low
@@ -608,6 +775,7 @@ enum NotificationPriority {
 
 model Notification {
   id            String               @id @default(cuid())
+  tenantId      String
   recipientType SubjectType
   recipientId   String
   eventKey      String
@@ -620,11 +788,12 @@ model Notification {
   archivedAt    DateTime?
   createdAt     DateTime             @default(now())
 
-  @@index([recipientType, recipientId, readAt])
-  @@index([createdAt])
+  @@index([tenantId, recipientType, recipientId, readAt])
+  @@index([tenantId, createdAt])
 }
 
 model NotificationPreference {
+  tenantId      String
   recipientType SubjectType
   recipientId   String
   eventKey      String
@@ -632,7 +801,7 @@ model NotificationPreference {
   email         Boolean     @default(true)
   sms           Boolean     @default(false)
 
-  @@id([recipientType, recipientId, eventKey])
+  @@id([tenantId, recipientType, recipientId, eventKey])
 }
 
 enum EmailStatus {
@@ -646,6 +815,7 @@ enum EmailStatus {
 
 model EmailLog {
   id          String      @id @default(cuid())
+  tenantId    String
   to          String
   template    String
   subject     String
@@ -656,15 +826,20 @@ model EmailLog {
   relatedId   String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  @@index([tenantId])
 }
 
-// ───────────────────────────── Settings, integrations, audit ─────────────────────────────
+// ═════════════════════════════ Settings, integrations, audit (مملوك لمشترك) ═════════════════════════════
 
 model SettingsSection {
-  key         String   @id
+  tenantId    String
+  key         String
   value       Json
   updatedById String?
   updatedAt   DateTime @updatedAt
+
+  @@id([tenantId, key])
 }
 
 enum IntegrationEnv {
@@ -679,8 +854,10 @@ enum IntegrationHealth {
   down
 }
 
+// تكاملات المشترك (لكل مكتب مفاتيحه): Moyasar، Rize، REGA، Ejar، Nafath، Nafith، Google.
 model Integration {
-  key             String            @id
+  tenantId        String
+  key             String
   category        String
   enabled         Boolean           @default(false)
   environment     IntegrationEnv    @default(sandbox)
@@ -692,10 +869,13 @@ model Integration {
   lastError       String?
   updatedById     String?
   updatedAt       DateTime          @updatedAt
+
+  @@id([tenantId, key])
 }
 
 model IntegrationCallLog {
   id             String   @id @default(cuid())
+  tenantId       String?
   integrationKey String
   operation      String
   success        Boolean
@@ -707,11 +887,12 @@ model IntegrationCallLog {
   error          String?
   createdAt      DateTime @default(now())
 
-  @@index([integrationKey, createdAt])
+  @@index([tenantId, integrationKey, createdAt])
 }
 
 model WebhookEvent {
   id             String    @id @default(cuid())
+  tenantId       String?
   provider       String
   externalId     String
   type           String
@@ -722,11 +903,14 @@ model WebhookEvent {
   createdAt      DateTime  @default(now())
 
   @@unique([provider, externalId])
+  @@index([tenantId])
 }
 
+// سجلّ التدقيق: tenantId=null لأفعال المنصّة (السوبر-أدمن).
 model AuditLog {
   id         String   @id @default(cuid())
-  actorType  String
+  tenantId   String?
+  actorType  String // platform | staff | customer | system
   actorId    String?
   action     String
   entityType String
@@ -737,20 +921,24 @@ model AuditLog {
   userAgent  String?
   createdAt  DateTime @default(now())
 
-  @@index([entityType, entityId])
+  @@index([tenantId, entityType, entityId])
   @@index([createdAt])
 }
 
 model Counter {
-  key   String @id
-  value Int    @default(0)
+  tenantId String
+  key      String // lead | booking:2026 | receipt:2026
+  value    Int    @default(0)
+
+  @@id([tenantId, key])
 }
 
-// ───────────────────────────── SEO (docs/07 §13) ─────────────────────────────
+// ═════════════════════════════ SEO (docs/07 §13, مملوك لمشترك) ═════════════════════════════
 
 model SeoLandingPage {
   id              String   @id @default(cuid())
-  path            String   @unique
+  tenantId        String
+  path            String
   filters         Json
   h1              String
   introHtml       String
@@ -764,10 +952,14 @@ model SeoLandingPage {
   inSitemap       Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@unique([tenantId, path])
+  @@index([tenantId])
 }
 
 model SeoPageMeta {
-  key             String   @id
+  tenantId        String
+  key             String
   metaTitle       String?
   metaDescription String?
   focusKeyword    String?
@@ -776,46 +968,62 @@ model SeoPageMeta {
   faqIds          String[]
   noindex         Boolean  @default(false)
   updatedAt       DateTime @updatedAt
+
+  @@id([tenantId, key])
 }
 
 model SeoKeyword {
   id         String   @id @default(cuid())
-  keyword    String   @unique
+  tenantId   String
+  keyword    String
   intent     String
   group      String?
   targetPath String?
   priority   Int      @default(2)
   notes      String?
   createdAt  DateTime @default(now())
+
+  @@unique([tenantId, keyword])
+  @@index([tenantId])
 }
 
 model SeoFaq {
   id          String   @id @default(cuid())
+  tenantId    String
   question    String
   answerShort String
   answerHtml  String?
   scope       String[]
   sort        Int      @default(0)
   isActive    Boolean  @default(true)
+
+  @@index([tenantId])
 }
 
 model SeoRedirect {
   id        String   @id @default(cuid())
-  fromPath  String   @unique
+  tenantId  String
+  fromPath  String
   toPath    String
   code      Int      @default(301)
   hits      Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@unique([tenantId, fromPath])
+  @@index([tenantId])
 }
 
 model Seo404 {
-  path     String   @id
+  tenantId String
+  path     String
   hits     Int      @default(1)
   referrer String?
   lastSeen DateTime @default(now())
+
+  @@id([tenantId, path])
 }
 
-// ───────────────────────────── Auctions (feature flag `features.auctions`) ─────────────────────────────
+// ═════════════════════════════ Auctions (feature flag، مملوك لمشترك) ═════════════════════════════
 
 enum AuctionStatus {
   draft
@@ -828,6 +1036,7 @@ enum AuctionStatus {
 
 model Auction {
   id                 String        @id @default(cuid())
+  tenantId           String
   propertyId         Int
   property           Property      @relation(fields: [propertyId], references: [id])
   regaAuctionLicense String
@@ -846,6 +1055,8 @@ model Auction {
 
   bids          AuctionBid[]
   registrations AuctionRegistration[]
+
+  @@index([tenantId])
 }
 
 enum RegistrationStatus {
@@ -861,6 +1072,7 @@ enum GuaranteeType {
 
 model AuctionRegistration {
   id            String             @id @default(cuid())
+  tenantId      String
   auctionId     String
   auction       Auction            @relation(fields: [auctionId], references: [id])
   customerId    String
@@ -872,26 +1084,32 @@ model AuctionRegistration {
   createdAt     DateTime           @default(now())
 
   @@unique([auctionId, customerId])
+  @@index([tenantId])
 }
 
 model AuctionBid {
   id         String   @id @default(cuid())
+  tenantId   String
   auctionId  String
   auction    Auction  @relation(fields: [auctionId], references: [id])
   customerId String
   amount     BigInt
   createdAt  DateTime @default(now())
 
+  @@index([tenantId])
   @@index([auctionId, amount])
 }
 
 model Wallet {
-  id         String              @id @default(cuid())
-  customerId String              @unique
-  customer   Customer            @relation(fields: [customerId], references: [id])
-  balance    BigInt              @default(0)
-  held       BigInt              @default(0)
+  id           String              @id @default(cuid())
+  tenantId     String
+  customerId   String              @unique
+  customer     Customer            @relation(fields: [customerId], references: [id])
+  balance      BigInt              @default(0)
+  held         BigInt              @default(0)
   transactions WalletTransaction[]
+
+  @@index([tenantId])
 }
 
 enum WalletTxType {
@@ -905,10 +1123,13 @@ enum WalletTxType {
 
 model WalletTransaction {
   id        String       @id @default(cuid())
+  tenantId  String
   walletId  String
   wallet    Wallet       @relation(fields: [walletId], references: [id])
   type      WalletTxType
   amount    BigInt
   reference String?
   createdAt DateTime     @default(now())
+
+  @@index([tenantId])
 }

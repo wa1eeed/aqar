@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditService } from '../../common/audit/audit.service.js';
+import { TenantContext } from '../../common/tenant/tenant-context.js';
 import {
   SETTINGS_SCHEMAS,
   SETTINGS_SECTION_KEYS,
@@ -15,24 +16,29 @@ interface Actor {
   userAgent?: string | null;
 }
 
+// الإعدادات لكل مشترك (SettingsSection بمفتاح مركّب [tenantId, key]).
 @Injectable()
 export class SettingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly tenant: TenantContext,
   ) {}
 
-  /** يقرأ قيمة قسم؛ يعيد الافتراضي إذا لم يُحفظ بعد. */
+  /** يقرأ قيمة قسم للمشترك الحالي؛ يعيد الافتراضي إذا لم يُحفظ بعد. */
   async get(key: SettingsSectionKey): Promise<unknown> {
-    const row = await this.prisma.settingsSection.findUnique({ where: { key } });
+    const tenantId = this.tenant.requireTenantId();
+    const row = await this.prisma.settingsSection.findUnique({
+      where: { tenantId_key: { tenantId, key } },
+    });
     if (!row) return defaultFor(key);
-    // التحقق + دمج أي حقول ناقصة مع الافتراضيات
     return SETTINGS_SCHEMAS[key].parse(row.value);
   }
 
-  /** يقرأ كل الأقسام. */
+  /** يقرأ كل الأقسام للمشترك الحالي. */
   async getAll(): Promise<Record<SettingsSectionKey, unknown>> {
-    const rows = await this.prisma.settingsSection.findMany();
+    const tenantId = this.tenant.requireTenantId();
+    const rows = await this.prisma.settingsSection.findMany({ where: { tenantId } });
     const byKey = new Map(rows.map((r) => [r.key, r.value]));
     const out = {} as Record<SettingsSectionKey, unknown>;
     for (const key of SETTINGS_SECTION_KEYS) {
@@ -42,10 +48,11 @@ export class SettingsService {
     return out;
   }
 
-  /** يتحقّق من القيمة ويحفظها، ويكتب سجلّ تدقيق. */
+  /** يتحقّق من القيمة ويحفظها للمشترك الحالي، ويكتب سجلّ تدقيق. */
   async update(keyRaw: string, value: unknown, actor: Actor = {}): Promise<unknown> {
     if (!isSettingsSectionKey(keyRaw)) throw new NotFoundException(`قسم إعدادات غير معروف: ${keyRaw}`);
     const key = keyRaw;
+    const tenantId = this.tenant.requireTenantId();
     const parsed = SETTINGS_SCHEMAS[key].safeParse(value);
     if (!parsed.success) {
       throw new BadRequestException({
@@ -54,14 +61,17 @@ export class SettingsService {
       });
     }
 
-    const before = await this.prisma.settingsSection.findUnique({ where: { key } });
+    const before = await this.prisma.settingsSection.findUnique({
+      where: { tenantId_key: { tenantId, key } },
+    });
     const saved = await this.prisma.settingsSection.upsert({
-      where: { key },
-      create: { key, value: parsed.data as object, updatedById: actor.id ?? null },
+      where: { tenantId_key: { tenantId, key } },
+      create: { tenantId, key, value: parsed.data as object, updatedById: actor.id ?? null },
       update: { value: parsed.data as object, updatedById: actor.id ?? null },
     });
 
     await this.audit.record({
+      tenantId,
       actorType: 'staff',
       actorId: actor.id ?? null,
       action: 'settings.update',

@@ -19,6 +19,7 @@ Read these files completely, in this order, before writing any code:
 11. `docs/10-security-ops.md`       — security, PDPL, deployment, backups, observability, testing
 12. `docs/11-implementation-plan.md`— phases, task order and acceptance criteria
 13. `design/SCREENS.md`             — screenshot of every admin and customer screen + clickable prototype
+14. `docs/12-multi-tenancy.md`      — multi-tenant architecture + super-admin (overrides "single company")
 
 ## Visual source of truth
 
@@ -30,8 +31,14 @@ Behaviour comes from `docs/`; appearance comes from the screenshots.
 
 ## Non-negotiable rules
 
-- **Single company, not a marketplace.** There is no vendor/owner self-registration and no third party
-  publishes listings. Staff create every listing. Customers only browse, save, request and book.
+- **Multi-tenant SaaS (see `docs/12-multi-tenancy.md`, which overrides older "single company" wording).**
+  The platform hosts many real-estate offices (tenants) centrally. A super-admin (`PlatformAdmin`)
+  manages tenant subscriptions, plans and domains. **Within each tenant** it stays single-office: there
+  is no vendor/owner self-registration and no third party publishes listings — the office's staff create
+  every listing; its customers only browse, save, request and book. Every tenant-owned row carries
+  `tenantId`; isolation is shared-DB + `tenantId` + Postgres RLS, enforced in app (tenant-scoped Prisma
+  extension) and DB. Per-tenant unique codes `PREFIX-YY-XXXX`. R2 is one platform bucket, folder
+  `tenants/{tenantId}/…` per tenant.
 - **The approved frontend is the design.** Match its tokens (`frontend/assets/css/main.css`), fonts,
   spacing, components and RTL behaviour exactly in every new page, including the admin panel.
   New public pages reuse the existing header/footer/card components from `frontend/assets/js/ui.js`.

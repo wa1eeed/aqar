@@ -6,9 +6,12 @@ import { validateEnv } from './config/env.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { EncryptionModule } from './common/crypto/encryption.module.js';
 import { AuditModule } from './common/audit/audit.module.js';
+import { TenantModule } from './common/tenant/tenant.module.js';
 import { CorrelationIdMiddleware } from './common/correlation-id.middleware.js';
+import { TenantResolverMiddleware } from './common/tenant/tenant-resolver.middleware.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { PlatformModule } from './modules/platform/platform.module.js';
 
 @Module({
   imports: [
@@ -21,15 +24,18 @@ import { HealthModule } from './modules/health/health.module.js';
         customProps: (req) => ({ correlationId: (req as Request).correlationId }),
       },
     }),
+    TenantModule,
     PrismaModule,
     EncryptionModule,
     AuditModule,
     SettingsModule,
     HealthModule,
+    PlatformModule,
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
-    consumer.apply(CorrelationIdMiddleware).forRoutes('*');
+    // الترتيب مهم: correlation id ثم تحديد المشترك (يُشغّل بقيّة الطلب داخل TenantContext).
+    consumer.apply(CorrelationIdMiddleware, TenantResolverMiddleware).forRoutes('*');
   }
 }
