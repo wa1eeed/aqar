@@ -181,6 +181,126 @@ table.tbl th {
   text-align: center;
 }
 
+/* تسجيل الدخول */
+.login {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, var(--green-900), var(--green));
+  padding: 24px;
+}
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--sand-100);
+  padding: 4px;
+  border-radius: 999px;
+}
+.login-tabs button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 9px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+}
+.login-tabs button.on {
+  background: var(--surface);
+  color: var(--green);
+  box-shadow: var(--shadow-sm);
+}
+.login label,
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.login input,
+.form input,
+.form select,
+.form textarea {
+  font: inherit;
+  padding: 11px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+.login input:focus,
+.form input:focus {
+  outline: 2px solid var(--green-50);
+  border-color: var(--green);
+}
+.login-submit,
+.btn {
+  background: var(--green);
+  color: #fff;
+  border: 0;
+  padding: 12px;
+  border-radius: var(--r-sm);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--green);
+  border: 1px solid var(--line-2);
+}
+.btn.sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.login-submit:disabled {
+  opacity: 0.6;
+}
+.login-error {
+  background: #fdeceb;
+  color: var(--st-sold);
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+}
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.toolbar input,
+.toolbar select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+}
+.pill {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sand-100);
+  color: var(--ink-2);
+}
+
 @media (max-width: 860px) {
   .layout {
     grid-template-columns: 1fr;
