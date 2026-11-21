@@ -68,6 +68,26 @@ export class AuthController {
     return this.staff.enable2fa(user.sub, codeSchema.parse(body).code);
   }
 
+  @Public()
+  @Post('staff/password/forgot')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'طلب رابط إعادة تعيين كلمة مرور الموظف' })
+  async staffForgot(@Body() body: unknown) {
+    const { email } = z.object({ email: z.string().email() }).parse(body);
+    await this.staff.forgotPassword(email);
+  }
+
+  @Public()
+  @Post('staff/password/reset')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'تعيين كلمة مرور جديدة عبر الرابط' })
+  async staffReset(@Body() body: unknown) {
+    const { token, password } = z
+      .object({ token: z.string().min(1), password: z.string().min(8) })
+      .parse(body);
+    await this.staff.resetPassword(token, password);
+  }
+
   // ───────── السوبر-أدمن ─────────
   @Public()
   @Post('platform/login')

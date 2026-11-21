@@ -6,6 +6,7 @@ import type { Reflector } from '@nestjs/core';
 import { PasswordService } from '../src/modules/auth/password.service.js';
 import { TotpService } from '../src/modules/auth/totp.service.js';
 import { PermissionsGuard } from '../src/modules/auth/guards/permissions.guard.js';
+import { AccessScopeService } from '../src/modules/auth/access-scope.service.js';
 import { PERMISSIONS_KEY, PLATFORM_KEY, STAFF_KEY } from '../src/modules/auth/decorators.js';
 import type { AuthUser } from '../src/modules/auth/auth-user.js';
 
@@ -71,5 +72,23 @@ describe('PermissionsGuard', () => {
     expect(() => new PermissionsGuard(makeReflector({ staff: true })).canActivate(makeCtx(customer))).toThrow(
       ForbiddenException,
     );
+  });
+});
+
+describe('AccessScopeService', () => {
+  const svc = new AccessScopeService();
+  it('الوكيل (agent) مقيّد على صفوفه', () => {
+    const agent: AuthUser = { sub: 'a1', typ: 'staff', tid: 't1', role: 'agent' };
+    expect(svc.isScoped(agent)).toBe(true);
+    const scopes = svc.forStaff(agent);
+    expect(scopes.leads).toEqual({ assignedToId: 'a1' });
+    expect(scopes.properties).toEqual({ agentId: 'a1' });
+    expect(scopes.bookings).toEqual({ property: { agentId: 'a1' } });
+  });
+
+  it('المدير/المالك بلا قيود', () => {
+    const admin: AuthUser = { sub: 'm1', typ: 'staff', tid: 't1', role: 'admin' };
+    expect(svc.isScoped(admin)).toBe(false);
+    expect(svc.forStaff(admin).leads).toEqual({});
   });
 });

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { EncryptionService } from '../../common/crypto/encryption.service.js';
 import { TenantContext } from '../../common/tenant/tenant-context.js';
@@ -28,6 +28,8 @@ const MANDATORY_2FA = new Set(['owner', 'admin', 'finance']);
 
 @Injectable()
 export class StaffAuthService {
+  private readonly logger = new Logger(StaffAuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly password: PasswordService,
@@ -133,6 +135,37 @@ export class StaffAuthService {
       name: user.name,
       email: user.email,
     };
+  }
+
+  /** يرسل رابط إعادة تعيين (بريد في المرحلة 2). لا يكشف وجود الحساب. */
+  async forgotPassword(email: string): Promise<void> {
+    const tenantId = this.tenant.requireTenantId();
+    const user = await this.prisma.staffUser.findUnique({ where: { tenantId_email: { tenantId, email } } });
+    if (user && user.isActive && !user.deletedAt) {
+      const token = this.tokens.signShortLived({ sub: user.id, tid: tenantId, purpose: 'reset' }, '30m');
+      if (process.env.NODE_ENV !== 'production') this.logger.log(`إعادة تعيين ${email}: token=${token}`);
+    }
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    let payload: { sub: string; tid: string; purpose: string };
+    try {
+      payload = this.tokens.verifyShortLived<{ sub: string; tid: string; purpose: string }>(token);
+    } catch {
+      throw new UnauthorizedException('انتهت صلاحية الرابط، اطلب رابطاً جديداً');
+    }
+    if (payload.purpose !== 'reset') throw new UnauthorizedException('رابط غير صالح');
+    const passwordHash = await this.password.hash(newPassword);
+    await this.prisma.staffUser.update({ where: { id: payload.sub }, data: { passwordHash } });
+    await this.tokens.revokeAllForSubject('staff', payload.sub);
+    await this.audit.record({
+      tenantId: payload.tid,
+      actorType: 'staff',
+      actorId: payload.sub,
+      action: 'staff.password.reset',
+      entityType: 'StaffUser',
+      entityId: payload.sub,
+    });
   }
 
   private async issueSession(

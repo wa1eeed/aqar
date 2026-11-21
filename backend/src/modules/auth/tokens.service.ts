@@ -96,6 +96,14 @@ export class TokensService {
     if (rec) await this.revokeFamily(rec.family);
   }
 
+  /** يُبطل كل جلسات الموضوع (عند إعادة تعيين كلمة المرور). */
+  async revokeAllForSubject(subjectType: SubjectKind, subjectId: string): Promise<void> {
+    await this.prisma.refreshToken.updateMany({
+      where: { subjectType, subjectId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+  }
+
   private async revokeFamily(family: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({
       where: { family, revokedAt: null },
