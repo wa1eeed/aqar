@@ -14,6 +14,8 @@ import { AccessScopeService } from '../auth/access-scope.service.js';
 import { EntitlementsService } from '../entitlements/entitlements.service.js';
 import { IntegrationsService } from '../integrations/integrations.service.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { RealtimeGateway } from '../realtime/realtime.gateway.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { normalizePagination, paginate, type Paginated } from '../../common/pagination.js';
 import { uniqueCode } from '../../common/code.js';
 import { deriveColumns } from './derive.js';
@@ -58,6 +60,8 @@ export class PropertiesService {
     private readonly entitlements: EntitlementsService,
     private readonly integrations: IntegrationsService,
     private readonly settings: SettingsService,
+    private readonly realtime: RealtimeGateway,
+    private readonly notifications: NotificationsService,
   ) {}
 
   // ───────────────── Admin: create/update ─────────────────
@@ -175,6 +179,20 @@ export class PropertiesService {
       },
     });
     await this.log(actor, 'property.status', id, { status: existing.status }, { status });
+
+    // بثّ لحظي للصفحات العامة + إشعار الوكيل
+    const statusLabel = schemaData.statuses[status]?.label ?? status;
+    this.realtime.toProperty(id, 'property.updated', { id, status, statusLabel });
+    if (existing.agentId) {
+      await this.notifications.notify({
+        eventKey: 'property.status_changed',
+        recipients: [{ type: 'staff', id: existing.agentId }],
+        title: `${existing.title}: ${statusLabel}`,
+        body: '',
+        link: `/admin/properties/${id}`,
+        data: { id },
+      });
+    }
     return updated;
   }
 

@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
-import { PERMISSIONS_KEY, PLATFORM_KEY, STAFF_KEY } from '../decorators.js';
+import { CUSTOMER_KEY, PERMISSIONS_KEY, PLATFORM_KEY, STAFF_KEY } from '../decorators.js';
 
 /** حارس التفويض: يفرض @RequirePermissions (صلاحيات الموظف) و@RequirePlatform (السوبر-أدمن). */
 @Injectable()
@@ -13,13 +13,18 @@ export class PermissionsGuard implements CanActivate {
     const perms = this.reflector.getAllAndOverride<string[] | undefined>(PERMISSIONS_KEY, targets);
     const platform = this.reflector.getAllAndOverride<boolean | undefined>(PLATFORM_KEY, targets);
     const staffOnly = this.reflector.getAllAndOverride<boolean | undefined>(STAFF_KEY, targets);
-    if (!perms?.length && !platform && !staffOnly) return true;
+    const customerOnly = this.reflector.getAllAndOverride<boolean | undefined>(CUSTOMER_KEY, targets);
+    if (!perms?.length && !platform && !staffOnly && !customerOnly) return true;
 
     const user = context.switchToHttp().getRequest<Request>().user;
     if (!user) throw new UnauthorizedException('مطلوب تسجيل الدخول');
 
     if (platform) {
       if (user.typ !== 'platform') throw new ForbiddenException('يتطلّب صلاحية المنصّة (سوبر-أدمن)');
+      return true;
+    }
+    if (customerOnly) {
+      if (user.typ !== 'customer') throw new ForbiddenException('يتطلّب حساب عميل');
       return true;
     }
 

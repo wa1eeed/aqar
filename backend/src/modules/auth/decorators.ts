@@ -18,6 +18,10 @@ export const STAFF_KEY = 'auth:staff';
 /** يتطلّب حساب موظف مكتب (دون صلاحية محدّدة). */
 export const RequireStaff = () => SetMetadata(STAFF_KEY, true);
 
+export const CUSTOMER_KEY = 'auth:customer';
+/** يتطلّب حساب عميل (نقاط /me/*). */
+export const RequireCustomer = () => SetMetadata(CUSTOMER_KEY, true);
+
 /** يحقن المستخدم الحالي في معامل المتحكّم. */
 export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): AuthUser | undefined => {
   return ctx.switchToHttp().getRequest<Request>().user;

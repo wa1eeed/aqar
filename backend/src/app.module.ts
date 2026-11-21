@@ -13,8 +13,13 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { IntegrationsModule } from './modules/integrations/integrations.module.js';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module.js';
 import { StaffModule } from './modules/staff/staff.module.js';
+import { RealtimeModule } from './modules/realtime/realtime.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { PropertiesModule } from './modules/properties/properties.module.js';
 import { LocationsModule } from './modules/locations/locations.module.js';
+import { LeadsModule } from './modules/leads/leads.module.js';
+import { ViewingsModule } from './modules/viewings/viewings.module.js';
+import { CustomersModule } from './modules/customers/customers.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { PlatformModule } from './modules/platform/platform.module.js';
@@ -37,9 +42,14 @@ import { PlatformModule } from './modules/platform/platform.module.js';
     AuthModule,
     IntegrationsModule,
     EntitlementsModule,
+    RealtimeModule,
+    NotificationsModule,
     StaffModule,
     PropertiesModule,
     LocationsModule,
+    LeadsModule,
+    ViewingsModule,
+    CustomersModule,
     SettingsModule,
     HealthModule,
     PlatformModule,
