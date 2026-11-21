@@ -27,6 +27,15 @@ export class AuditService {
     private readonly tenant: TenantContext,
   ) {}
 
+  /** قراءة سجلّ التدقيق للمشترك الحالي (audit.view). */
+  async list(filters: { entityType?: string; entityId?: string; actorId?: string } = {}) {
+    const where: Record<string, unknown> = { tenantId: this.tenant.tenantId };
+    if (filters.entityType) where.entityType = filters.entityType;
+    if (filters.entityId) where.entityId = filters.entityId;
+    if (filters.actorId) where.actorId = filters.actorId;
+    return this.prisma.auditLog.findMany({ where, orderBy: { createdAt: 'desc' }, take: 200 });
+  }
+
   async record(entry: AuditEntry): Promise<void> {
     try {
       // AuditLog بـ tenantId اختياري — نستخدم العميل الأساسي ونضبط tenantId صراحةً.

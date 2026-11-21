@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import type { Request } from 'express';
 import { validateEnv } from './config/env.js';
@@ -23,6 +24,8 @@ import { CustomersModule } from './modules/customers/customers.module.js';
 import { BookingsModule } from './modules/bookings/bookings.module.js';
 import { ThemeModule } from './modules/theme/theme.module.js';
 import { SeoModule } from './modules/seo/seo.module.js';
+import { ReportsModule } from './modules/reports/reports.module.js';
+import { JobsModule } from './modules/jobs/jobs.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { PlatformModule } from './modules/platform/platform.module.js';
@@ -30,6 +33,7 @@ import { PlatformModule } from './modules/platform/platform.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv, cache: true }),
+    ScheduleModule.forRoot(),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
@@ -56,6 +60,8 @@ import { PlatformModule } from './modules/platform/platform.module.js';
     BookingsModule,
     ThemeModule,
     SeoModule,
+    ReportsModule,
+    JobsModule,
     SettingsModule,
     HealthModule,
     PlatformModule,
