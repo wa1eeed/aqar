@@ -1,0 +1,72 @@
+# منزلة — compose التطوير المحلي. تشغيل:
+#   docker compose -f infra/docker-compose.dev.yml up --build
+# ثم: الواجهة http://localhost:8080/  اللوحة /admin  الصحّة http://localhost:3000/api/v1/health
+name: manzilah-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: manzilah
+      POSTGRES_PASSWORD: manzilah
+      POSTGRES_DB: manzilah
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U manzilah -d manzilah']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: '3000'
+      DATABASE_URL: postgresql://manzilah:manzilah@postgres:5432/manzilah?schema=public
+      REDIS_URL: redis://redis:6379
+      APP_ENCRYPTION_KEY: dev_only_change_me_0123456789abcdef
+      PLATFORM_BASE_DOMAIN: localhost
+      SEED_PLATFORM_ADMIN_EMAIL: superadmin@manzilah.local
+      SEED_PLATFORM_ADMIN_PASSWORD: devpass123
+      SEED_OWNER_EMAIL: owner@manzilah.local
+      SEED_OWNER_PASSWORD: devpass123
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - 'pnpm exec prisma db push --skip-generate --accept-data-loss && pnpm db:seed && node dist/main.js'
+    ports:
+      - '3000:3000'
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - '8080:80'
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - ../frontend:/srv/frontend:ro
+      - ../admin/dist:/srv/admin:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata_dev:

@@ -1,0 +1,25 @@
+# منزلة — Caddy للتطوير المحلي (HTTP فقط، بلا TLS). http://localhost:8080
+{
+	auto_https off
+}
+
+:80 {
+	encode gzip
+
+	@api path /api/* /ws* /property/* /properties/* /sitemap*.xml /robots.txt /llms.txt /feeds/* /theme.css
+	handle @api {
+		reverse_proxy api:3000
+	}
+
+	handle_path /admin/* {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+	}
+
+	handle {
+		root * /srv/frontend
+		try_files {path} {path}.html /404.html
+		file_server
+	}
+}

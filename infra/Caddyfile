@@ -1,0 +1,54 @@
+# منزلة — Caddy (reverse proxy + TLS + static) لمنصة multi-tenant.
+# - النطاق الأساسي ونطاقاته الفرعية (<slug>.<base>) عبر شهادة واحدة/wildcard.
+# - النطاقات المخصّصة للمشتركين عبر on-demand TLS (تتحقّق من API قبل إصدار الشهادة).
+
+{
+	email {$ACME_EMAIL}
+	on_demand_tls {
+		ask {$ONDEMAND_ASK_URL}
+	}
+}
+
+# مقاطع التوجيه المشتركة
+(routes) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# API + مسارات يخدمها الـ backend (SSR meta، خرائط الموقع، robots، theme.css…)
+	@api path /api/* /ws* /property/* /properties/* /sitemap*.xml /robots.txt /llms.txt /feeds/* /theme.css
+	handle @api {
+		reverse_proxy api:3000
+	}
+
+	# لوحة التحكم (SPA واحدة تضمّ لوحة المكتب ولوحة السوبر-أدمن) — base /admin/
+	handle_path /admin/* {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+	}
+
+	# الواجهة العامة الثابتة (clean URLs)
+	handle {
+		root * /srv/frontend
+		try_files {path} {path}.html /404.html
+		file_server
+	}
+}
+
+# النطاق الأساسي + النطاقات الفرعية للمشتركين
+{$PLATFORM_BASE_DOMAIN}, *.{$PLATFORM_BASE_DOMAIN} {
+	import routes
+}
+
+# النطاقات المخصّصة للمشتركين (شهادات عند الطلب بعد تحقّق API)
+:443 {
+	tls {
+		on_demand
+	}
+	import routes
+}
