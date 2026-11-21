@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditService } from '../../common/audit/audit.service.js';
 import { TenantContext } from '../../common/tenant/tenant-context.js';
@@ -12,9 +12,27 @@ import {
 
 interface Actor {
   id?: string | null;
+  perms?: string[];
   ip?: string | null;
   userAgent?: string | null;
 }
+
+// الصلاحية المطلوبة لتعديل كل قسم (docs/03 §3).
+const SECTION_PERMISSION: Record<SettingsSectionKey, string> = {
+  general: 'settings.general',
+  branding: 'settings.branding',
+  contact: 'settings.contact',
+  legal: 'settings.legal',
+  licensing: 'settings.licensing',
+  booking: 'settings.booking',
+  payments: 'settings.payments',
+  bank_transfer: 'settings.payments',
+  notifications: 'settings.notifications',
+  maps: 'settings.maps',
+  features: 'settings.features',
+  locations: 'settings.locations',
+  seo: 'seo.manage',
+};
 
 // الإعدادات لكل مشترك (SettingsSection بمفتاح مركّب [tenantId, key]).
 @Injectable()
@@ -52,6 +70,9 @@ export class SettingsService {
   async update(keyRaw: string, value: unknown, actor: Actor = {}): Promise<unknown> {
     if (!isSettingsSectionKey(keyRaw)) throw new NotFoundException(`قسم إعدادات غير معروف: ${keyRaw}`);
     const key = keyRaw;
+    if (actor.perms && !actor.perms.includes(SECTION_PERMISSION[key])) {
+      throw new ForbiddenException(`يتطلّب صلاحية ${SECTION_PERMISSION[key]}`);
+    }
     const tenantId = this.tenant.requireTenantId();
     const parsed = SETTINGS_SCHEMAS[key].safeParse(value);
     if (!parsed.success) {

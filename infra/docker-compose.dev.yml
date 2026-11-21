@@ -40,6 +40,8 @@ services:
       DATABASE_URL: postgresql://manzilah:manzilah@postgres:5432/manzilah?schema=public
       REDIS_URL: redis://redis:6379
       APP_ENCRYPTION_KEY: dev_only_change_me_0123456789abcdef
+      JWT_ACCESS_SECRET: dev_access_secret_change_me_0123456789
+      JWT_REFRESH_SECRET: dev_refresh_secret_change_me_0123456789
       PLATFORM_BASE_DOMAIN: localhost
       SEED_PLATFORM_ADMIN_EMAIL: superadmin@manzilah.local
       SEED_PLATFORM_ADMIN_PASSWORD: devpass123
