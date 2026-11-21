@@ -68,15 +68,70 @@ model Plan {
   key          String   @unique // free | basic | pro
   nameAr       String
   priceMonthly BigInt   @default(0) // هللات
-  maxListings  Int? // null = بلا حد
-  maxStaff     Int?
-  features     Json     @default("{}")
   isActive     Boolean  @default(true)
   sort         Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   subscriptions Subscription[]
+  entitlements  PlanEntitlement[]
+}
+
+// ───────── محرّك الاستحقاقات (Entitlements) — مفصول عن RBAC وعن الفوترة ─────────
+
+// نوع الاستحقاق: تشغيل/إيقاف، حدّ عددي، أو استهلاك مقيس.
+enum FeatureType {
+  boolean
+  limit
+  metered
+}
+
+// سجلّ الميزات (Feature Catalog) — المصدر = الكود (FEATURE_CATALOG)، يُبذر هنا.
+// لا تُخترع ميزة من اللوحة؛ تُفعَّل فقط ميزات مبنية برمجياً.
+model Feature {
+  key         String      @id // مثل auctions.enabled, staff.max, properties.max
+  nameAr      String
+  description String?
+  type        FeatureType @default(boolean)
+  category    String?
+  sort        Int         @default(0)
+  createdAt   DateTime    @default(now())
+}
+
+// ربط باقة بميزة وقيمتها (true/false أو عدد الحدّ). value = JSON scalar.
+model PlanEntitlement {
+  planId     String
+  plan       Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  featureKey String
+  value      Json
+
+  @@id([planId, featureKey])
+  @@index([featureKey])
+}
+
+// استثناءات/إضافات (add-ons) لكل مشترك تَغلب قيمة الباقة.
+model TenantEntitlement {
+  tenantId   String
+  featureKey String
+  value      Json
+  expiresAt  DateTime?
+  updatedById String?
+  updatedAt  DateTime  @updatedAt
+
+  @@id([tenantId, featureKey])
+  @@index([tenantId])
+}
+
+// عدّادات الاستهلاك (للحدود والاستهلاك المدفوع). period=null تراكمي، أو YYYY-MM.
+model UsageCounter {
+  tenantId  String
+  key       String
+  value     Int      @default(0)
+  period    String?
+  updatedAt DateTime @updatedAt
+
+  @@id([tenantId, key])
+  @@index([tenantId])
 }
 
 enum SubscriptionStatus {

@@ -6,6 +6,7 @@ import { TenantContext } from '../../common/tenant/tenant-context.js';
 import { AuditService } from '../../common/audit/audit.service.js';
 import { PasswordService } from '../auth/password.service.js';
 import { TokensService } from '../auth/tokens.service.js';
+import { EntitlementsService } from '../entitlements/entitlements.service.js';
 
 export const createStaffSchema = z.object({
   name: z.string().min(2).max(120),
@@ -41,6 +42,7 @@ export class StaffService {
     private readonly tokens: TokensService,
     private readonly tenant: TenantContext,
     private readonly audit: AuditService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   async list() {
@@ -65,6 +67,10 @@ export class StaffService {
 
     const exists = await this.prisma.staffUser.findUnique({ where: { tenantId_email: { tenantId, email: data.email } } });
     if (exists) throw new ConflictException('البريد مستخدم لموظف آخر');
+
+    // فرض حدّ الباقة (Entitlements) — منفصل عن الصلاحيات
+    const current = await this.prisma.staffUser.count({ where: { tenantId, deletedAt: null } });
+    await this.entitlements.assertWithinLimit(tenantId, 'staff.max', current);
 
     // كلمة مرور مؤقّتة؛ يعيّنها الموظف عبر رابط الدعوة
     const passwordHash = await this.password.hash(randomBytes(16).toString('base64url'));

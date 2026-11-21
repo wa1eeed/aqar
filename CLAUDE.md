@@ -20,6 +20,7 @@ Read these files completely, in this order, before writing any code:
 12. `docs/11-implementation-plan.md`— phases, task order and acceptance criteria
 13. `design/SCREENS.md`             — screenshot of every admin and customer screen + clickable prototype
 14. `docs/12-multi-tenancy.md`      — multi-tenant architecture + super-admin (overrides "single company")
+15. `docs/13-entitlements.md`       — subscription packages: the Entitlement Engine (3 layers)
 
 ## Visual source of truth
 
@@ -39,6 +40,11 @@ Behaviour comes from `docs/`; appearance comes from the screenshots.
   `tenantId`; isolation is shared-DB + `tenantId` + Postgres RLS, enforced in app (tenant-scoped Prisma
   extension) and DB. Per-tenant unique codes `PREFIX-YY-XXXX`. R2 is one platform bucket, folder
   `tenants/{tenantId}/…` per tenant.
+- **Three separate layers — never conflate them (`docs/13-entitlements.md`).** Capabilities (what the
+  code can do — `FEATURE_CATALOG`), Entitlements (what a tenant's subscription allows — `PlanEntitlement`
+  + `TenantEntitlement`, resolved by `EntitlementsService`, enforced by `@RequireFeature` / `assertWithinLimit`),
+  and Permissions (RBAC — `Role.permissions`). Build each feature once and gate it by a capability key
+  (`seo.advanced`), never `if (plan === 'pro')`. Enforce entitlements centrally on the server.
 - **The approved frontend is the design.** Match its tokens (`frontend/assets/css/main.css`), fonts,
   spacing, components and RTL behaviour exactly in every new page, including the admin panel.
   New public pages reuse the existing header/footer/card components from `frontend/assets/js/ui.js`.

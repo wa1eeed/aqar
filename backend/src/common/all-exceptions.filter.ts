@@ -41,7 +41,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let code = 'INTERNAL_ERROR';
     let message = 'حدث خطأ غير متوقع';
-    let details: Record<string, unknown> = {};
+    const details: Record<string, unknown> = {};
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -53,10 +53,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
       } else if (payload && typeof payload === 'object') {
         const obj = payload as Record<string, unknown>;
         message = typeof obj.message === 'string' ? obj.message : exception.message;
+        // كود مخصّص من الاستثناء (مثل FEATURE_NOT_INCLUDED, LIMIT_REACHED)
+        if (typeof obj.code === 'string') code = obj.code;
+        // حقول إضافية (upgradeRequired, feature, limit…) تُمرَّر في details
+        for (const [k, v] of Object.entries(obj)) {
+          if (!['message', 'statusCode', 'error', 'code'].includes(k)) details[k] = v;
+        }
         if (isZod || status === HttpStatus.BAD_REQUEST) {
-          code = isZod ? 'VALIDATION_FAILED' : code;
-          if (obj.errors) details = { fields: obj.errors };
-          else if (Array.isArray(obj.message)) details = { fields: obj.message };
+          if (!obj.code) code = isZod ? 'VALIDATION_FAILED' : code;
+          if (obj.errors) details.fields = obj.errors;
+          else if (Array.isArray(obj.message)) details.fields = obj.message;
         }
       }
     } else if (exception instanceof Error) {

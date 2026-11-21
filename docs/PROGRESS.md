@@ -41,8 +41,24 @@
 | AccessScopeService (قيود "own"/"assigned" على الصفوف) | ⏳ | يُستخدم في المرحلة 3+ |
 | قبول: المالك يُلزَم بـ2FA؛ موظف لا يقرأ طلبات غيره (e2e) | ⏳ | الجزء الثاني يحتاج Leads (المرحلة 3) |
 
-**التحقّق:** backend 22 اختباراً تمر، البناء وESLint نظيفان.
+**التحقّق:** backend 24 اختباراً تمر، البناء وESLint نظيفان.
 > ملاحظة: لوحة التحكم تحتاج شاشة تسجيل دخول لتستدعي نقاط `/admin/*` المحميّة (ضمن واجهة المرحلة 1 القادمة).
+
+## محرّك الاستحقاقات (Entitlements) — الباقات (مكتمل الأساس)
+
+طبقة مستقلة عن RBAC والفوترة (راجع `docs/13`). Build once, package dynamically, enforce centrally.
+
+| المهمة | الحالة | ملاحظات |
+|---|---|---|
+| نماذج: Feature, PlanEntitlement, TenantEntitlement, UsageCounter | ✅ | `prisma validate` ناجح |
+| سجلّ الميزات (FEATURE_CATALOG) — طبقة القدرات | ✅ | 10 ميزات (boolean/limit/metered) |
+| EntitlementsService (دمج باقة+مشترك، isEnabled/getLimit/assert) + UsageService | ✅ | مُختبَر (دمج) |
+| `@RequireFeature` + EntitlementGuard (فرض مركزي) + أخطاء FEATURE_NOT_INCLUDED/LIMIT_REACHED | ✅ | مُختبَر؛ مُرشِّح الأخطاء يُظهر code+upgradeRequired |
+| فرض حدّ `staff.max` على إنشاء الموظف (برهان) | ✅ | |
+| لوحة السوبر-أدمن: ميزات/باقات/استحقاقات الباقة والمشترك | ✅ | `/api/v1/super/features|plans|...` |
+| البذر: سجلّ الميزات + استحقاقات trial/basic/pro | ✅ | |
+
+**التحقّق:** backend 28 اختباراً تمر، البناء وESLint نظيفان.
 
 ---
 

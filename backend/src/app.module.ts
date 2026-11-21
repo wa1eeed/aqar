@@ -10,6 +10,7 @@ import { TenantModule } from './common/tenant/tenant.module.js';
 import { CorrelationIdMiddleware } from './common/correlation-id.middleware.js';
 import { TenantResolverMiddleware } from './common/tenant/tenant-resolver.middleware.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { EntitlementsModule } from './modules/entitlements/entitlements.module.js';
 import { StaffModule } from './modules/staff/staff.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
@@ -31,6 +32,7 @@ import { PlatformModule } from './modules/platform/platform.module.js';
     EncryptionModule,
     AuditModule,
     AuthModule,
+    EntitlementsModule,
     StaffModule,
     SettingsModule,
     HealthModule,
