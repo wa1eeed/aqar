@@ -30,7 +30,8 @@ export class PublicPropertiesController {
   }
 
   @Get('properties/:id/nearby')
-  nearby(@Param('id', ParseIntPipe) id: number, @Query('radius') radius?: string) {
-    return this.svc.nearby(id, radius ? Number(radius) : 2000);
+  async nearby(@Param('id', ParseIntPipe) id: number, @Query('radius') radius?: string) {
+    const items = await this.svc.nearby(id, radius ? Number(radius) : 2000);
+    return { items }; // الواجهة تتوقّع { items }
   }
 }

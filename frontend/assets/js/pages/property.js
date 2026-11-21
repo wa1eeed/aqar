@@ -1,4 +1,5 @@
 (function (MZ) {
+  MZ.boot().then(function () {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api, cfg = MZ.config, I = ui.icon;
   ui.mount('properties');
   var root = document.querySelector('[data-prop]');
@@ -352,4 +353,5 @@
       draw();
     });
   }
+  });
 })(window.MZ);

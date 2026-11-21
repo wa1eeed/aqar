@@ -21,6 +21,7 @@ Read these files completely, in this order, before writing any code:
 13. `design/SCREENS.md`             — screenshot of every admin and customer screen + clickable prototype
 14. `docs/12-multi-tenancy.md`      — multi-tenant architecture + super-admin (overrides "single company")
 15. `docs/13-entitlements.md`       — subscription packages: the Entitlement Engine (3 layers)
+16. `docs/14-deployment-scaling.md` — Postgres, Coolify now, cloud-portable & horizontally scalable
 
 ## Visual source of truth
 

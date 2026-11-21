@@ -1,4 +1,5 @@
 (function (MZ) {
+  MZ.boot().then(function () {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api;
   ui.mount('home');
 
@@ -126,5 +127,6 @@
       });
       m.fit(riyadh.map(function (p) { return [p.lat, p.lng]; }), 50);
     });
+  });
   });
 })(window.MZ);

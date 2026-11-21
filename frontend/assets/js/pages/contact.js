@@ -1,4 +1,5 @@
 (function (MZ) {
+  MZ.boot().then(function () {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api, cfg = MZ.config, I = ui.icon;
   ui.mount('contact');
 
@@ -62,5 +63,6 @@
   var office = [24.7136, 46.6753];
   MZ.map.create(document.querySelector('[data-office-map]'), { center: office, zoom: 14, scrollZoom: false }).then(function (m) {
     if (m) m.marker(office[0], office[1], MZ.map.homePin(), { title: cfg.brand.fullName });
+  });
   });
 })(window.MZ);

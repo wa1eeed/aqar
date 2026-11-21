@@ -22,10 +22,11 @@ MZ.config = {
   },
 
   /* مصدر البيانات:
-     'mock' = بيانات تجريبية من data/properties.js
-     'api'  = الباك إند (راجع API.md لشكل الطلبات والردود) */
-  dataSource: 'mock',
-  apiBase: '/api/v1',
+     'api'  = الباك إند (نقاط /api/v1/public/* — راجع docs/02)
+     'mock' = بيانات تجريبية من data/properties.js (للتطوير المحلي فقط:
+              أضِف ?mock=1 للرابط أو localStorage.mz_mock='1') */
+  dataSource: 'api',
+  apiBase: '/api/v1/public',
 
   /* الخريطة: 'osm' (افتراضي، مجاني) أو 'google' (يحتاج مفتاح) */
   map: {
@@ -40,7 +41,7 @@ MZ.config = {
      'api' = من الباك إند: GET {apiBase}/properties/:id/nearby
      عند فشل المصدر تُعرض بيانات تجريبية مع تنبيه واضح */
   nearby: {
-    source: 'osm',
+    source: 'api',
     radius: 2000,
     overpassUrl: 'https://overpass-api.de/api/interpreter',
     fallbackToSample: true
@@ -49,3 +50,11 @@ MZ.config = {
   pageSize: 12,
   currency: 'ر.س'
 };
+
+/* تفعيل وضع البيانات التجريبية محلياً: ?mock=1 أو localStorage.mz_mock='1' */
+(function () {
+  try {
+    var m = /[?&]mock=1/.test(location.search) || localStorage.getItem('mz_mock') === '1';
+    if (m) { MZ.config.dataSource = 'mock'; MZ.config.nearby.source = 'osm'; }
+  } catch (e) { /* ignore */ }
+})();

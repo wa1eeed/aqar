@@ -361,6 +361,61 @@ window.MZ = window.MZ || {};
     });
   }
 
+  /* ---------- الإقلاع: جلب /public/config ودمجه في MZ.config ---------- */
+  function applyConfig(c) {
+    if (!c) return;
+    if (c.brand) {
+      cfg.brand.name = c.brand.name || cfg.brand.name;
+      cfg.brand.fullName = c.brand.fullName || cfg.brand.fullName;
+      cfg.brand.tagline = c.brand.tagline || cfg.brand.tagline;
+      if (c.brand.logoUrl) cfg.brand.logoUrl = c.brand.logoUrl;
+    }
+    if (c.contact) {
+      cfg.contact.phone = c.contact.phone || cfg.contact.phone;
+      cfg.contact.phoneDisplay = c.contact.phoneDisplay || cfg.contact.phoneDisplay;
+      cfg.contact.whatsapp = c.contact.whatsapp || cfg.contact.whatsapp;
+      cfg.contact.email = c.contact.email || cfg.contact.email;
+      cfg.contact.hours = c.contact.hours || cfg.contact.hours;
+      if (c.contact.address) cfg.brand.address = c.contact.address;
+    }
+    if (c.licensing) {
+      cfg.licensing = c.licensing;
+      if (c.licensing.regaFalLicense) cfg.brand.falLicense = c.licensing.regaFalLicense;
+      if (c.licensing.cr) cfg.brand.cr = c.licensing.cr;
+    }
+    if (c.map) {
+      cfg.map.provider = c.map.provider || cfg.map.provider;
+      if (c.map.tilesUrl) cfg.map.tiles = c.map.tilesUrl;
+      if (c.map.attribution) cfg.map.attribution = c.map.attribution;
+      cfg.map.googleApiKey = c.map.googleBrowserKey || cfg.map.googleApiKey;
+    }
+    if (c.nearby && c.nearby.radius) cfg.nearby.radius = c.nearby.radius;
+    if (c.features) cfg.features = c.features;
+    if (c.booking) cfg.booking = c.booking;
+    if (c.theme) cfg.theme = c.theme;
+  }
+
+  function boot() {
+    if (MZ._bootPromise) return MZ._bootPromise;
+    if (cfg.dataSource !== 'api') { MZ._bootPromise = Promise.resolve(cfg); return MZ._bootPromise; }
+    var cached = null;
+    try {
+      var raw = sessionStorage.getItem('mz_cfg');
+      if (raw) { var o = JSON.parse(raw); if (o && Date.now() - o.t < 300000) cached = o.c; }
+    } catch (e) { /* ignore */ }
+    if (cached) { applyConfig(cached); MZ._bootPromise = Promise.resolve(cfg); return MZ._bootPromise; }
+    MZ._bootPromise = fetch(cfg.apiBase + '/config', { headers: { Accept: 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('config'); return r.json(); })
+      .then(function (c) {
+        try { sessionStorage.setItem('mz_cfg', JSON.stringify({ t: Date.now(), c: c })); } catch (e) { /* ignore */ }
+        applyConfig(c);
+        return cfg;
+      })
+      .catch(function () { return cfg; }); // عند الفشل: الإعدادات الثابتة
+    return MZ._bootPromise;
+  }
+  MZ.boot = boot;
+
   MZ.ui = {
     icon: icon, num: num, money: money, moneyShort: moneyShort, esc: esc, img: img, ago: ago, dist: dist,
     priceSuffix: priceSuffix, fieldValue: fieldValue, card: card, keyFacts: keyFacts,

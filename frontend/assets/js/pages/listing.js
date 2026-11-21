@@ -1,4 +1,5 @@
 (function (MZ) {
+  MZ.boot().then(function () {
   var S = MZ.schema, ui = MZ.ui, api = MZ.api, cfg = MZ.config;
 
   var DEFAULT = { offer: '', city: '', district: '', types: [], status: [], priceMin: '', priceMax: '', areaMin: '', areaMax: '', bedrooms: '', bathrooms: '', features: [], furnished: '', landUse: '', rentPeriod: '', constructionStatus: '', facade: '', roiMin: '', q: '', hideClosed: false, sort: 'newest', page: 1 };
@@ -343,4 +344,5 @@
   renderFilters();
   setView(view);
   load();
+  });
 })(window.MZ);
