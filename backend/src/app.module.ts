@@ -20,6 +20,7 @@ import { LocationsModule } from './modules/locations/locations.module.js';
 import { LeadsModule } from './modules/leads/leads.module.js';
 import { ViewingsModule } from './modules/viewings/viewings.module.js';
 import { CustomersModule } from './modules/customers/customers.module.js';
+import { BookingsModule } from './modules/bookings/bookings.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { PlatformModule } from './modules/platform/platform.module.js';
@@ -50,6 +51,7 @@ import { PlatformModule } from './modules/platform/platform.module.js';
     LeadsModule,
     ViewingsModule,
     CustomersModule,
+    BookingsModule,
     SettingsModule,
     HealthModule,
     PlatformModule,

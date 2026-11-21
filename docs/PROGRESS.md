@@ -141,6 +141,35 @@
 
 ---
 
+## المرحلة 5 — الحجز والدفع (الـ backend مكتمل الأساس)
+
+| المهمة | الحالة | ملاحظات |
+|---|---|---|
+| حساب العرض (ثابت/نسبة/حد أدنى-أعلى، تجاوز العقار) + تحقّق IBAN (mod-97) | ✅ | مُختبَر |
+| الحسابات البنكية (CRUD) | ✅ | `/admin/bank-accounts` [settings.payments] |
+| العرض (quote) + طرق الدفع المتاحة حسب الإعدادات والتكامل | ✅ | `POST /me/bookings/quote` |
+| إنشاء الحجز مع قفل الصف (FOR UPDATE) → 409 عند التزامن | ✅ | فحص حجز نشط داخل المعاملة |
+| محوّل Moyasar (وضع الفاتورة) + PaymentsService.reconcile | ✅ | عبر البوابة؛ idempotent، فحص المبلغ/العملة، تنبيه payment.anomaly |
+| آثار حالة العقار (reserved/sold/rented/available) + سجلّ التاريخ | ✅ | ضمن نفس المعاملة |
+| التحويل البنكي: presign + رفع + مراجعة (اعتماد/رفض) + تمديد المهلة | ✅ | إشعار العميل + المالية |
+| الاسترداد (كامل/جزئي) | ✅ | `/admin/payments/:id/refund` [payments.refund] |
+| webhook Moyasar (تحديد المشترك من الحمولة، idempotent) + /me/payments/:id/verify | ✅ | `/webhooks/moyasar` |
+| نقاط العميل (/me/bookings) والإدارة (تأكيد/إكمال/إلغاء) | ✅ | بثّ booking.updated |
+| تحرير الحجوزات منتهية المهلة (releaseExpiredHolds) | ✅ (دالة) | تُجدوَل في العامل (BullMQ/cron) لاحقاً |
+| إيصالات PDF (عامل + Chromium) + بريد الإيصال | ⏳ | يُخصَّص receiptNumber؛ PDF لاحقاً |
+| Rize (HTTP) + وضع Moyasar المضمّن الكامل | ⏳ | مُهيّأ |
+| واجهة: booking.html، account/bookings، account/booking | ⏳ | جولة واجهة |
+
+**التحقّق:** backend 50 اختباراً تمر، البناء وESLint نظيفان.
+
+### معايير القبول (docs/11)
+- [~] دفعة Moyasar sandbox تؤكّد الحجز وتحجز العقار — المنطق جاهز (reconcile → confirm → reserved)؛ يحتاج تشغيلاً حيّاً بمفاتيح sandbox.
+- [x] حجز متزامن → 409 (قفل الصف + فحص الحجز النشط).
+- [x] اعتماد/رفض التحويل البنكي يُشعر العميل.
+- [x] الحجوزات منتهية المهلة تُحرَّر (دالة جاهزة للجدولة).
+
+---
+
 > ملاحظات: `data/properties.js` ما زال مُضمّناً في HTML (غير ضارّ؛ يُستخدم فقط مع ?mock=1).
 > `/theme.css` و/public/leads وربط تسجيل الدخول في الواجهة ضمن المراحل 4–6.
 > النشر والتوسّع السحابي: راجع `docs/14-deployment-scaling.md` (القاعدة Postgres؛ Coolify ثم AWS/GCP/Alibaba).

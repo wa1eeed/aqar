@@ -190,6 +190,15 @@ export class IntegrationsService {
     }
   }
 
+  /** تنفيذ استدعاء مزوّد عبر البوابة (حلّ + قاطع دائرة + سجل) — للمدفوعات ونحوها. */
+  async call<T>(
+    key: string,
+    operation: string,
+    fn: (ctx: { config: Record<string, unknown>; secrets: Record<string, unknown>; environment: 'sandbox' | 'live' }) => Promise<T>,
+  ): Promise<T> {
+    return this.execute(key, operation, fn);
+  }
+
   // ───────────────── القدرات (Capabilities) ─────────────────
   async mapsPublicConfig(): Promise<MapsPublicConfig> {
     const ctx = await this.resolve('maps.osm');
