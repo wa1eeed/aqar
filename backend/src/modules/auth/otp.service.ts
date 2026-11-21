@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomInt } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { TenantContext } from '../../common/tenant/tenant-context.js';
+import { IntegrationsService } from '../integrations/integrations.service.js';
 
 type Channel = 'email' | 'sms';
 const MAX_ATTEMPTS = 5;
@@ -18,6 +19,7 @@ export class OtpService {
     private readonly prisma: PrismaService,
     config: ConfigService,
     private readonly tenant: TenantContext,
+    private readonly integrations: IntegrationsService,
   ) {
     this.pepper = config.get<string>('APP_ENCRYPTION_KEY') ?? '';
   }
@@ -39,6 +41,24 @@ export class OtpService {
         expiresAt: new Date(Date.now() + TTL_MS),
       },
     });
+
+    // الإرسال الفعلي عبر البوابة (Resend) إن كان البريد مُهيّأً؛ وإلا يُسجَّل محلياً.
+    if (channel === 'email') {
+      try {
+        if (await this.integrations.isEmailReady()) {
+          await this.integrations.sendEmail({
+            to: destination,
+            subject: 'رمز الدخول — منزلة',
+            html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز الدخول الخاص بك:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدّة 10 دقائق.</p></div>`,
+            text: `رمز الدخول: ${code} (صالح 10 دقائق)`,
+            idempotencyKey: `otp:${destination}:${Date.now()}`,
+          });
+          return;
+        }
+      } catch (e) {
+        this.logger.warn(`تعذّر إرسال OTP بالبريد: ${String(e)}`);
+      }
+    }
     if (process.env.NODE_ENV !== 'production') {
       this.logger.log(`OTP(${purpose}) ${destination} = ${code}`);
     }
