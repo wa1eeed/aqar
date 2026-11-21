@@ -1,8 +1,15 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import vm from 'node:vm';
 import { schemaData } from '@manzilah/schema';
 import { provisionTenantDefaults } from '../src/modules/platform/tenant-provisioning.js';
 import { FEATURE_CATALOG } from '../src/modules/entitlements/feature-catalog.js';
+import { deriveColumns } from '../src/modules/properties/derive.js';
+
+// يُشغَّل من مجلّد backend (pnpm db:seed)؛ الواجهة في ../frontend.
+const FRONTEND_DATA = resolve(process.cwd(), '../frontend/data/properties.js');
 
 const prisma = new PrismaClient();
 
@@ -150,12 +157,81 @@ async function seedDemoTenant(): Promise<void> {
   );
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// يحمّل بيانات العرض من ملف الواجهة (نفس المصدر) عبر تنفيذه في سياق معزول.
+function loadDemo(): { agents: Record<string, any>; properties: any[] } {
+  const code = readFileSync(FRONTEND_DATA, 'utf8');
+  const sandbox: any = {};
+  sandbox.window = sandbox; // window === global فيعمل MZ وwindow.MZ معاً
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox);
+  return { agents: sandbox.MZ.MOCK_AGENTS ?? {}, properties: sandbox.MZ.MOCK_PROPERTIES ?? [] };
+}
+
+async function seedDemoProperties(tenantId: string, tenantCode: string): Promise<void> {
+  if (process.env.NODE_ENV === 'production') return; // العرض التجريبي لبيئات غير الإنتاج فقط
+  const { agents, properties } = loadDemo();
+
+  const agentRole = await prisma.role.findUnique({ where: { tenantId_key: { tenantId, key: 'agent' } } });
+  if (!agentRole) return;
+  const passwordHash = await argon2.hash('Demo!12345', { type: argon2.argon2id, memoryCost: 19456, timeCost: 2 });
+  const agentMap: Record<string, string> = {};
+  for (const [key, a] of Object.entries(agents)) {
+    const email = `${key}@demo.local`;
+    const user = await prisma.staffUser.upsert({
+      where: { tenantId_email: { tenantId, email } },
+      create: { tenantId, name: a.name, email, title: a.role, phone: a.phone, whatsapp: a.whatsapp, falLicense: a.fal, passwordHash, roleId: agentRole.id, showOnWebsite: true },
+      update: {},
+    });
+    agentMap[key] = user.id;
+  }
+
+  for (const p of properties) {
+    let district = await prisma.district.findFirst({ where: { cityId: p.city, nameAr: p.district } });
+    if (!district) district = await prisma.district.create({ data: { cityId: p.city, nameAr: p.district } });
+    const price = BigInt(Math.round(p.price * 100));
+    const derived = deriveColumns({ title: p.title, type: p.type, offer: p.offer, price, rentPeriod: p.rentPeriod, specs: p.specs });
+    const agentId = agentMap[p.agent] ?? Object.values(agentMap)[0];
+    await prisma.property.upsert({
+      where: { id: p.id },
+      update: {},
+      create: {
+        id: p.id, tenantId, code: `${tenantCode}-${p.id}`, slug: derived.slug, type: p.type, offer: p.offer,
+        status: p.status, visibility: 'published', featured: !!p.featured, title: p.title, description: p.description,
+        cityId: p.city, districtId: district.id, lat: p.lat, lng: p.lng, price, rentPeriod: p.rentPeriod ?? null,
+        negotiable: !!p.negotiable, annualisedPrice: derived.annualisedPrice, pricePerMeter: derived.pricePerMeter,
+        area: derived.area, bedrooms: derived.bedrooms, bathrooms: derived.bathrooms, roi: derived.roi,
+        specs: p.specs as Prisma.InputJsonValue, adLicenseNo: derived.adLicenseNo, falLicenseNo: derived.falLicenseNo,
+        licenseExpiry: derived.licenseExpiry, agentId, createdById: agentId,
+        publishedAt: new Date(p.createdAt), createdAt: new Date(p.createdAt),
+      },
+    });
+    const have = await prisma.propertyMedia.count({ where: { propertyId: p.id } });
+    if (have === 0 && Array.isArray(p.images)) {
+      for (let i = 0; i < p.images.length; i++) {
+        const k = p.images[i];
+        await prisma.propertyMedia.create({
+          data: { tenantId, propertyId: p.id, kind: 'photo', variants: { thumb: k, card: k, full: k }, isCover: i === 0, sort: i, status: 'ready' },
+        });
+      }
+    }
+  }
+  // ضبط تسلسل id بعد أرقام العرض
+  await prisma.$executeRawUnsafe(
+    `SELECT setval(pg_get_serial_sequence('"Property"','id'), (SELECT COALESCE(MAX(id),1000) FROM "Property"))`,
+  );
+  console.log(`✓ العرض التجريبي: ${Object.keys(agentMap).length} وكلاء، ${properties.length} عقار`);
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 async function main(): Promise<void> {
   console.log('بدء البذر…');
   await seedCities();
   await seedPlatform();
   await seedPlatformAdmin();
   await seedDemoTenant();
+  const demo = await prisma.tenant.findUnique({ where: { slug: process.env.SEED_TENANT_SLUG ?? 'demo' } });
+  if (demo) await seedDemoProperties(demo.id, demo.code);
   console.log('اكتمل البذر.');
 }
 

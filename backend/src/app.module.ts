@@ -13,6 +13,8 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { IntegrationsModule } from './modules/integrations/integrations.module.js';
 import { EntitlementsModule } from './modules/entitlements/entitlements.module.js';
 import { StaffModule } from './modules/staff/staff.module.js';
+import { PropertiesModule } from './modules/properties/properties.module.js';
+import { LocationsModule } from './modules/locations/locations.module.js';
 import { SettingsModule } from './modules/settings/settings.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { PlatformModule } from './modules/platform/platform.module.js';
@@ -36,6 +38,8 @@ import { PlatformModule } from './modules/platform/platform.module.js';
     IntegrationsModule,
     EntitlementsModule,
     StaffModule,
+    PropertiesModule,
+    LocationsModule,
     SettingsModule,
     HealthModule,
     PlatformModule,
