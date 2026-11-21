@@ -230,6 +230,7 @@ window.MZ = window.MZ || {};
         logo() +
         '<nav class="nav" aria-label="القائمة الرئيسية">' + links + '</nav>' +
         '<div class="header-actions">' +
+          '<div class="header-auth" data-auth></div>' +
           '<a class="icon-btn" href="/favorites" aria-label="المفضلة">' + icon('heart') + '<span class="dot-count" data-fav-count hidden></span></a>' +
           '<a class="btn btn--primary btn--sm hide-sm" href="/contact#list">' + icon('plus') + 'اعرض عقارك</a>' +
           '<button class="icon-btn show-sm" type="button" data-menu-open aria-label="فتح القائمة" aria-expanded="false">' + icon('menu') + '</button>' +
@@ -321,6 +322,8 @@ window.MZ = window.MZ || {};
     if (h) h.outerHTML = header(active);
     if (f) f.outerHTML = footer();
     updateFavCount();
+    renderAuth();
+    if (MZ.me && MZ.me.isLoggedIn() && !(MZ.auth && MZ.auth.customer)) { MZ.me.load().then(renderAuth); }
 
     var drawer = document.querySelector('[data-menu]'), opener = document.querySelector('[data-menu-open]');
     function setMenu(open) {
@@ -360,6 +363,74 @@ window.MZ = window.MZ || {};
       }
     });
   }
+
+  /* ---------- حساب العميل: زر الدخول / قائمة الحساب ونافذة OTP ---------- */
+  function renderAuth() {
+    var el = document.querySelector('[data-auth]');
+    if (!el) return;
+    var c = MZ.auth && MZ.auth.customer;
+    if (MZ.me && MZ.me.isLoggedIn() && c) {
+      var initial = (c.name || 'ح').trim().charAt(0);
+      el.innerHTML =
+        '<div class="acct"><button class="icon-btn acct__btn" type="button" data-acct-toggle aria-label="حسابي">' + esc(initial) + '</button>' +
+        '<div class="acct__menu" data-acct-menu hidden>' +
+          '<div class="acct__name">' + esc(c.name || '') + '</div>' +
+          '<a href="/account/">حسابي</a>' +
+          '<a href="/account/bookings.html">حجوزاتي</a>' +
+          '<a href="/account/viewings.html">معايناتي</a>' +
+          '<a href="/favorites">المفضلة</a>' +
+          '<a href="/account/notifications.html">الإشعارات</a>' +
+          '<button type="button" data-logout>تسجيل الخروج</button>' +
+        '</div></div>';
+    } else {
+      el.innerHTML = '<button class="btn btn--ghost btn--sm" type="button" data-login>دخول</button>';
+    }
+  }
+
+  function loginModal(onDone) {
+    var step = 1, dest = '', isNew = false;
+    function draw() {
+      var html;
+      if (step === 1) {
+        html = '<div class="auth-modal"><h3>تسجيل الدخول</h3><p class="muted">أدخل بريدك الإلكتروني لنرسل لك رمز الدخول.</p>' +
+          '<form data-otp-send><label>البريد الإلكتروني<input type="email" name="email" required></label>' +
+          '<button class="btn btn--primary btn--block" type="submit">إرسال الرمز</button></form></div>';
+      } else {
+        html = '<div class="auth-modal"><h3>رمز التحقّق</h3><p class="muted">أدخل الرمز المُرسَل إلى ' + esc(dest) + '.</p>' +
+          '<form data-otp-verify><label>الرمز<input name="code" inputmode="numeric" autocomplete="one-time-code" required></label>' +
+          (isNew ? '<label>الاسم<input name="name" required></label><label class="chk"><input type="checkbox" name="consent" required> أوافق على سياسة الخصوصية ومعالجة بياناتي</label>' : '') +
+          '<button class="btn btn--primary btn--block" type="submit">دخول</button></form>' +
+          '<p class="auth-err" data-err hidden></p></div>';
+      }
+      var m = openModal(html, { label: 'تسجيل الدخول' });
+      var sForm = m.querySelector('[data-otp-send]');
+      if (sForm) sForm.addEventListener('submit', function (e) {
+        e.preventDefault(); dest = sForm.email.value.trim();
+        MZ.me.otpSend(dest).then(function () { step = 2; draw(); }).catch(function () { step = 2; draw(); });
+      });
+      var vForm = m.querySelector('[data-otp-verify]');
+      if (vForm) vForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var code = vForm.code.value.trim();
+        var name = vForm.name ? vForm.name.value.trim() : undefined;
+        MZ.me.otpVerify(dest, code, name).then(function () {
+          closeModal(); renderAuth(); toast('مرحباً بك');
+          if (onDone) onDone();
+        }).catch(function (err) {
+          if (/الاسم مطلوب/.test(err.message)) { isNew = true; draw(); return; }
+          var ee = document.querySelector('[data-err]'); if (ee) { ee.hidden = false; ee.textContent = err.message; }
+        });
+      });
+    }
+    draw();
+  }
+
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-login]')) { e.preventDefault(); loginModal(); }
+    else if (e.target.closest('[data-logout]')) { e.preventDefault(); MZ.me.logout().then(function () { renderAuth(); toast('تم تسجيل الخروج'); }); }
+    else if (e.target.closest('[data-acct-toggle]')) { e.preventDefault(); var mm = document.querySelector('[data-acct-menu]'); if (mm) mm.hidden = !mm.hidden; }
+    else { var mn = document.querySelector('[data-acct-menu]'); if (mn && !e.target.closest('.acct')) mn.hidden = true; }
+  });
 
   /* ---------- الإقلاع: جلب /public/config ودمجه في MZ.config ---------- */
   function applyConfig(c) {
@@ -421,6 +492,6 @@ window.MZ = window.MZ || {};
     priceSuffix: priceSuffix, fieldValue: fieldValue, card: card, keyFacts: keyFacts,
     offerBadge: offerBadge, statusBadge: statusBadge, fav: fav, toast: toast,
     openModal: openModal, closeModal: closeModal, mount: mount, handoff: handoff, takeHandoff: takeHandoff,
-    validPhone: validPhone, store: store
+    validPhone: validPhone, store: store, loginModal: loginModal, renderAuth: renderAuth
   };
 })(window.MZ);
