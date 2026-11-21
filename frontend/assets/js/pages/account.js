@@ -68,9 +68,11 @@
       }).catch(err);
     }
 
+    var subBooking = false;
     function renderBookingDetail() {
       var m = (location.hash || '').match(/b-([a-z0-9]+)/i);
       if (!m) { el.innerHTML = '<div class="card">الحجز غير محدّد.</div>'; return; }
+      if (MZ.rt && !subBooking) { subBooking = true; MZ.rt.on('booking.updated', function () { renderBookingDetail(); }); }
       el.innerHTML = '<div class="card">جارِ التحميل…</div>';
       me.booking(m[1]).then(function (b) {
         var pay = (b.payments || [])[0];

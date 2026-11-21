@@ -53,6 +53,19 @@ window.MZ = window.MZ || {};
     favorites: function () { return http('/me/favorites'); },
     addFav: function (id) { return http('/me/favorites/' + id, { method: 'PUT' }); },
     removeFav: function (id) { return http('/me/favorites/' + id, { method: 'DELETE' }); },
+    /** يدمج المفضّلة المحلّية مع الخادم عند تسجيل الدخول. */
+    syncFavorites: function () {
+      if (!MZ.auth.token || !MZ.ui || !MZ.ui.fav) return Promise.resolve();
+      return http('/me/favorites').then(function (ids) {
+        var server = (ids || []).map(String);
+        var local = MZ.ui.fav.list().map(String);
+        var uploads = local.filter(function (id) { return server.indexOf(id) === -1; }).map(function (id) { return http('/me/favorites/' + id, { method: 'PUT' }); });
+        var union = server.slice();
+        local.forEach(function (id) { if (union.indexOf(id) === -1) union.push(id); });
+        MZ.ui.fav.set(union);
+        return Promise.all(uploads);
+      }).catch(function () { /* ignore */ });
+    },
     bookings: function () { return http('/me/bookings'); },
     booking: function (id) { return http('/me/bookings/' + id); },
     cancelBooking: function (id) { return http('/me/bookings/' + id + '/cancel', { method: 'POST' }); },
@@ -66,5 +79,33 @@ window.MZ = window.MZ || {};
     notifications: function () { return http('/me/notifications'); },
     readNotifications: function (ids) { return http('/me/notifications/read', { method: 'POST', body: ids ? { ids: ids } : { all: true } }); },
     setToken: setToken
+  };
+
+  /* التحديث اللحظي (Socket.IO) — اختياري، يسقط بصمت عند عدم التوفّر */
+  MZ.rt = {
+    _socket: null,
+    _loading: false,
+    _queue: [],
+    connect: function (cb) {
+      if (this._socket) { if (cb) cb(this._socket); return; }
+      this._queue.push(cb);
+      if (this._loading) return;
+      this._loading = true;
+      var self = this;
+      var s = document.createElement('script');
+      s.src = '/ws/socket.io.js';
+      s.onload = function () {
+        try {
+          var token = MZ.auth && MZ.auth.token;
+          self._socket = window.io({ path: '/ws', auth: token ? { token: token } : {}, transports: ['websocket', 'polling'] });
+          self._queue.forEach(function (f) { if (f) f(self._socket); });
+          self._queue = [];
+        } catch (e) { /* unavailable */ }
+      };
+      s.onerror = function () { self._loading = false; };
+      document.head.appendChild(s);
+    },
+    onProperty: function (id, handler) { this.connect(function (sock) { sock.emit('subscribe:property', { id: id }); sock.on('property.updated', handler); }); },
+    on: function (ev, handler) { this.connect(function (sock) { sock.on(ev, handler); }); }
   };
 })(window.MZ);

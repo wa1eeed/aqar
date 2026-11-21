@@ -118,7 +118,10 @@
         '<a class="btn btn--wa" href="https://wa.me/' + agent.whatsapp + '?text=' + waText + '" target="_blank" rel="noopener">' + I('whatsapp') + 'واتساب</a>' +
         '<a class="btn btn--ghost" href="tel:' + agent.phone + '">' + I('phone') + 'اتصال</a></div>';
     } else {
-      actions = '<div class="pricebox__btns"><button class="btn btn--primary" type="button" data-book="viewing">' + I('calendar') + 'احجز موعد معاينة</button>' +
+      var canBook = p.booking && p.booking.enabled;
+      var bookCta = canBook ? '<a class="btn btn--primary btn--block" href="/booking.html#p-' + p.id + '">احجز العقار</a>' : '';
+      actions = '<div class="pricebox__btns">' + bookCta +
+        '<button class="btn ' + (canBook ? 'btn--ghost' : 'btn--primary') + '" type="button" data-book="viewing">' + I('calendar') + 'احجز موعد معاينة</button>' +
         '<a class="btn btn--wa" href="https://wa.me/' + agent.whatsapp + '?text=' + waText + '" target="_blank" rel="noopener">' + I('whatsapp') + 'واتساب</a>' +
         '<a class="btn btn--ghost" href="tel:' + agent.phone + '">' + I('phone') + 'اتصال</a></div>';
     }
@@ -193,6 +196,7 @@
   function bind(p) {
     root.querySelectorAll('[data-lb]').forEach(function (b) { b.addEventListener('click', function () { lightbox(p, +b.dataset.lb); }); });
     root.querySelectorAll('[data-book]').forEach(function (b) { b.addEventListener('click', function () { bookForm(p, b.dataset.book); }); });
+    if (MZ.rt) MZ.rt.onProperty(p.id, function () { ui.toast('تم تحديث حالة العقار'); setTimeout(function () { location.reload(); }, 1400); });
     root.querySelector('[data-share]').addEventListener('click', function () {
       var url = location.href;
       try { navigator.clipboard.writeText(url).then(function () { ui.toast('تم نسخ رابط العقار'); }, function () { ui.toast('انسخ الرابط من شريط العنوان'); }); }

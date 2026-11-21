@@ -6,6 +6,7 @@ window.MZ = window.MZ || {};
 
 (function (MZ) {
   var S = MZ.schema, cfg = MZ.config;
+  var rtNotif = false;
 
   /* ---------- Icons (stroke, 24px) ---------- */
   var P = {
@@ -148,7 +149,8 @@ window.MZ = window.MZ || {};
       if (i === -1) l.push(id); else l.splice(i, 1);
       memFav = l; store('fav', l); updateFavCount();
       return i === -1;
-    }
+    },
+    set: function (arr) { memFav = (arr || []).map(String); store('fav', memFav); updateFavCount(); }
   };
   function updateFavCount() {
     var n = fav.list().length;
@@ -323,7 +325,11 @@ window.MZ = window.MZ || {};
     if (f) f.outerHTML = footer();
     updateFavCount();
     renderAuth();
-    if (MZ.me && MZ.me.isLoggedIn() && !(MZ.auth && MZ.auth.customer)) { MZ.me.load().then(renderAuth); }
+    if (MZ.me && MZ.me.isLoggedIn()) {
+      if (!(MZ.auth && MZ.auth.customer)) MZ.me.load().then(renderAuth);
+      if (MZ.me.syncFavorites) MZ.me.syncFavorites();
+      if (MZ.rt && !rtNotif) { rtNotif = true; MZ.rt.on('notification.new', function (n) { toast((n && n.title) || 'إشعار جديد'); }); }
+    }
 
     var drawer = document.querySelector('[data-menu]'), opener = document.querySelector('[data-menu-open]');
     function setMenu(open) {
@@ -348,8 +354,10 @@ window.MZ = window.MZ || {};
       var fb = e.target.closest('[data-fav]');
       if (fb) {
         e.preventDefault();
-        var on = fav.toggle(fb.getAttribute('data-fav'));
-        document.querySelectorAll('[data-fav="' + fb.getAttribute('data-fav') + '"]').forEach(function (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
+        var favId = fb.getAttribute('data-fav');
+        var on = fav.toggle(favId);
+        if (MZ.me && MZ.me.isLoggedIn()) { (on ? MZ.me.addFav : MZ.me.removeFav)(favId); }
+        document.querySelectorAll('[data-fav="' + favId + '"]').forEach(function (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', on); });
         toast(on ? 'أُضيف العقار إلى المفضلة' : 'أُزيل العقار من المفضلة');
         document.dispatchEvent(new CustomEvent('mz:fav'));
         return;
@@ -415,6 +423,7 @@ window.MZ = window.MZ || {};
         var name = vForm.name ? vForm.name.value.trim() : undefined;
         MZ.me.otpVerify(dest, code, name).then(function () {
           closeModal(); renderAuth(); toast('مرحباً بك');
+          if (MZ.me.syncFavorites) MZ.me.syncFavorites();
           if (onDone) onDone();
         }).catch(function (err) {
           if (/الاسم مطلوب/.test(err.message)) { isNew = true; draw(); return; }
