@@ -42,10 +42,10 @@
 | الأدوار والصلاحيات (docs/03) | ✅ | `permissions.ts` لإعادة استخدامه في حارس المرحلة 1 |
 | نقاط الصحّة + bootstrap (main/worker) + Swagger + env | ✅ | `/api/v1/health`، `/api/docs` |
 | البذرة (seed): أدوار، مدن/أحياء، إعدادات، سجلّ تكاملات، مالك | ✅ | idempotent؛ لم تُشغَّل بعد (تحتاج قاعدة بيانات) |
-| هيكل لوحة التحكم (Vite React RTL + tokens) | ⏳ | لم يبدأ |
-| البنية التحتية: docker-compose (dev/prod)، Caddyfile، `.env.example`، CI | ⏳ | لم يبدأ |
-| الهجرة الأولى (`prisma migrate`) + تسلسل العقار من 1001 + tsvector/GIN + فهرس الحجز الفريد | ⏳ | تحتاج PostgreSQL يعمل (Docker) |
-| قبول المرحلة: `docker compose up` يعطي `/` و`/admin` و`/api/v1/health` | ⏳ | يحتاج Docker + مساحة قرص |
+| هيكل لوحة التحكم (Vite React RTL + tokens) | ✅ | لوحة المكتب + السوبر-أدمن؛ typecheck/build/lint ناجح، base /admin/ |
+| البنية التحتية: docker-compose (dev/prod)، Caddyfile، `.env.example`، CI | ✅ | dev config صالح؛ Dockerfile، RLS script، GitHub Actions |
+| الهجرة الأولى (`prisma migrate`) + tsvector/GIN + فهرس الحجز الفريد | ⏳ | تُولَّد عند توفّر PostgreSQL؛ dev compose يستخدم `db push` مؤقتاً |
+| قبول المرحلة: `docker compose up` يعطي `/` و`/admin` و`/api/v1/health` | ⏳ | الملفات جاهزة ومُتحقَّق من صحّتها؛ التشغيل الفعلي يحتاج تشغيل Docker Desktop (الـ daemon متوقّف) |
 
 ### معايير القبول (docs/11)
 - [ ] `docker compose up` يعطي `/`, `/admin`, `/api/v1/health` محلياً.
