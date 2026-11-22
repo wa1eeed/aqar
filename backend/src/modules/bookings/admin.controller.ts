@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Patch, Post, Query, StreamableFile } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { BookingsService } from './bookings.service.js';
 import { BankAccountsService } from './bank-accounts.service.js';
+import { ReceiptsService } from './receipts.service.js';
 import { CurrentUser, RequirePermissions } from '../auth/decorators.js';
 import type { AuthUser } from '../auth/auth-user.js';
 
@@ -56,11 +57,21 @@ export class AdminBookingsController {
 @RequirePermissions('payments.view')
 @Controller('admin/payments')
 export class AdminPaymentsController {
-  constructor(private readonly svc: BookingsService) {}
+  constructor(
+    private readonly svc: BookingsService,
+    private readonly receipts: ReceiptsService,
+  ) {}
 
   @Get()
   list(@Query() query: Record<string, unknown>) {
     return this.svc.adminPaymentsList(query);
+  }
+
+  @Get(':id/receipt.pdf')
+  @Header('Content-Type', 'application/pdf')
+  @Header('Content-Disposition', 'inline; filename="receipt.pdf"')
+  async receipt(@Param('id') id: string): Promise<StreamableFile> {
+    return new StreamableFile(await this.receipts.file(id));
   }
 
   @Post(':id/refund')

@@ -12,6 +12,8 @@ export const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(16).optional(),
   PUBLIC_URL: z.string().url().optional(),
   CORS_ORIGINS: z.string().optional(),
+  // مسار Chromium لعرض إيصالات PDF؛ يُضبط في العامل الخلفي (والتطوير). غيابه يعطّل العرض — عزل.
+  CHROMIUM_PATH: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

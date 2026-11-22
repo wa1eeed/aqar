@@ -107,6 +107,28 @@ export const r2Storage = {
     await client.send(new DeleteObjectCommand({ Bucket: bucketName(ctx, bucket), Key: key }));
   },
 
+  // رفع/قراءة خادميان مباشران (للملفّات الخاصّة مثل إيصالات PDF).
+  async put(
+    ctx: ProviderCtx<Config, Secrets>,
+    bucket: StorageBucket,
+    key: string,
+    body: Buffer,
+    contentType: string,
+  ): Promise<void> {
+    const client = makeClient(ctx);
+    await client.send(
+      new PutObjectCommand({ Bucket: bucketName(ctx, bucket), Key: key, Body: body, ContentType: contentType }),
+    );
+  },
+
+  async get(ctx: ProviderCtx<Config, Secrets>, bucket: StorageBucket, key: string): Promise<Buffer> {
+    const client = makeClient(ctx);
+    const r = await client.send(new GetObjectCommand({ Bucket: bucketName(ctx, bucket), Key: key }));
+    if (!r.Body) throw new Error('empty object body');
+    const bytes = await (r.Body as { transformToByteArray(): Promise<Uint8Array> }).transformToByteArray();
+    return Buffer.from(bytes);
+  },
+
   publicUrl(ctx: ProviderCtx<Config, Secrets>, key: string): string {
     return `${ctx.config.publicBaseUrl.replace(/\/$/, '')}/${key}`;
   },

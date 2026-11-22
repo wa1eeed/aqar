@@ -232,6 +232,14 @@ export class IntegrationsService {
     return this.execute('storage.r2', 'signedGet', (ctx) => r2Storage.signedGet(this.r2ctx(ctx), bucket, key, ttlSec));
   }
 
+  async storagePut(bucket: StorageBucket, key: string, body: Buffer, contentType: string) {
+    return this.execute('storage.r2', 'put', (ctx) => r2Storage.put(this.r2ctx(ctx), bucket, key, body, contentType));
+  }
+
+  async storageGet(bucket: StorageBucket, key: string): Promise<Buffer> {
+    return this.execute('storage.r2', 'get', (ctx) => r2Storage.get(this.r2ctx(ctx), bucket, key));
+  }
+
   async deleteObject(bucket: StorageBucket, key: string) {
     return this.execute('storage.r2', 'delete', (ctx) => r2Storage.delete(this.r2ctx(ctx), bucket, key));
   }
