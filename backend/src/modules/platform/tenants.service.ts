@@ -103,7 +103,7 @@ export class TenantsService {
     return result;
   }
 
-  async setStatus(id: string, status: 'trial' | 'active' | 'suspended' | 'cancelled', actorId?: string | null) {
+  async setStatus(id: string, status: 'pending' | 'trial' | 'active' | 'suspended' | 'cancelled', actorId?: string | null) {
     const tenant = await this.prisma.tenant.findFirst({ where: { id, deletedAt: null } });
     if (!tenant) throw new NotFoundException('المشترك غير موجود');
     const updated = await this.prisma.tenant.update({ where: { id }, data: { status } });

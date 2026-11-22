@@ -22,6 +22,7 @@ datasource db {
 // ═════════════════════════════ Platform (غير مملوك لمشترك) ═════════════════════════════
 
 enum TenantStatus {
+  pending
   trial
   active
   suspended
@@ -37,6 +38,14 @@ model Tenant {
   planKey   String?
   ownerName String?
   ownerEmail String?
+  // بيانات المنشأة (من نموذج التسجيل الذاتي)
+  officeType    String? // broker | office | company
+  commercialReg String? // رقم السجل التجاري
+  falLicense    String? // رقم رخصة فال (الهيئة العامة للعقار)
+  city          String?
+  phone         String?
+  contactName   String? // اسم مسؤول التواصل
+  website       String?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   deletedAt DateTime?
