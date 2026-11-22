@@ -76,25 +76,30 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
 .hero__trust{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:center;color:var(--muted);font-size:.9rem;font-weight:500}
 .hero__trust span{display:inline-flex;align-items:center;gap:8px}
 .hero__trust svg{width:17px;height:17px;color:var(--green-2);flex:0 0 17px}
-/* Hero visual: app mock */
-.mock{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);overflow:hidden;transform:rotate(-1.2deg)}
-.mock__bar{display:flex;align-items:center;gap:7px;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--sand-100)}
-.mock__bar i{width:11px;height:11px;border-radius:50%;background:var(--line-2);display:block}
-.mock__bar b{margin-inline-start:10px;font-size:.8rem;color:var(--muted);font-weight:500}
-.mock__body{padding:18px}
-.mock__kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:15px}
-.kpi{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px}
-.kpi b{font-family:var(--f-display);font-size:1.35rem;color:var(--green);display:block}
-.kpi span{font-size:.76rem;color:var(--muted)}
-.mock__rows{display:flex;flex-direction:column;gap:9px}
-.mrow{display:flex;align-items:center;gap:11px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px}
-.mrow .th{width:42px;height:42px;border-radius:9px;background:linear-gradient(135deg,var(--sand-200),var(--sand-100));flex:0 0 42px}
-.mrow .tx{flex:1}
-.mrow .tx i{display:block;height:8px;border-radius:4px;background:var(--sand-200)}
-.mrow .tx i:first-child{width:60%;margin-bottom:7px;background:var(--line-2)}
-.mrow .tx i:last-child{width:38%}
-.mrow .tag{font-size:.72rem;font-weight:600;color:var(--green-2);background:var(--green-50);padding:4px 10px;border-radius:999px;white-space:nowrap}
-.mrow .tag.g{color:var(--gold-ink);background:var(--gold-50)}
+/* Hero visual: animated scene */
+.scene{position:relative;width:100%;max-width:520px;margin-inline:auto}
+.scene__art{width:100%;height:auto;display:block;overflow:visible}
+.float-a{animation:floaty 6s ease-in-out infinite}
+.float-b{animation:floaty 7s ease-in-out infinite .7s}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.ring{transform-box:fill-box;transform-origin:center;animation:ring 2.8s ease-out infinite}
+.ring--2{animation-delay:1.4s}
+@keyframes ring{0%{transform:scale(.4);opacity:.6}100%{transform:scale(1.5);opacity:0}}
+.glow{animation:glow 2.3s ease-in-out infinite}
+@keyframes glow{0%,100%{opacity:.82}50%{opacity:1}}
+.note{position:absolute;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 13px;box-shadow:var(--shadow);opacity:0;will-change:transform,opacity}
+.note__ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 30px}
+.note__ic svg{width:17px;height:17px}
+.nic-g{background:var(--green-50);color:var(--green)}
+.nic-d{background:var(--gold-50);color:var(--gold-ink)}
+.note__tx{display:flex;flex-direction:column;line-height:1.3}
+.note__tx b{font-size:.82rem;color:var(--ink);font-weight:600}
+.note__tx i{font-style:normal;font-size:.72rem;color:var(--muted)}
+.note--1{top:3%;inset-inline-start:-3%;animation:notePop 8.4s ease-in-out infinite}
+.note--2{top:43%;inset-inline-end:-4%;animation:notePop 8.4s ease-in-out infinite 2.8s}
+.note--3{bottom:8%;inset-inline-start:3%;animation:notePop 8.4s ease-in-out infinite 5.6s}
+@keyframes notePop{0%{opacity:0;transform:translateY(16px) scale(.92)}5%{opacity:1;transform:translateY(0) scale(1)}28%{opacity:1;transform:translateY(0) scale(1)}35%{opacity:0;transform:translateY(-10px) scale(.97)}100%{opacity:0;transform:translateY(-10px) scale(.97)}}
+@media(prefers-reduced-motion:reduce){.float-a,.float-b,.ring,.glow,.note{animation:none}.note{opacity:1}.note--2,.note--3{display:none}}
 
 /* Logos / stats strip */
 .strip{background:var(--green-900);color:#fff}
@@ -217,19 +222,93 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
         </div>
       </div>
       <div class="hero__visual">
-        <div class="mock" role="img" aria-label="لوحة تحكم عقار أونلاين">
-          <div class="mock__bar"><i></i><i></i><i></i><b>لوحة المكتب — عقار أونلاين</b></div>
-          <div class="mock__body">
-            <div class="mock__kpis">
-              <div class="kpi"><b>١٤٢</b><span>عقار نشط</span></div>
-              <div class="kpi"><b>٢٨</b><span>حجز هذا الشهر</span></div>
-              <div class="kpi"><b>٩١٬٥٠٠</b><span>ر.س مدفوعات</span></div>
-            </div>
-            <div class="mock__rows">
-              <div class="mrow"><span class="th"></span><span class="tx"><i></i><i></i></span><span class="tag">متاح</span></div>
-              <div class="mrow"><span class="th"></span><span class="tx"><i></i><i></i></span><span class="tag g">محجوز</span></div>
-              <div class="mrow"><span class="th"></span><span class="tx"><i></i><i></i></span><span class="tag">متاح</span></div>
-            </div>
+        <div class="scene">
+          <svg class="scene__art" viewBox="0 0 540 480" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شابّ وفتاة سعوديان يبحثان عن عقار بجوّالَيهما ويجدان موقع مكتب عقاري">
+            <defs>
+              <radialGradient id="gBg" cx="50%" cy="40%" r="62%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECE4D6"/></radialGradient>
+              <linearGradient id="gScr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E7449"/><stop offset="1" stop-color="#0F4C3A"/></linearGradient>
+            </defs>
+
+            <!-- backdrop -->
+            <circle cx="270" cy="234" r="196" fill="url(#gBg)"/>
+            <circle cx="270" cy="234" r="196" fill="none" stroke="#E4DBCC" stroke-width="1.5" stroke-dasharray="2 11" opacity=".7"/>
+            <path d="M120 150 A196 196 0 0 1 420 150" fill="none" stroke="#C9A86C" stroke-width="3" opacity=".3" stroke-linecap="round"/>
+            <circle cx="86" cy="250" r="6" fill="#C9A86C" opacity=".5"/>
+            <circle cx="456" cy="288" r="7" fill="#0F4C3A" opacity=".12"/>
+            <circle cx="430" cy="150" r="5" fill="#C9A86C" opacity=".45"/>
+
+            <!-- ground shadows -->
+            <ellipse cx="196" cy="430" rx="60" ry="12" fill="#0A2F25" opacity=".09"/>
+            <ellipse cx="356" cy="432" rx="62" ry="12" fill="#0A2F25" opacity=".09"/>
+
+            <!-- office badge -->
+            <g class="float-a">
+              <circle cx="270" cy="74" r="27" fill="#FFFFFF" stroke="#E4DBCC" stroke-width="1.5"/>
+              <g transform="translate(270 74)" stroke="#0F4C3A" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M-11 4 L0 -9 L11 4"/>
+                <path d="M-8 3 L-8 11 L8 11 L8 3"/>
+                <path d="M-2 11 L-2 6 L2 6 L2 11"/>
+              </g>
+            </g>
+
+            <!-- WOMAN (abaya + hijab) -->
+            <g class="float-a">
+              <path d="M158 250 Q156 202 196 200 Q236 202 234 250 L246 424 Q196 436 146 424 Z" fill="#153F35"/>
+              <path d="M196 208 L196 426" stroke="#0E2E27" stroke-width="2" opacity=".5"/>
+              <path d="M162 262 Q146 306 158 360" stroke="#153F35" stroke-width="17" stroke-linecap="round"/>
+              <path d="M228 258 Q256 248 262 214" stroke="#153F35" stroke-width="17" stroke-linecap="round"/>
+              <circle cx="264" cy="208" r="9" fill="#E7B58E"/>
+              <path d="M164 160 Q162 118 196 116 Q230 118 228 160 Q236 206 246 220 L210 220 Q201 211 196 204 Q191 211 182 220 L146 220 Q156 206 164 160 Z" fill="#C9A86C"/>
+              <path d="M196 116 Q214 118 224 150" stroke="#B8945A" stroke-width="2" fill="none" opacity=".6"/>
+              <ellipse cx="196" cy="156" rx="19" ry="22" fill="#E7B58E"/>
+              <circle cx="190" cy="155" r="2" fill="#2A2320"/>
+              <circle cx="202" cy="155" r="2" fill="#2A2320"/>
+              <path d="M191 166 Q196 170 201 166" stroke="#B5745A" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <g transform="rotate(-10 253 196)">
+                <rect x="240" y="172" width="30" height="50" rx="7" fill="#1B2B24"/>
+                <rect x="244" y="177" width="22" height="40" rx="4" fill="url(#gScr)" class="glow"/>
+                <circle cx="254" cy="196" r="6" fill="none" stroke="#fff" stroke-width="2" opacity=".9"/>
+                <path d="M258 200 L262 204" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+              </g>
+              <circle cx="254" cy="170" r="12" fill="none" stroke="#C9A86C" stroke-width="2" class="ring"/>
+              <circle cx="254" cy="170" r="12" fill="none" stroke="#C9A86C" stroke-width="2" class="ring ring--2"/>
+            </g>
+
+            <!-- MAN (thobe + ghutra + agal) -->
+            <g class="float-b">
+              <path d="M322 250 Q320 202 360 200 Q400 202 398 250 L410 426 Q360 437 310 426 Z" fill="#F7F4EE" stroke="#E7E0D2" stroke-width="1.5"/>
+              <path d="M360 208 L360 428" stroke="#E4DBCC" stroke-width="2"/>
+              <path d="M326 258 Q300 248 294 216" stroke="#F2EDE3" stroke-width="17" stroke-linecap="round"/>
+              <circle cx="292" cy="210" r="9" fill="#D9A273"/>
+              <path d="M394 260 Q412 304 400 360" stroke="#F2EDE3" stroke-width="17" stroke-linecap="round"/>
+              <path d="M328 150 Q326 110 360 108 Q394 110 392 150 Q400 198 410 214 L372 214 Q364 204 360 198 Q356 204 348 214 L310 214 Q320 198 328 150 Z" fill="#FFFFFF" stroke="#E7E0D2" stroke-width="1.5"/>
+              <path d="M334 126 Q360 117 386 126" stroke="#1A1A1A" stroke-width="6" fill="none" stroke-linecap="round"/>
+              <path d="M334 134 Q360 126 386 134" stroke="#262626" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <ellipse cx="360" cy="154" rx="19" ry="22" fill="#D9A273"/>
+              <path d="M343 158 Q360 182 377 158 Q374 174 360 177 Q346 174 343 158 Z" fill="#6E4A2A" opacity=".55"/>
+              <circle cx="354" cy="152" r="2" fill="#2A2320"/>
+              <circle cx="366" cy="152" r="2" fill="#2A2320"/>
+              <g transform="rotate(10 291 198)">
+                <rect x="276" y="174" width="30" height="50" rx="7" fill="#1B2B24"/>
+                <rect x="280" y="179" width="22" height="40" rx="4" fill="url(#gScr)" class="glow"/>
+                <path d="M287 199 l5 5 l9 -11" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+              <circle cx="291" cy="172" r="12" fill="none" stroke="#0F4C3A" stroke-width="2" opacity=".5" class="ring"/>
+              <circle cx="291" cy="172" r="12" fill="none" stroke="#0F4C3A" stroke-width="2" opacity=".5" class="ring ring--2"/>
+            </g>
+          </svg>
+
+          <div class="note note--1">
+            <span class="note__ic nic-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+            <span class="note__tx"><b>عقار متاح!</b><i>مكتب النرجس العقاري</i></span>
+          </div>
+          <div class="note note--2">
+            <span class="note__ic nic-d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+            <span class="note__tx"><b>فيلا · حي الياسمين</b><i>٤ غرف · ٢٫٨ مليون ر.س</i></span>
+          </div>
+          <div class="note note--3">
+            <span class="note__ic nic-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="note__tx"><b>تطابق بحثك</b><i>موقع مكتب عقاري</i></span>
           </div>
         </div>
       </div>
