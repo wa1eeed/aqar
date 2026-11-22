@@ -1,0 +1,91 @@
+# النشر على Coolify (VPS واحد) — Caddy يملك 80/443
+
+منصّة منزلة متعدّدة المستأجرين تحتاج أن يملك **Caddy** المنفذَين 80/443 ليدير:
+نطاقك الأساسي، **النطاقات الفرعية** `‎<مكتب>.نطاقك`، و**النطاقات المخصّصة** للمشتركين بشهادات **عند الطلب**
+(on-demand TLS بعد تحقّق الـAPI). لذا **Coolify يدير الدورة الحياتية فقط** (سحب/بناء/تشغيل)،
+ولا يُشغّل بروكسيه (Traefik) على هذا الخادم.
+
+البنية: `infra/docker-compose.yml` — postgres · redis · api · worker · admin-build · caddy.
+
+---
+
+## 1) المتطلّبات
+- خادم VPS (‏2 vCPU / 4GB فأكثر) مُضاف إلى Coolify.
+- **بروكسي Coolify غير مشغّل على هذا الخادم** (خصّص الخادم لهذه الحزمة، أو أوقف بروكسي Coolify)،
+  حتى يبنّد Caddy المنفذَين 80/443.
+- نطاق تتحكّم بـDNS الخاص به.
+
+## 2) DNS (وجّه كلّ شيء إلى عنوان الخادم)
+| السجلّ | المضيف | القيمة |
+|---|---|---|
+| A | `@` (النطاق الأساسي) | IP الخادم |
+| A | `*` (نطاق فرعي شامل للمشتركين) | IP الخادم |
+| A | نطاق كلّ مشترك مخصّص (لاحقاً) | IP الخادم |
+
+النطاق الأساسي ونطاقاته الفرعية تُصدَّر شهاداتها تلقائياً؛ النطاقات المخصّصة عبر on-demand TLS
+بعد إضافتها من لوحة السوبر-أدمن (يتحقّق Caddy من `‎/api/v1/platform/domains/check` قبل الإصدار).
+
+## 3) الأسرار (ولّدها على جهازك)
+```bash
+openssl rand -hex 32   # APP_ENCRYPTION_KEY
+openssl rand -hex 32   # JWT_ACCESS_SECRET
+openssl rand -hex 32   # JWT_REFRESH_SECRET
+openssl rand -hex 24   # POSTGRES_PASSWORD
+openssl rand -base64 18  # SEED_PLATFORM_ADMIN_PASSWORD و SEED_OWNER_PASSWORD
+```
+
+## 4) متغيّرات البيئة في Coolify
+انسخ مفاتيح `infra/.env.example` إلى متغيّرات البيئة للمورد في Coolify، واملأ:
+- **الأساس:** `PLATFORM_BASE_DOMAIN=نطاقك`، `ACME_EMAIL=بريدك`،
+  `ONDEMAND_ASK_URL=http://api:3000/api/v1/platform/domains/check`.
+- **Postgres:** `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB=manzilah`،
+  و`DATABASE_URL=postgresql://<USER>:<PASSWORD>@postgres:5432/manzilah?schema=public`.
+- **Redis:** `REDIS_URL=redis://redis:6379`.
+- **الأسرار:** `APP_ENCRYPTION_KEY`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`.
+- **بذرة أولى:** `SEED_PLATFORM_ADMIN_EMAIL/NAME/PASSWORD`،
+  `SEED_TENANT_SLUG=demo`, `SEED_TENANT_CODE=MZ`, `SEED_TENANT_NAME`،
+  `SEED_OWNER_EMAIL/NAME/PASSWORD`.
+- `NODE_ENV=production`, `PORT=3000`.
+- تكاملات المنصّة (R2/Resend) تُترك فارغة هنا وتُدخَل لاحقاً من لوحة السوبر-أدمن (مُشفّرة).
+
+> في الإنتاج يُلزِم `SEED_PLATFORM_ADMIN_PASSWORD` و`SEED_OWNER_PASSWORD` (البذر يرفض كلمات افتراضية).
+
+## 5) المورد في Coolify
+1. **New Resource → Docker Compose**، واربطه بمستودع GitHub `wa1eeed/aqar`، الفرع `main`.
+2. مسار ملفّ الـcompose: `infra/docker-compose.yml`.
+3. ألصق متغيّرات البيئة (الخطوة 4).
+4. تأكّد أنّ Coolify **لا** يضيف بروكسيه أمام الخدمات (Caddy يبنّد 80/443 مباشرة).
+5. **Deploy** — يبني Coolify الصور (api/worker، admin-build) ويُشغّل الحزمة.
+   - الـapi يُهيّئ المخطّط تلقائياً عند الإقلاع (`prisma migrate deploy` وإلا `db push`).
+
+## 6) البذر (مرّة واحدة)
+بعد أوّل إقلاع، من طرفية المورد في Coolify (أو عبر SSH في مجلّد الحزمة):
+```bash
+docker compose run --rm api pnpm db:seed
+```
+يُنشئ: السوبر-أدمن، الخطط، المدن، والمشترك التجريبي `demo` ببياناته.
+
+## 7) التحقّق
+- `curl -fsS https://<نطاقك>/api/v1/health` → `{"status":"ok","db":"up"}`.
+- لوحة المكتب: `https://<نطاقك>/admin/` (أو `https://demo.<نطاقك>/admin/`).
+- السوبر-أدمن: `https://<نطاقك>/admin/` بحساب `SEED_PLATFORM_ADMIN_EMAIL`.
+- من لوحة السوبر-أدمن: أدخل تكاملات **R2** (التخزين) و**Resend** (البريد)، واختبر الاتصال.
+
+## 8) إيصالات PDF (اختياري — عند تفعيل Moyasar)
+عامل الإيصالات يعرض HTML→PDF عبر Chromium، غير مثبّت افتراضياً (عزل: الـapi يبقى خفيفاً).
+لتفعيلها، أنشئ صورة عامل تُثبّت Chromium واضبط `CHROMIUM_PATH`:
+```dockerfile
+# backend/Dockerfile.worker (مثال)
+FROM manzilah-api  # أو كرّر مرحلة runtime
+RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-liberation \
+ && rm -rf /var/lib/apt/lists/*
+ENV CHROMIUM_PATH=/usr/bin/chromium
+CMD ["node","dist/worker.js"]
+```
+ثمّ وجّه خدمة `worker` إلى هذا الـDockerfile، واضبط `CHROMIUM_PATH=/usr/bin/chromium`.
+بدونها يردّ تنزيل الإيصال «قيد التجهيز» (503) دون أثر على بقيّة المنصّة.
+
+## 9) التشغيل اليومي
+- **الترقية:** ادفع إلى `main` → Coolify يُعيد البناء والنشر تلقائياً.
+- **النسخ الاحتياطي/الاستعادة/التراجع/المراقبة:** راجع [RUNBOOK](RUNBOOK.md) §4–§6.
+- **نطاق مشترك مخصّص:** أضِفه من لوحة السوبر-أدمن، ثمّ وجّه DNS له إلى الخادم — يُصدَّر TLS عند أوّل زيارة.

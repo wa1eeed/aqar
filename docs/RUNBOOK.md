@@ -30,7 +30,8 @@ docker compose run --rm api pnpm exec prisma migrate deploy   # عند توفّ�
 docker compose up -d
 curl -fsS https://<domain>/api/v1/health   # اختبار دخان
 ```
-- مع **Coolify**: يتولّى السحب/النشر وبروكسي Traefik والشهادات؛ أضِف نطاقات المشتركين (ومخصّصة) من لوحته.
+- مع **Coolify**: يتولّى السحب/البناء/النشر فقط؛ **Caddy** (داخل الحزمة) يملك 80/443 ويدير البروكسي
+  والشهادات وتعدّد المستأجرين (نطاقات فرعية + مخصّصة + TLS عند الطلب). دليل كامل: [COOLIFY.md](COOLIFY.md).
 
 ## 4. النسخ الاحتياطي والاستعادة
 - يومي 02:00: `infra/scripts/backup.sh` (pg_dump -Fc → تشفير age → R2 `backups/`).
