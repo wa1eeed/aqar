@@ -81,41 +81,65 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
 .hero__trust{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:center;color:var(--muted);font-size:.9rem;font-weight:500}
 .hero__trust span{display:inline-flex;align-items:center;gap:8px}
 .hero__trust svg{width:17px;height:17px;color:var(--green-2);flex:0 0 17px}
-/* Hero visual: animated scene */
-.scene{position:relative;width:100%;max-width:580px;margin-inline:auto}
-.scene__art{width:100%;height:auto;display:block;overflow:visible}
-.sway{transform-box:fill-box;transform-origin:bottom center}
-.sway-a{animation:sway 5s ease-in-out infinite}
-.sway-b{animation:sway 5.6s ease-in-out infinite .5s}
-@keyframes sway{0%,100%{transform:rotate(-.7deg)}50%{transform:rotate(.7deg)}}
-.scrn{animation:scrn 3.4s ease-in-out infinite}
-@keyframes scrn{0%,12%{transform:translateY(0)}46%,56%{transform:translateY(-26px)}90%,100%{transform:translateY(0)}}
-.thumb{transform-box:fill-box;transform-origin:center;animation:thumb 3.4s ease-in-out infinite}
-@keyframes thumb{0%,12%{transform:translateY(5px)}46%,56%{transform:translateY(-5px)}90%,100%{transform:translateY(5px)}}
-.flow{stroke-dasharray:2 7;animation:flow 1.1s linear infinite}
-@keyframes flow{to{stroke-dashoffset:-18}}
-.wifi{transform-box:fill-box;transform-origin:bottom center;animation:wifi 2.6s ease-out infinite}
-.wifi--2{animation-delay:.9s}
-.wifi--3{animation-delay:1.8s}
-@keyframes wifi{0%{opacity:0;transform:scale(.5)}28%{opacity:.9}100%{opacity:0;transform:scale(1.3)}}
-.glow{animation:glow 2.3s ease-in-out infinite}
-@keyframes glow{0%,100%{opacity:.85}50%{opacity:1}}
-.onair{position:absolute;top:1%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:7px;background:var(--green);color:#fff;border-radius:999px;padding:6px 14px;box-shadow:var(--shadow);font-size:.8rem;font-weight:600;white-space:nowrap}
+/* Hero visual: product mockup (office website, live online) */
+.scene{position:relative;width:100%;max-width:560px;margin-inline:auto;padding:22px 8px 30px}
+.browser{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-lg);overflow:hidden}
+.browser__bar{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--sand-100);border-bottom:1px solid var(--line)}
+.browser__dots{display:flex;gap:6px;flex:0 0 auto}
+.browser__dots i{width:10px;height:10px;border-radius:50%;background:var(--line-2)}
+.addr{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.72rem;color:var(--muted)}
+.addr .lock{width:12px;height:12px;color:var(--green-2);flex:0 0 12px}
+.addr .url{direction:ltr;font-weight:500;color:var(--ink-2)}
+.addr .live{width:7px;height:7px;border-radius:50%;background:#2DBE6E;flex:0 0 7px;animation:livep 1.8s ease-out infinite}
+@keyframes livep{0%{box-shadow:0 0 0 0 rgba(45,190,110,.55)}70%{box-shadow:0 0 0 6px rgba(45,190,110,0)}100%{box-shadow:0 0 0 0 rgba(45,190,110,0)}}
+.site__nav{display:flex;align-items:center;justify-content:space-between;padding:11px 15px;border-bottom:1px solid var(--line)}
+.site__brand{display:flex;align-items:center;gap:7px;font-family:var(--f-display);font-weight:700;font-size:.82rem;color:var(--green-900)}
+.site__brand .mk{width:21px;height:21px;border-radius:7px;background:linear-gradient(145deg,var(--green-2),var(--green-900));display:grid;place-items:center;flex:0 0 21px}
+.site__brand .mk svg{width:12px;height:12px}
+.site__menu{display:flex;gap:14px;font-size:.72rem;color:var(--muted)}
+.site__menu b{color:var(--green);font-weight:600}
+.site__cta{font-size:.68rem;font-weight:600;background:var(--green);color:#fff;padding:5px 11px;border-radius:999px;white-space:nowrap}
+.site__hero{padding:15px;background:radial-gradient(420px 150px at 85% 0,var(--gold-50),transparent 70%),var(--sand-100)}
+.site__hero h4{font-family:var(--f-display);font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:10px;line-height:1.3}
+.site__search{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow-sm)}
+.site__search .tab{font-size:.66rem;font-weight:600;padding:5px 11px;border-radius:8px;color:var(--muted)}
+.site__search .tab.on{background:var(--green);color:#fff}
+.site__search .fld{flex:1;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.66rem;padding-inline-start:4px}
+.site__search .fld svg{width:13px;height:13px}
+.site__grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:14px 15px 16px}
+.pcard{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);box-shadow:var(--shadow-sm);opacity:0;transform:translateY(10px);animation:cardIn .55s ease forwards}
+.pcard:nth-child(1){animation-delay:.15s}.pcard:nth-child(2){animation-delay:.3s}.pcard:nth-child(3){animation-delay:.45s}.pcard:nth-child(4){animation-delay:.6s}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+.pcard__ph{position:relative;height:64px;overflow:hidden}
+.pcard__ph svg{position:absolute;inset:0;width:100%;height:100%}
+.pcard__tag{position:absolute;top:7px;inset-inline-start:7px;font-size:.58rem;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--green);color:#fff}
+.pcard__tag.rent{background:var(--of-rent)}
+.pcard__b{padding:8px 10px 10px}
+.pcard__t{font-size:.72rem;font-weight:600;color:var(--ink)}
+.pcard__loc{font-size:.62rem;color:var(--muted);margin-top:1px}
+.pcard__p{font-family:var(--f-display);font-size:.78rem;font-weight:700;color:var(--green);margin-top:5px}
+.phone{position:absolute;bottom:0;inset-inline-end:-1%;width:122px;background:#121E19;border-radius:24px;padding:7px;box-shadow:var(--shadow-lg);border:1px solid #28382F}
+.phone__notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:40px;height:5px;border-radius:999px;background:#2B3A32;z-index:2}
+.phone__scr{background:var(--bg);border-radius:18px;overflow:hidden;height:208px}
+.phone__top{background:linear-gradient(145deg,var(--green-2),var(--green-900));color:#fff;padding:15px 11px 10px;font-family:var(--f-display);font-weight:700;font-size:.72rem}
+.phone__top span{display:block;font-family:var(--f-body);font-weight:400;font-size:.58rem;opacity:.82;margin-top:2px}
+.pmini{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line)}
+.pmini__ph{width:40px;height:34px;border-radius:7px;flex:0 0 40px;overflow:hidden;position:relative}
+.pmini__ph svg{position:absolute;inset:0;width:100%;height:100%}
+.pmini__tx b{display:block;font-size:.62rem;color:var(--ink);font-weight:600}
+.pmini__tx i{font-style:normal;font-size:.55rem;color:var(--muted)}
+.pmini__tx u{text-decoration:none;display:block;font-family:var(--f-display);font-size:.62rem;font-weight:700;color:var(--green);margin-top:2px}
+.onair{position:absolute;top:0;inset-inline-start:1%;display:flex;align-items:center;gap:7px;background:var(--green);color:#fff;border-radius:999px;padding:6px 13px;box-shadow:var(--shadow);font-size:.78rem;font-weight:600;white-space:nowrap;z-index:3}
+.onair .live{width:8px;height:8px;border-radius:50%;background:#7BE0A6;flex:0 0 8px;animation:livep 1.8s ease-out infinite}
 .onair svg{width:14px;height:14px}
-.onair .live{width:8px;height:8px;border-radius:50%;background:#7BE0A6;animation:livep 1.8s ease-out infinite}
-@keyframes livep{0%{box-shadow:0 0 0 0 rgba(123,224,166,.6)}70%{box-shadow:0 0 0 7px rgba(123,224,166,0)}100%{box-shadow:0 0 0 0 rgba(123,224,166,0)}}
-.note{position:absolute;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:9px 13px;box-shadow:var(--shadow);opacity:0;will-change:transform,opacity}
-.note__ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:0 0 30px}
-.note__ic svg{width:17px;height:17px}
-.nic-g{background:var(--green-50);color:var(--green)}
-.nic-d{background:var(--gold-50);color:var(--gold-ink)}
-.note__tx{display:flex;flex-direction:column;line-height:1.3}
-.note__tx b{font-size:.8rem;color:var(--ink);font-weight:600}
-.note__tx i{font-style:normal;font-size:.7rem;color:var(--muted)}
-.note--1{top:34%;inset-inline-start:-5%;animation:notePop 7s ease-in-out infinite}
-.note--2{top:29%;inset-inline-end:-5%;animation:notePop 7s ease-in-out infinite 3.5s}
-@keyframes notePop{0%{opacity:0;transform:translateY(16px) scale(.92)}7%{opacity:1;transform:translateY(0) scale(1)}43%{opacity:1;transform:translateY(0) scale(1)}50%{opacity:0;transform:translateY(-10px) scale(.97)}100%{opacity:0;transform:translateY(-10px) scale(.97)}}
-@media(prefers-reduced-motion:reduce){.sway-a,.sway-b,.scrn,.thumb,.flow,.wifi,.glow,.note,.onair .live{animation:none}.note{opacity:1}.note--2{display:none}}
+.toast{position:absolute;top:30%;inset-inline-start:-4%;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:9px 12px;box-shadow:var(--shadow);z-index:3;animation:toast 5.5s ease-in-out infinite}
+.toast__ic{width:28px;height:28px;border-radius:8px;background:var(--gold-50);color:var(--gold-ink);display:grid;place-items:center;flex:0 0 28px}
+.toast__ic svg{width:16px;height:16px}
+.toast b{display:block;font-size:.74rem;color:var(--ink);font-weight:600;line-height:1.3}
+.toast i{font-style:normal;font-size:.64rem;color:var(--muted)}
+@keyframes toast{0%{opacity:0;transform:translateY(12px) scale(.95)}10%,40%{opacity:1;transform:translateY(0) scale(1)}48%,100%{opacity:0;transform:translateY(-8px) scale(.97)}}
+@media(prefers-reduced-motion:reduce){.pcard,.addr .live,.onair .live,.toast{animation:none;opacity:1;transform:none}}
+@media(max-width:560px){.phone{width:106px}.site__menu{display:none}.toast{display:none}}
 
 /* Logos / stats strip */
 .strip{background:var(--green-900);color:#fff}
@@ -145,7 +169,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
 .plans{grid-template-columns:repeat(3,1fr);align-items:stretch}
 .plan{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 26px;box-shadow:var(--shadow-sm)}
 .plan--feat{border:2px solid var(--green);box-shadow:var(--shadow);position:relative}
-.plan--feat::after{content:"الأكثر طلباً";position:absolute;top:-13px;inset-inline-start:26px;background:var(--gold);color:var(--green-900);font-size:.78rem;font-weight:700;padding:5px 14px;border-radius:999px}
+.plan--feat::after{content:"الخيار الأفضل";position:absolute;top:-13px;inset-inline-start:26px;background:var(--gold);color:var(--green-900);font-size:.78rem;font-weight:700;padding:5px 14px;border-radius:999px}
 .plan h3{font-size:1.3rem;margin-bottom:4px}
 .plan__desc{color:var(--muted);font-size:.92rem;min-height:40px}
 .plan__price{display:flex;align-items:baseline;gap:7px;margin:14px 0 2px}
@@ -211,7 +235,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
     </nav>
     <div class="hdr__cta">
       <a href="/admin/" class="btn btn--ghost">دخول المكاتب</a>
-      <a href="#contact" class="btn btn--primary">اطلب عرضاً</a>
+      <a href="#contact" class="btn btn--primary">اشترك الآن</a>
       <button class="burger" id="burger" aria-label="القائمة" aria-expanded="false"><span></span></button>
     </div>
   </div>
@@ -239,183 +263,81 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
       </div>
       <div class="hero__visual">
         <div class="scene">
-          <svg class="scene__art" viewBox="0 0 760 470" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="فتاة وشاب سعوديان كلٌّ في مكانه يتصفّحان جوّاليهما، وبينهما مكتب عقاري اشترك وأصبح ظاهراً لعملائه أونلاين">
-            <defs>
-              <radialGradient id="gBg" cx="50%" cy="38%" r="65%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECE4D6"/></radialGradient>
-              <linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBF7F0"/><stop offset="1" stop-color="#EFE7D7"/></linearGradient>
-              <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#DCEDE7"/><stop offset="1" stop-color="#B7D6CD"/></linearGradient>
-              <linearGradient id="gAbaya" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C4A3D"/><stop offset="1" stop-color="#0C3026"/></linearGradient>
-              <linearGradient id="gThobe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9E1D1"/></linearGradient>
-              <linearGradient id="gHijab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D4B57E"/><stop offset="1" stop-color="#B28E54"/></linearGradient>
-              <linearGradient id="gSkinF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1C39C"/><stop offset="1" stop-color="#E0A778"/></linearGradient>
-              <linearGradient id="gSkinM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4AA78"/><stop offset="1" stop-color="#CD8F58"/></linearGradient>
-              <clipPath id="scrF"><rect x="134" y="236" width="32" height="54" rx="4"/></clipPath>
-              <clipPath id="scrM"><rect x="594" y="236" width="32" height="54" rx="4"/></clipPath>
-            </defs>
+          <div class="browser">
+            <div class="browser__bar">
+              <div class="browser__dots"><i></i><i></i><i></i></div>
+              <div class="addr">
+                <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                <span class="url">alnarjes.aqaar.online</span>
+                <span class="live"></span>
+              </div>
+            </div>
+            <div class="site">
+              <div class="site__nav">
+                <div class="site__brand"><span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></span>مكتب النرجس العقاري</div>
+                <div class="site__menu"><b>الرئيسية</b><span>العقارات</span><span>تواصل</span></div>
+                <div class="site__cta">احجز معاينة</div>
+              </div>
+              <div class="site__hero">
+                <h4>اعثر على عقارك في الرياض</h4>
+                <div class="site__search">
+                  <span class="tab on">للبيع</span>
+                  <span class="tab">للإيجار</span>
+                  <span class="fld"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>الحي، النوع، السعر…</span>
+                </div>
+              </div>
+              <div class="site__grid">
+                <div class="pcard">
+                  <div class="pcard__ph"><span class="pcard__tag">للبيع</span>
+                    <svg viewBox="0 0 120 64" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFE5F0"/><stop offset="1" stop-color="#EAF2E8"/></linearGradient></defs><rect width="120" height="64" fill="url(#skyA)"/><circle cx="98" cy="15" r="7" fill="#F4E4C2" opacity=".8"/><rect y="48" width="120" height="16" fill="#E4DAC5"/><rect x="28" y="24" width="46" height="26" fill="#F4EFE5" stroke="#D9CDB6"/><rect x="28" y="20" width="46" height="6" fill="#176149"/><rect x="34" y="30" width="9" height="9" fill="#BBD6CE"/><rect x="48" y="30" width="9" height="9" fill="#BBD6CE"/><rect x="60" y="32" width="9" height="18" fill="#0F4C3A"/><rect x="86" y="36" width="3" height="14" fill="#7A5A33"/><path d="M87 36 Q80 32 76 35 M87 36 Q94 32 98 35 M87 36 Q84 29 88 26 M87 36 Q90 29 95 31" stroke="#2E7D4F" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="pcard__b"><div class="pcard__t">فيلا دورين</div><div class="pcard__loc">حي الياسمين</div><div class="pcard__p">٢٫٨ مليون ر.س</div></div>
+                </div>
+                <div class="pcard">
+                  <div class="pcard__ph"><span class="pcard__tag rent">للإيجار</span>
+                    <svg viewBox="0 0 120 64" preserveAspectRatio="xMidYMid slice"><rect width="120" height="64" fill="url(#skyA)"/><rect y="48" width="120" height="16" fill="#E4DAC5"/><rect x="36" y="14" width="30" height="36" fill="#EFE9DD" stroke="#D9CDB6"/><g fill="#BBD6CE"><rect x="40" y="18" width="7" height="7"/><rect x="50" y="18" width="7" height="7"/><rect x="40" y="29" width="7" height="7"/><rect x="50" y="29" width="7" height="7"/><rect x="40" y="40" width="7" height="7"/><rect x="50" y="40" width="7" height="7"/></g><rect x="70" y="26" width="20" height="24" fill="#F4EFE5" stroke="#D9CDB6"/><g fill="#BBD6CE"><rect x="74" y="30" width="6" height="6"/><rect x="82" y="30" width="6" height="6"/><rect x="74" y="40" width="6" height="6"/><rect x="82" y="40" width="6" height="6"/></g></svg>
+                  </div>
+                  <div class="pcard__b"><div class="pcard__t">شقة عصرية</div><div class="pcard__loc">حي النرجس</div><div class="pcard__p">٤٬٥٠٠ ر.س / شهر</div></div>
+                </div>
+                <div class="pcard">
+                  <div class="pcard__ph"><span class="pcard__tag">للبيع</span>
+                    <svg viewBox="0 0 120 64" preserveAspectRatio="xMidYMid slice"><rect width="120" height="64" fill="url(#skyA)"/><rect y="46" width="120" height="18" fill="#E7DEC9"/><path d="M14 46 L58 46 L50 56 L22 56 Z" fill="#D8CBB0"/><rect x="66" y="40" width="40" height="6" fill="#C9B896"/><path d="M30 42 l0 4 M42 42 l0 4" stroke="#B6A784" stroke-width="2"/><circle cx="96" cy="16" r="7" fill="#F4E4C2" opacity=".8"/></svg>
+                  </div>
+                  <div class="pcard__b"><div class="pcard__t">أرض سكنية</div><div class="pcard__loc">حي العارض</div><div class="pcard__p">١٫٢ مليون ر.س</div></div>
+                </div>
+                <div class="pcard">
+                  <div class="pcard__ph"><span class="pcard__tag">للبيع</span>
+                    <svg viewBox="0 0 120 64" preserveAspectRatio="xMidYMid slice"><rect width="120" height="64" fill="url(#skyA)"/><rect y="48" width="120" height="16" fill="#E4DAC5"/><rect x="30" y="26" width="50" height="24" fill="#F4EFE5" stroke="#D9CDB6"/><rect x="30" y="22" width="50" height="5" fill="#C9A86C"/><rect x="36" y="31" width="10" height="10" fill="#BBD6CE"/><rect x="52" y="31" width="10" height="10" fill="#BBD6CE"/><rect x="66" y="33" width="9" height="17" fill="#0F4C3A"/><rect x="88" y="38" width="3" height="12" fill="#7A5A33"/><path d="M89 38 Q83 35 79 37 M89 38 Q95 35 99 37 M89 38 Q86 31 90 29" stroke="#2E7D4F" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+                  </div>
+                  <div class="pcard__b"><div class="pcard__t">دور أرضي</div><div class="pcard__loc">حي الملقا</div><div class="pcard__p">٩٥٠ ألف ر.س</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <!-- backdrop -->
-            <circle cx="380" cy="228" r="210" fill="url(#gBg)"/>
-            <circle cx="380" cy="228" r="210" fill="none" stroke="#E4DBCC" stroke-width="1.5" stroke-dasharray="2 12" opacity=".7"/>
-            <path d="M212 110 A210 210 0 0 1 548 110" fill="none" stroke="#C9A86C" stroke-width="3" opacity=".3" stroke-linecap="round"/>
-            <circle cx="96" cy="300" r="6" fill="#C9A86C" opacity=".5"/>
-            <circle cx="664" cy="300" r="6" fill="#0F4C3A" opacity=".12"/>
-            <circle cx="150" cy="120" r="5" fill="#C9A86C" opacity=".4"/>
-            <circle cx="612" cy="118" r="5" fill="#0F4C3A" opacity=".12"/>
-
-            <!-- ground shadows -->
-            <ellipse cx="150" cy="424" rx="54" ry="11" fill="#0A2F25" opacity=".09"/>
-            <ellipse cx="380" cy="408" rx="96" ry="14" fill="#0A2F25" opacity=".1"/>
-            <ellipse cx="610" cy="424" rx="54" ry="11" fill="#0A2F25" opacity=".09"/>
-
-            <!-- connection flow: phones -> office sign -->
-            <path class="flow" d="M158 236 Q258 150 366 132" stroke="#0F4C3A" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
-            <path class="flow" d="M602 236 Q502 150 394 132" stroke="#0F4C3A" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".5"/>
-
-            <!-- ===== OFFICE (center) ===== -->
-            <g>
-              <rect x="306" y="196" width="148" height="12" rx="3" fill="#0F4C3A"/>
-              <rect x="312" y="208" width="136" height="196" rx="4" fill="url(#gWall)" stroke="#E2D8C4" stroke-width="1.5"/>
-              <!-- upper windows -->
-              <g stroke="#B9CDC5" stroke-width="1.2">
-                <rect x="330" y="222" width="36" height="32" rx="3" fill="url(#gGlass)"/>
-                <rect x="394" y="222" width="36" height="32" rx="3" fill="url(#gGlass)"/>
-                <path d="M348 222 L348 254 M330 238 L366 238" opacity=".7"/>
-                <path d="M412 222 L412 254 M394 238 L430 238" opacity=".7"/>
-              </g>
-              <!-- facade sign board -->
-              <rect x="326" y="264" width="108" height="22" rx="4" fill="#0F4C3A"/>
-              <g transform="translate(339 275)" stroke="#C9A86C" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M-6 3 L0 -5 L6 3"/><path d="M-4 2 L-4 6 L4 6 L4 2"/>
-              </g>
-              <rect x="352" y="270" width="40" height="3.4" rx="1.7" fill="#F3EDE3"/>
-              <rect x="352" y="277" width="28" height="3" rx="1.5" fill="#C9A86C"/>
-              <!-- awning -->
-              <path d="M320 292 L440 292 L434 310 L326 310 Z" fill="#146149"/>
-              <g fill="#EFEADF" opacity=".9"><rect x="335" y="292" width="8" height="18"/><rect x="357" y="292" width="8" height="18"/><rect x="379" y="292" width="8" height="18"/><rect x="401" y="292" width="8" height="18"/><rect x="423" y="292" width="8" height="18"/></g>
-              <g fill="#0F5A43"><circle cx="331" cy="310" r="5"/><circle cx="345" cy="310" r="5"/><circle cx="359" cy="310" r="5"/><circle cx="373" cy="310" r="5"/><circle cx="387" cy="310" r="5"/><circle cx="401" cy="310" r="5"/><circle cx="415" cy="310" r="5"/><circle cx="429" cy="310" r="5"/></g>
-              <!-- storefront glass -->
-              <rect x="326" y="316" width="108" height="86" rx="3" fill="url(#gGlass)" stroke="#B9CDC5" stroke-width="1.2"/>
-              <!-- listing cards in window -->
-              <g>
-                <rect x="333" y="324" width="42" height="30" rx="3" fill="#fff" stroke="#E6DFCF"/>
-                <rect x="337" y="328" width="15" height="22" rx="2" fill="#CFE3DB"/>
-                <rect x="355" y="329" width="16" height="3.4" rx="1.7" fill="#C8BBA4"/>
-                <rect x="355" y="336" width="11" height="3" rx="1.5" fill="#DED3BE"/>
-                <rect x="355" y="345" width="14" height="5" rx="2.5" fill="#176149"/>
-                <rect x="385" y="324" width="42" height="30" rx="3" fill="#fff" stroke="#E6DFCF"/>
-                <rect x="389" y="328" width="15" height="22" rx="2" fill="#E7D8BE"/>
-                <rect x="407" y="329" width="16" height="3.4" rx="1.7" fill="#C8BBA4"/>
-                <rect x="407" y="336" width="11" height="3" rx="1.5" fill="#DED3BE"/>
-                <rect x="407" y="345" width="14" height="5" rx="2.5" fill="#2457A6"/>
-              </g>
-              <!-- door -->
-              <rect x="364" y="360" width="32" height="42" rx="2" fill="#0F4C3A" opacity=".88"/>
-              <circle cx="389" cy="382" r="2" fill="#C9A86C"/>
-              <!-- rooftop pole + sign -->
-              <rect x="377" y="150" width="6" height="48" fill="#0F4C3A"/>
-              <circle cx="380" cy="128" r="24" fill="#FFFFFF" stroke="#0F4C3A" stroke-width="3"/>
-              <g transform="translate(380 128)" stroke="#0F4C3A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M-10 3 L0 -8 L10 3"/><path d="M-7 2 L-7 9 L7 9 L7 2"/>
-              </g>
-              <!-- broadcasting wifi arcs -->
-              <g stroke="#0F4C3A" stroke-width="2.6" fill="none" stroke-linecap="round">
-                <path class="wifi" d="M392 118 Q404 118 412 110"/>
-                <path class="wifi wifi--2" d="M396 126 Q414 124 424 110"/>
-                <path class="wifi wifi--3" d="M400 134 Q424 130 436 110"/>
-              </g>
-            </g>
-
-            <!-- ===== WOMAN (left) ===== -->
-            <g class="sway sway-a">
-              <ellipse cx="139" cy="420" rx="11" ry="6" fill="#2A2320"/>
-              <ellipse cx="162" cy="422" rx="11" ry="6" fill="#2A2320"/>
-              <path d="M118 214 Q110 214 108 226 L96 416 Q150 430 204 416 L192 226 Q190 214 182 214 Q150 206 118 214 Z" fill="url(#gAbaya)"/>
-              <path d="M150 212 L150 420" stroke="#0A2A21" stroke-width="2" opacity=".35"/>
-              <path d="M122 232 Q112 322 104 408" stroke="#0A2A21" stroke-width="3" opacity=".2" fill="none"/>
-              <!-- arms -->
-              <path d="M122 222 Q110 248 138 258" stroke="#143C31" stroke-width="15" fill="none" stroke-linecap="round"/>
-              <path d="M178 222 Q192 248 162 260" stroke="#17483A" stroke-width="15" fill="none" stroke-linecap="round"/>
-              <circle cx="140" cy="258" r="8" fill="url(#gSkinF)"/>
-              <circle cx="160" cy="260" r="8" fill="url(#gSkinF)"/>
-              <!-- phone -->
-              <rect x="130" y="230" width="40" height="66" rx="8" fill="#15241E"/>
-              <rect x="134" y="236" width="32" height="54" rx="4" fill="#F4F0E8"/>
-              <g clip-path="url(#scrF)"><g class="scrn">
-                <rect x="137" y="239" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="139" y="241" width="10" height="16" rx="2" fill="#CFE3DB"/><rect x="151" y="242" width="11" height="3" rx="1.5" fill="#C8BBA4"/><rect x="151" y="248" width="8" height="3" rx="1.5" fill="#176149"/>
-                <rect x="137" y="263" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="139" y="265" width="10" height="16" rx="2" fill="#E7D8BE"/><rect x="151" y="266" width="11" height="3" rx="1.5" fill="#C8BBA4"/><rect x="151" y="272" width="8" height="3" rx="1.5" fill="#2457A6"/>
-                <rect x="137" y="287" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="139" y="289" width="10" height="16" rx="2" fill="#CFE3DB"/><rect x="151" y="290" width="11" height="3" rx="1.5" fill="#C8BBA4"/><rect x="151" y="296" width="8" height="3" rx="1.5" fill="#176149"/>
-                <rect x="137" y="311" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="139" y="313" width="10" height="16" rx="2" fill="#E7D8BE"/>
-              </g></g>
-              <circle class="thumb" cx="158" cy="282" r="7" fill="url(#gSkinF)"/>
-              <!-- head (tilted to phone) -->
-              <g transform="rotate(10 150 186)">
-                <rect x="143" y="196" width="14" height="22" rx="6" fill="url(#gSkinF)"/>
-                <path d="M124 180 Q120 150 150 146 Q180 150 176 180 Q184 214 196 228 L150 230 L104 228 Q116 214 124 180 Z" fill="url(#gHijab)"/>
-                <ellipse cx="150" cy="184" rx="19" ry="22" fill="url(#gSkinF)"/>
-                <path d="M133 172 Q150 157 167 172" stroke="url(#gHijab)" stroke-width="9" fill="none" stroke-linecap="round"/>
-                <path d="M139 178 Q142 175 146 178" stroke="#3B2A20" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                <path d="M154 178 Q157 175 161 178" stroke="#3B2A20" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                <circle cx="142.5" cy="179.5" r="1.4" fill="#2A1E16"/>
-                <circle cx="157.5" cy="179.5" r="1.4" fill="#2A1E16"/>
-                <path d="M150 182 Q152 188 148 189" stroke="#C98B6A" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                <path d="M145 195 Q150 198 155 195" stroke="#B5745A" stroke-width="2" fill="none" stroke-linecap="round"/>
-                <circle cx="138" cy="188" r="3" fill="#E79B7E" opacity=".35"/>
-                <circle cx="162" cy="188" r="3" fill="#E79B7E" opacity=".35"/>
-              </g>
-            </g>
-
-            <!-- ===== MAN (right) ===== -->
-            <g class="sway sway-b">
-              <path d="M598 418 Q612 414 626 418 L624 424 Q610 428 600 424 Z" fill="#6E4A2A"/>
-              <ellipse cx="600" cy="422" rx="11" ry="5" fill="#8A6038"/>
-              <ellipse cx="622" cy="422" rx="11" ry="5" fill="#8A6038"/>
-              <path d="M578 214 Q570 214 568 226 L556 416 Q610 430 664 416 L652 226 Q650 214 642 214 Q610 206 578 214 Z" fill="url(#gThobe)" stroke="#E7DFCF" stroke-width="1.3"/>
-              <path d="M610 212 L610 420" stroke="#DED3BE" stroke-width="2"/>
-              <path d="M640 232 Q650 322 656 408" stroke="#E4D9C4" stroke-width="2.5" opacity=".7" fill="none"/>
-              <!-- arms -->
-              <path d="M582 222 Q568 248 598 260" stroke="#E6DCC8" stroke-width="17" fill="none" stroke-linecap="round"/>
-              <path d="M582 222 Q568 248 598 260" stroke="#FBF8F2" stroke-width="13" fill="none" stroke-linecap="round"/>
-              <path d="M638 222 Q652 248 622 258" stroke="#E6DCC8" stroke-width="17" fill="none" stroke-linecap="round"/>
-              <path d="M638 222 Q652 248 622 258" stroke="#FFFFFF" stroke-width="13" fill="none" stroke-linecap="round"/>
-              <circle cx="600" cy="258" r="8" fill="url(#gSkinM)"/>
-              <circle cx="620" cy="258" r="8" fill="url(#gSkinM)"/>
-              <!-- phone -->
-              <rect x="590" y="230" width="40" height="66" rx="8" fill="#15241E"/>
-              <rect x="594" y="236" width="32" height="54" rx="4" fill="#F4F0E8"/>
-              <g clip-path="url(#scrM)"><g class="scrn">
-                <rect x="597" y="239" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="599" y="241" width="10" height="16" rx="2" fill="#E7D8BE"/><rect x="611" y="242" width="11" height="3" rx="1.5" fill="#C8BBA4"/><rect x="611" y="248" width="8" height="3" rx="1.5" fill="#176149"/>
-                <rect x="597" y="263" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="599" y="265" width="10" height="16" rx="2" fill="#CFE3DB"/><rect x="611" y="266" width="11" height="3" rx="1.5" fill="#C8BBA4"/><rect x="611" y="272" width="8" height="3" rx="1.5" fill="#2457A6"/>
-                <rect x="597" y="287" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="599" y="289" width="10" height="16" rx="2" fill="#E7D8BE"/><rect x="611" y="290" width="11" height="3" rx="1.5" fill="#C8BBA4"/><rect x="611" y="296" width="8" height="3" rx="1.5" fill="#176149"/>
-                <rect x="597" y="311" width="26" height="20" rx="3" fill="#fff" stroke="#E6DFCF"/><rect x="599" y="313" width="10" height="16" rx="2" fill="#CFE3DB"/>
-              </g></g>
-              <circle class="thumb" cx="602" cy="282" r="7" fill="url(#gSkinM)"/>
-              <!-- head (ghutra + agal, tilted to phone) -->
-              <g transform="rotate(-10 610 186)">
-                <rect x="603" y="196" width="14" height="22" rx="6" fill="url(#gSkinM)"/>
-                <path d="M582 206 Q580 150 610 146 Q640 150 638 206 Q646 216 656 230 L610 232 L564 230 Q574 216 582 206 Z" fill="#FFFFFF" stroke="#E7E0D2" stroke-width="1.3"/>
-                <ellipse cx="610" cy="184" rx="19" ry="22" fill="url(#gSkinM)"/>
-                <path d="M592 160 Q590 148 610 146 Q630 148 628 160 Q628 150 610 150 Q592 150 592 160 Z" fill="#FFFFFF"/>
-                <path d="M590 158 Q610 150 630 158" stroke="#1A1A1A" stroke-width="5" fill="none" stroke-linecap="round"/>
-                <path d="M590 165 Q610 158 630 165" stroke="#262626" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <path d="M594 188 Q610 210 626 188 Q623 202 610 205 Q597 202 594 188 Z" fill="#5A3D22" opacity=".6"/>
-                <path d="M599 178 Q602 175 606 178" stroke="#3B2A20" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                <path d="M614 178 Q617 175 621 178" stroke="#3B2A20" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                <circle cx="602.5" cy="179.5" r="1.4" fill="#2A1E16"/>
-                <circle cx="617.5" cy="179.5" r="1.4" fill="#2A1E16"/>
-                <path d="M610 182 Q612 188 608 189" stroke="#B57A4E" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-              </g>
-            </g>
-          </svg>
+          <div class="phone">
+            <span class="phone__notch"></span>
+            <div class="phone__scr">
+              <div class="phone__top">مكتب النرجس العقاري<span>٤٨ عقار متاح الآن</span></div>
+              <div class="pmini">
+                <span class="pmini__ph"><svg viewBox="0 0 40 34" preserveAspectRatio="xMidYMid slice"><rect width="40" height="34" fill="#DCE9DF"/><rect y="24" width="40" height="10" fill="#E4DAC5"/><rect x="10" y="12" width="20" height="12" fill="#F4EFE5" stroke="#D9CDB6"/><rect x="10" y="9" width="20" height="3.5" fill="#176149"/></svg></span>
+                <span class="pmini__tx"><b>فيلا دورين</b><i>حي الياسمين</i><u>٢٫٨ مليون ر.س</u></span>
+              </div>
+              <div class="pmini">
+                <span class="pmini__ph"><svg viewBox="0 0 40 34" preserveAspectRatio="xMidYMid slice"><rect width="40" height="34" fill="#DCE9DF"/><rect y="24" width="40" height="10" fill="#E4DAC5"/><rect x="13" y="8" width="14" height="16" fill="#EFE9DD" stroke="#D9CDB6"/><g fill="#BBD6CE"><rect x="16" y="11" width="3.5" height="3.5"/><rect x="21" y="11" width="3.5" height="3.5"/><rect x="16" y="17" width="3.5" height="3.5"/><rect x="21" y="17" width="3.5" height="3.5"/></g></svg></span>
+                <span class="pmini__tx"><b>شقة عصرية</b><i>حي النرجس</i><u>٤٬٥٠٠ ر.س / شهر</u></span>
+              </div>
+              <div class="pmini">
+                <span class="pmini__ph"><svg viewBox="0 0 40 34" preserveAspectRatio="xMidYMid slice"><rect width="40" height="34" fill="#DCE9DF"/><rect y="24" width="40" height="10" fill="#E4DAC5"/><rect x="10" y="14" width="20" height="10" fill="#F4EFE5" stroke="#D9CDB6"/><rect x="10" y="11" width="20" height="3.5" fill="#C9A86C"/></svg></span>
+                <span class="pmini__tx"><b>دور أرضي</b><i>حي الملقا</i><u>٩٥٠ ألف ر.س</u></span>
+              </div>
+            </div>
+          </div>
 
           <div class="onair"><span class="live"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><circle cx="12" cy="20" r="1"/></svg>متاح أونلاين الآن</div>
-
-          <div class="note note--1">
-            <span class="note__ic nic-d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-            <span class="note__tx"><b>وجدتُ عقاري</b><i>عبر موقع مكتب عقاري</i></span>
-          </div>
-          <div class="note note--2">
-            <span class="note__ic nic-g"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-            <span class="note__tx"><b>فيلا للبيع · الياسمين</b><i>مكتب عقاري اشترك معنا</i></span>
+          <div class="toast">
+            <span class="toast__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+            <span><b>طلب معاينة جديد</b><i>من عميل عبر موقعك</i></span>
           </div>
         </div>
       </div>
@@ -454,7 +376,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
         <div class="card">
           <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
           <h3>المدفوعات والإيصالات</h3>
-          <p>دفع إلكتروني وتحويل بنكي وعربون، مع إيصالات PDF رسمية — والخادم هو مرجع المبلغ والحالة دائماً.</p>
+          <p>دفع إلكتروني وتحويل بنكي وعربون، مع إيصالات PDF رسمية — والخادم هو مرجع المبلغ والحالة في كل عملية.</p>
         </div>
         <div class="card">
           <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
@@ -497,14 +419,14 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
       <div class="sec-head" style="margin-inline:auto;text-align:center">
         <span class="eyebrow">الباقات</span>
         <h2>باقات تنمو مع مكتبك</h2>
-        <p>ابدأ مجاناً، وارتقِ حين تحتاج مزيداً من العقارات والمدفوعات والأدوات المتقدّمة.</p>
+        <p>ابدأ بالباقة المجّانية، وارتقِ عند الحاجة إلى مزيد من العقارات والمدفوعات والأدوات المتقدّمة.</p>
       </div>
       <div class="grid plans">
         <!-- Trial -->
         <div class="plan">
           <h3>تجريبي</h3>
           <p class="plan__desc">لتجربة المنصّة والتعرّف على أدواتها.</p>
-          <div class="plan__price"><span class="plan__free">مجاناً</span></div>
+          <div class="plan__price"><span class="plan__free">مجّاني</span></div>
           <ul>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>حتى ١٠ عقارات</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>موظفان اثنان</li>
@@ -518,7 +440,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
         <div class="plan">
           <h3>أساسي</h3>
           <p class="plan__desc">للمكاتب الناشئة التي تبدأ العمل أونلاين.</p>
-          <div class="plan__price"><b>٢٩٩</b><span>ر.س / شهرياً</span></div>
+          <div class="plan__price"><b>٢٩٩</b><span>ر.س / الشهر</span></div>
           <ul>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>حتى ١٠٠ عقار</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>٥ موظفين</li>
@@ -532,10 +454,10 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
         <div class="plan plan--feat">
           <h3>احترافي</h3>
           <p class="plan__desc">للمكاتب الكبيرة التي تريد كل الإمكانات بلا حدود.</p>
-          <div class="plan__price"><b>٩٩٩</b><span>ر.س / شهرياً</span></div>
+          <div class="plan__price"><b>٩٩٩</b><span>ر.س / الشهر</span></div>
           <ul>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>عقارات بلا حدّ</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>٢٠ موظفاً</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>٢٠ موظف</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>المزادات العقارية</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>نطاق مخصّص لمكتبك</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>أدوات ظهور (SEO) متقدّمة + API</li>
