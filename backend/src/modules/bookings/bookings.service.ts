@@ -382,10 +382,51 @@ export class BookingsService {
     if (!b) throw new NotFoundException('الحجز غير موجود');
     return b;
   }
-  adminList(query: Record<string, unknown>) {
+  async adminList(query: Record<string, unknown>) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 20));
     const where: Prisma.BookingWhereInput = {};
-    if (typeof query.status === 'string') where.status = query.status as never;
-    return this.prisma.scoped.booking.findMany({ where, orderBy: { createdAt: 'desc' }, take: 100, include: { property: { select: { title: true, code: true } }, customer: { select: { name: true, phone: true } }, payments: true } });
+    if (typeof query.status === 'string' && query.status) where.status = query.status as never;
+    if (typeof query.q === 'string' && query.q.trim()) {
+      const q = query.q.trim();
+      where.OR = [
+        { number: { contains: q, mode: 'insensitive' } },
+        { customer: { is: { name: { contains: q, mode: 'insensitive' } } } },
+        { property: { is: { title: { contains: q, mode: 'insensitive' } } } },
+      ];
+    }
+    const [total, rows, grouped] = await Promise.all([
+      this.prisma.scoped.booking.count({ where }),
+      this.prisma.scoped.booking.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          property: {
+            select: { id: true, title: true, code: true, media: { select: { variants: true }, take: 1, orderBy: { sort: 'asc' } } },
+          },
+          customer: { select: { id: true, name: true } },
+        },
+      }),
+      this.prisma.scoped.booking.groupBy({ by: ['status'], _count: true }),
+    ]);
+    const counts: Record<string, number> = {};
+    for (const g of grouped) counts[g.status] = g._count;
+    const items = rows.map((b) => ({
+      id: b.id,
+      number: b.number,
+      status: b.status,
+      paymentType: b.paymentType,
+      paymentMethod: b.paymentMethod,
+      amountDue: Number(b.amountDue),
+      amountPaid: Number(b.amountPaid),
+      holdExpiresAt: b.holdExpiresAt.toISOString(),
+      createdAt: b.createdAt.toISOString(),
+      property: { id: b.property.id, code: b.property.code, title: b.property.title, media: b.property.media },
+      customer: { id: b.customer.id, name: b.customer.name },
+    }));
+    return { items, total, page, pageSize, pages: Math.ceil(total / pageSize) || 1, counts };
   }
 
   /** قائمة المدفوعات للوحة (مع ملخّص الشهر وعدّاد قيد المراجعة). */
