@@ -38,4 +38,10 @@ export class TenantContext {
     if (!id) throw new Error('لا يوجد سياق مشترك (tenant) للطلب الحالي');
     return id;
   }
+
+  /** يضبط معرّف المشترك للطلب الحالي (مثلاً من توكن الموظف في الدخول الموحّد). */
+  setTenantId(id: string): void {
+    const store = this.als.getStore();
+    if (store) store.tenantId = id;
+  }
 }

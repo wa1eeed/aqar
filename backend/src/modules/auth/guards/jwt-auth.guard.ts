@@ -33,6 +33,11 @@ export class JwtAuthGuard implements CanActivate {
           if (user.tid && current && user.tid !== current) {
             throw new UnauthorizedException('الرمز لا يطابق المشترك الحالي');
           }
+          // دخول موحّد للمكاتب: على الرابط الموحّد (بلا مستأجر في السياق)،
+          // خذ المستأجر من توكن الموظف ليعمل عزل البيانات.
+          if (user.typ === 'staff' && user.tid && !current) {
+            this.tenant.setTenantId(user.tid);
+          }
         }
         req.user = user;
       } catch (err) {

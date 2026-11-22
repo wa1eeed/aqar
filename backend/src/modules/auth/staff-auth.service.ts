@@ -58,11 +58,14 @@ export class StaffAuthService {
   ) {}
 
   async login(email: string, plain: string, meta: Meta): Promise<StaffLoginResult> {
-    const tenantId = this.tenant.requireTenantId();
-    const user = await this.prisma.staffUser.findUnique({
-      where: { tenantId_email: { tenantId, email } },
-      include: { role: true },
-    });
+    // المستأجر إمّا من سياق الطلب (نطاق المكتب الفرعي) أو يُحلّ من البريد (دخول موحّد من الجذر).
+    const ctxTenant = this.tenant.tenantId;
+    const user = ctxTenant
+      ? await this.prisma.staffUser.findUnique({
+          where: { tenantId_email: { tenantId: ctxTenant, email } },
+          include: { role: true },
+        })
+      : await this.resolveStaffByEmail(email);
     if (!user || !user.isActive || user.deletedAt) {
       throw new UnauthorizedException('بيانات الدخول غير صحيحة');
     }
@@ -71,12 +74,25 @@ export class StaffAuthService {
 
     if (user.totpEnabled) {
       const challengeId = this.tokens.signShortLived(
-        { sub: user.id, tid: tenantId, purpose: '2fa' },
+        { sub: user.id, tid: user.tenantId, purpose: '2fa' },
         '5m',
       );
       return { twoFactorRequired: true, challengeId };
     }
     return this.issueSession(user.id, meta);
+  }
+
+  /** دخول موحّد: يحلّ موظف المكتب من بريده عبر كل المكاتب (البريد فريد عملياً). */
+  private async resolveStaffByEmail(email: string) {
+    const matches = await this.prisma.staffUser.findMany({
+      where: { email, deletedAt: null, isActive: true },
+      include: { role: true },
+      take: 2,
+    });
+    if (matches.length > 1) {
+      throw new UnauthorizedException('هذا البريد مرتبط بأكثر من مكتب — سجّل الدخول من رابط مكتبك.');
+    }
+    return matches[0] ?? null;
   }
 
   async verify2fa(challengeId: string, code: string, meta: Meta): Promise<StaffLoginResult> {
