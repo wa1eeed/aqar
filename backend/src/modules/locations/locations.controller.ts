@@ -16,6 +16,16 @@ export class LocationsController {
     return { items: await this.svc.listCities() };
   }
 
+  @Post('cities')
+  createCity(@Body() body: unknown) {
+    return this.svc.createCity(body);
+  }
+
+  @Patch('cities/:id')
+  updateCity(@Param('id') id: string, @Body() body: unknown) {
+    return this.svc.updateCity(id, body);
+  }
+
   @Post('districts')
   createDistrict(@Body() body: unknown) {
     return this.svc.createDistrict(body);
