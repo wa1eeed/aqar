@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware, NotFoundException } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { TenantContext } from './tenant-context.js';
@@ -41,7 +41,11 @@ export class TenantResolverMiddleware implements NestMiddleware {
         select: { id: true },
       });
       tenantId = tenant?.id ?? null;
-      if (tenantId) res.setHeader('x-tenant-id', tenantId);
+      // مُعرِّف مشترك صريح قُدِّم لكنّه لم يُطابق أيّ مكتب → 404 نظيف (بدل فشل الاستعلام بـ 500).
+      if (!tenantId) {
+        return next(new NotFoundException('المكتب (المشترك) غير موجود'));
+      }
+      res.setHeader('x-tenant-id', tenantId);
     }
     return this.ctx.run({ tenantId, platform: false }, () => next());
   }
