@@ -17,3 +17,5 @@ backend/prisma/*.db
 *.log
 .vite
 .turbo
+test-results/
+playwright-report/
