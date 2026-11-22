@@ -1,0 +1,82 @@
+# عقار أونلاين — compose لسيرفر Coolify مشترك + قاعدة PostgreSQL منفصلة (مورد Coolify مُدار).
+# الفرق عن docker-compose.coolify.yml: لا خدمة postgres هنا — الباكند يتّصل بقاعدة Coolify عبر DATABASE_URL.
+# يجب أن يكون هذا المورد على نفس شبكة قاعدة Coolify (فعّل "Connect To Predefined Network" إن لزم).
+name: manzilah
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - 'pnpm exec prisma migrate deploy 2>/dev/null || pnpm exec prisma db push --skip-generate --accept-data-loss; node dist/main.js'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    # إيصالات PDF: فعّلها بتثبيت Chromium في صورة العامل وضبط CHROMIUM_PATH (راجع COOLIFY.md §8).
+    depends_on:
+      api:
+        condition: service_started
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+
+  admin-build:
+    build:
+      context: ..
+      dockerfile: admin/Dockerfile
+    volumes:
+      - admin_dist:/out
+    restart: 'no'
+
+  caddy:
+    image: caddy:2-alpine
+    expose:
+      - '80'
+    volumes:
+      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
+      - ../frontend:/srv/frontend:ro
+      - admin_dist:/srv/admin:ro
+      - generated:/srv/generated
+    depends_on:
+      api:
+        condition: service_started
+      admin-build:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  redisdata:
+  generated:
+  admin_dist:
