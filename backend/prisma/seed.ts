@@ -224,6 +224,184 @@ async function seedDemoProperties(tenantId: string, tenantCode: string): Promise
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+// ───────────────────────── بيانات العرض الواقعية (عملاء/طلبات/معاينات/حجوزات/مدفوعات) ─────────────────────────
+
+const AR_CUSTOMERS = [
+  { name: 'محمد العتيبي', email: 'm.alotaibi@example.com', phone: '0551002030' },
+  { name: 'عبدالله الغامدي', email: 'a.alghamdi@example.com', phone: '0552003040' },
+  { name: 'سارة القحطاني', email: 's.alqahtani@example.com', phone: '0553004050' },
+  { name: 'نورة الدوسري', email: 'n.aldosari@example.com', phone: '0554005060' },
+  { name: 'فهد الشهري', email: 'f.alshehri@example.com', phone: '0555006070' },
+  { name: 'ريم العنزي', email: 'r.alenezi@example.com', phone: '0556007080' },
+  { name: 'خالد الحربي', email: 'k.alharbi@example.com', phone: '0557008090' },
+  { name: 'منى السبيعي', email: 'm.alsubaie@example.com', phone: '0558009010' },
+  { name: 'يوسف المطيري', email: 'y.almutairi@example.com', phone: '0559001020' },
+  { name: 'العنود الزهراني', email: 'a.alzahrani@example.com', phone: '0550102030' },
+];
+
+const pick = <T>(a: T[]): T => a[Math.floor(Math.random() * a.length)]!;
+const daysAgo = (d: number): Date => new Date(Date.now() - d * 24 * 3600 * 1000);
+const rand6 = (): string => Math.random().toString(36).slice(2, 8).toUpperCase();
+
+async function seedDemoActivity(tenantId: string): Promise<void> {
+  if ((await prisma.lead.count({ where: { tenantId } })) > 0) {
+    console.log('✓ بيانات العرض موجودة مسبقاً — تخطّي');
+    return;
+  }
+  const agents = await prisma.staffUser.findMany({ where: { tenantId }, select: { id: true } });
+  const props = await prisma.property.findMany({
+    where: { tenantId, deletedAt: null },
+    select: { id: true, cityId: true, type: true, offer: true, price: true },
+  });
+  if (!agents.length || !props.length) return;
+  const agentId = () => pick(agents).id;
+
+  // العملاء
+  const customers = [];
+  for (const c of AR_CUSTOMERS) {
+    customers.push(
+      await prisma.customer.create({
+        data: {
+          tenantId,
+          name: c.name,
+          email: c.email,
+          phone: c.phone,
+          status: 'active',
+          marketingConsent: Math.random() > 0.5,
+          consentAt: daysAgo(Math.floor(Math.random() * 90)),
+          emailVerifiedAt: Math.random() > 0.3 ? daysAgo(Math.floor(Math.random() * 60)) : null,
+        },
+      }),
+    );
+  }
+
+  // الطلبات (leads) — أنواع ومراحل ومصادر متنوّعة
+  const LEAD_TYPES = ['viewing', 'buy', 'rent', 'invest', 'contact', 'list'] as const;
+  const LEAD_STAGES = ['new', 'contacted', 'viewing', 'negotiation', 'won', 'lost'] as const;
+  const LEAD_SOURCES = ['website', 'whatsapp', 'phone', 'walk_in'] as const;
+  const MESSAGES = [
+    'مهتم بمعاينة العقار نهاية الأسبوع.',
+    'هل السعر قابل للتفاوض؟',
+    'أبحث عن شقة بثلاث غرف في نفس الحي.',
+    'أرغب بموعد لزيارة العقار غداً مساءً.',
+    'ما هي خيارات التمويل المتاحة؟',
+    '',
+  ];
+  for (let i = 0; i < 16; i++) {
+    const cust = Math.random() > 0.35 ? pick(customers) : null;
+    const prop = Math.random() > 0.3 ? pick(props) : null;
+    const stage = pick([...LEAD_STAGES]);
+    const created = daysAgo(Math.floor(Math.random() * 75));
+    await prisma.lead.create({
+      data: {
+        tenantId,
+        number: `L-26-${rand6()}`,
+        type: pick([...LEAD_TYPES]),
+        stage,
+        source: pick([...LEAD_SOURCES]),
+        propertyId: prop?.id ?? null,
+        customerId: cust?.id ?? null,
+        cityId: prop?.cityId ?? null,
+        name: cust?.name ?? pick(AR_CUSTOMERS).name,
+        phone: cust?.phone ?? `05${Math.floor(10000000 + Math.random() * 89999999)}`,
+        email: cust?.email ?? null,
+        message: pick(MESSAGES) || null,
+        budget: Math.random() > 0.5 ? BigInt((500 + Math.floor(Math.random() * 3000)) * 1000 * 100) : null,
+        assignedToId: Math.random() > 0.25 ? agentId() : null,
+        createdAt: created,
+        closedAt: stage === 'won' || stage === 'lost' ? daysAgo(Math.floor(Math.random() * 30)) : null,
+        lostReason: stage === 'lost' ? pick(['اختار عقاراً آخر', 'تجاوز الميزانية', 'لم يرد']) : null,
+      },
+    });
+  }
+
+  // المعاينات — ماضية ومستقبلية بحالات مختلفة
+  const VIEW_STATUS = ['requested', 'confirmed', 'completed', 'no_show', 'cancelled'] as const;
+  for (let i = 0; i < 8; i++) {
+    const prop = pick(props);
+    const cust = pick(customers);
+    const past = Math.random() > 0.5;
+    const status = past ? pick(['completed', 'no_show', 'cancelled'] as const) : pick(['requested', 'confirmed'] as const);
+    await prisma.viewing.create({
+      data: {
+        tenantId,
+        propertyId: prop.id,
+        customerId: cust.id,
+        agentId: agentId(),
+        scheduledAt: past ? daysAgo(Math.floor(1 + Math.random() * 20)) : new Date(Date.now() + Math.floor(1 + Math.random() * 10) * 864e5),
+        durationMin: pick([30, 45, 60]),
+        status,
+        notes: status === 'completed' ? pick(['أبدى اهتماماً جادّاً', 'سيعاود التواصل', 'طلب خصماً']) : null,
+      },
+    });
+  }
+
+  // الحجوزات + المدفوعات — تغطّي الحالات الواقعية
+  const TERMS = 'v1';
+  const deposit = (price: bigint) => BigInt(Math.max(Number(price) / 10, 100000));
+  type Scenario = { status: string; pay: string; method: string; type: string; paidFull?: boolean; refunded?: boolean };
+  const scenarios: Scenario[] = [
+    { status: 'confirmed', pay: 'paid', method: 'moyasar', type: 'deposit' },
+    { status: 'completed', pay: 'paid', method: 'moyasar', type: 'full', paidFull: true },
+    { status: 'confirmed', pay: 'paid', method: 'bank_transfer', type: 'deposit' },
+    { status: 'awaiting_transfer_review', pay: 'under_review', method: 'bank_transfer', type: 'deposit' },
+    { status: 'pending_payment', pay: 'pending', method: 'moyasar', type: 'deposit' },
+    { status: 'cancelled', pay: 'failed', method: 'moyasar', type: 'deposit' },
+    { status: 'refunded', pay: 'refunded', method: 'moyasar', type: 'full', paidFull: true, refunded: true },
+  ];
+  let bn = 0;
+  for (const s of scenarios) {
+    const prop = pick(props);
+    const cust = pick(customers);
+    const amount = s.paidFull ? prop.price : deposit(prop.price);
+    const paid = s.pay === 'paid' || s.refunded ? amount : 0n;
+    const num = `B-26-${rand6()}`;
+    const created = daysAgo(Math.floor(2 + Math.random() * 40));
+    const booking = await prisma.booking.create({
+      data: {
+        tenantId,
+        number: num,
+        propertyId: prop.id,
+        customerId: cust.id,
+        offerSnapshot: prop.offer,
+        priceSnapshot: prop.price,
+        paymentType: s.type as never,
+        paymentMethod: s.method as never,
+        amountDue: amount,
+        amountPaid: paid,
+        status: s.status as never,
+        holdExpiresAt: new Date(created.getTime() + 2 * 3600 * 1000),
+        termsVersion: TERMS,
+        termsAcceptedAt: created,
+        confirmedAt: ['confirmed', 'completed', 'refunded'].includes(s.status) ? created : null,
+        completedAt: s.status === 'completed' ? daysAgo(Math.floor(Math.random() * 10)) : null,
+        cancelledAt: s.status === 'cancelled' ? created : null,
+        createdAt: created,
+      },
+    });
+    await prisma.payment.create({
+      data: {
+        tenantId,
+        bookingId: booking.id,
+        method: s.method as never,
+        status: s.pay as never,
+        amount,
+        refundedAmount: s.refunded ? amount : 0n,
+        currency: 'SAR',
+        idempotencyKey: `seed-${num}`,
+        providerPaymentId: s.method === 'moyasar' ? `pay_${rand6()}` : null,
+        receiptNumber: s.pay === 'paid' || s.refunded ? `R-26-${(++bn).toString().padStart(4, '0')}` : null,
+        paidAt: s.pay === 'paid' || s.refunded ? created : null,
+        createdAt: created,
+      },
+    });
+  }
+
+  console.log(
+    `✓ بيانات العرض: ${customers.length} عميل، 16 طلب، 8 معاينات، ${scenarios.length} حجوزات بمدفوعاتها`,
+  );
+}
+
 async function main(): Promise<void> {
   console.log('بدء البذر…');
   await seedCities();
@@ -231,7 +409,10 @@ async function main(): Promise<void> {
   await seedPlatformAdmin();
   await seedDemoTenant();
   const demo = await prisma.tenant.findUnique({ where: { slug: process.env.SEED_TENANT_SLUG ?? 'demo' } });
-  if (demo) await seedDemoProperties(demo.id, demo.code);
+  if (demo) {
+    await seedDemoProperties(demo.id, demo.code);
+    await seedDemoActivity(demo.id);
+  }
   console.log('اكتمل البذر.');
 }
 
