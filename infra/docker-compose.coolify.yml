@@ -33,7 +33,7 @@ services:
 
   api:
     build:
-      context: ..
+      context: .
       dockerfile: backend/Dockerfile
     env_file: .env
     depends_on:
@@ -59,7 +59,7 @@ services:
 
   worker:
     build:
-      context: ..
+      context: .
       dockerfile: backend/Dockerfile
     env_file: .env
     # إيصالات PDF: فعّلها بتثبيت Chromium في صورة العامل وضبط CHROMIUM_PATH (راجع COOLIFY.md §8).
@@ -72,7 +72,7 @@ services:
   # بناء لوحة الإدارة مرّة واحدة إلى حجم مشترك.
   admin-build:
     build:
-      context: ..
+      context: .
       dockerfile: admin/Dockerfile
     volumes:
       - admin_dist:/out
@@ -84,8 +84,8 @@ services:
     expose:
       - '80'
     volumes:
-      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
-      - ../frontend:/srv/frontend:ro
+      - ./infra/Caddyfile.coolify:/etc/caddy/Caddyfile:ro
+      - ./frontend:/srv/frontend:ro
       - admin_dist:/srv/admin:ro
       - generated:/srv/generated
     depends_on:

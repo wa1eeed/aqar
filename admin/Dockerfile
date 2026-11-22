@@ -8,7 +8,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
 COPY packages/schema/package.json packages/schema/
 COPY admin/package.json admin/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --prod=false
 
 # المصدر والبناء (اللوحة تستورد @manzilah/schema من المصدر عبر alias في vite)
 COPY packages/schema packages/schema

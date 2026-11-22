@@ -7,7 +7,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
 COPY packages/schema/package.json packages/schema/
 COPY backend/package.json backend/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --prod=false
 
 # المصدر والبناء
 COPY packages/schema packages/schema
