@@ -16,6 +16,12 @@
 		reverse_proxy api:3000
 	}
 
+	# /admin بلا شرطة → /admin/ (وإلا يسقط على الواجهة التسويقية)
+	@adminRoot path /admin
+	handle @adminRoot {
+		redir * /admin/ 308
+	}
+
 	# لوحة التحكم (SPA) — base /admin/
 	handle_path /admin/* {
 		root * /srv/admin
