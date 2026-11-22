@@ -5,6 +5,8 @@ import { PaymentsPage } from '../pages/PaymentsPage';
 import { TransfersPage } from '../pages/TransfersPage';
 import { BankTransferSettingsPage } from '../pages/settings/BankTransferSettingsPage';
 import { BookingSettingsPage } from '../pages/settings/BookingSettingsPage';
+import { BrandingSettingsPage } from '../pages/settings/BrandingSettingsPage';
+import { SeoSettingsPage } from '../pages/settings/SeoSettingsPage';
 import { SETTINGS_TABS } from '../pages/settings/SettingsLayout';
 import { CustomersPage } from '../pages/CustomersPage';
 import { DashboardPage } from '../pages/DashboardPage';
@@ -194,6 +196,22 @@ export function App() {
           element={
             <Gate permission="settings.payments">
               <BankTransferSettingsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="settings/branding"
+          element={
+            <Gate permission="settings.branding">
+              <BrandingSettingsPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="settings/seo"
+          element={
+            <Gate permission="seo.manage">
+              <SeoSettingsPage />
             </Gate>
           }
         />

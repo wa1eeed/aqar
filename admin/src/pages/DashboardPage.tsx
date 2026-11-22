@@ -1,4 +1,5 @@
 import { EmptyState } from '../components/States';
+import { Onboarding } from '../components/Onboarding';
 import { useSession } from '../app/session';
 
 const KPIS = [
@@ -21,6 +22,7 @@ export function DashboardPage() {
           <p>{today} · إليك ملخص أداء منشأتك</p>
         </div>
       </div>
+      <Onboarding />
       <div className="kpis2">
         {KPIS.map((k) => (
           <div className="kpi2" key={k}>

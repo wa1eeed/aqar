@@ -4,6 +4,8 @@ import { useSession } from '../../app/session';
 
 /** Built settings sections (docs/07 §10), in the order of the design; more arrive with later phases. */
 export const SETTINGS_TABS: Array<{ path: string; label: string; permission: string }> = [
+  { path: 'branding', label: 'الهوية والعلامة', permission: 'settings.branding' },
+  { path: 'seo', label: 'تحسين الظهور (SEO)', permission: 'seo.manage' },
   { path: 'booking', label: 'الحجز وطرق الدفع', permission: 'settings.booking' },
   { path: 'bank-transfer', label: 'التحويل البنكي', permission: 'settings.payments' },
   { path: 'locations', label: 'المدن والأحياء', permission: 'settings.locations' },
