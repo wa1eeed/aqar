@@ -36,8 +36,8 @@ export class AdminNotificationsController {
   }
 
   @Get('notification-preferences')
-  prefs(@CurrentUser() u: AuthUser) {
-    return this.svc.getPreferences(this.me(u));
+  async prefs(@CurrentUser() u: AuthUser) {
+    return { items: await this.svc.getPreferences(this.me(u)) };
   }
 
   @Put('notification-preferences')

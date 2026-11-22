@@ -36,6 +36,15 @@ export class MediaService {
     return this.prisma.scoped.propertyMedia.findMany({ where: { propertyId }, orderBy: { sort: 'asc' } });
   }
 
+  /** يربط رابط فيديو خارجي (يوتيوب…) بالعقار. */
+  async addVideo(propertyId: number, url: string) {
+    const tenantId = this.tenant.requireTenantId();
+    await this.requireProperty(propertyId);
+    return this.prisma.scoped.propertyMedia.create({
+      data: { tenantId, propertyId, kind: 'video_url', externalUrl: url, status: 'ready' },
+    });
+  }
+
   async remove(mediaId: string) {
     const m = await this.prisma.scoped.propertyMedia.findFirst({ where: { id: mediaId } });
     if (!m) throw new NotFoundException('الوسيط غير موجود');

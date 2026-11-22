@@ -6,7 +6,7 @@ import { MediaService } from './media.service.js';
 import { PropertiesAdminController } from './properties.controller.js';
 import { PublicPropertiesController } from './public-properties.controller.js';
 import { PublicConfigController } from './public-config.controller.js';
-import { MediaController } from './media.controller.js';
+import { MediaController, AdminMediaController } from './media.controller.js';
 
 @Module({
   imports: [AuthModule, SettingsModule],
@@ -16,6 +16,7 @@ import { MediaController } from './media.controller.js';
     PublicPropertiesController,
     PublicConfigController,
     MediaController,
+    AdminMediaController,
   ],
   exports: [PropertiesService],
 })

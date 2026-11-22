@@ -58,6 +58,11 @@ export class AdminBookingsController {
 export class AdminPaymentsController {
   constructor(private readonly svc: BookingsService) {}
 
+  @Get()
+  list(@Query() query: Record<string, unknown>) {
+    return this.svc.adminPaymentsList(query);
+  }
+
   @Post(':id/refund')
   @RequirePermissions('payments.refund')
   refund(@Param('id') id: string, @Body() body: unknown, @CurrentUser() u: AuthUser) {
@@ -85,8 +90,8 @@ export class BankAccountsController {
   constructor(private readonly svc: BankAccountsService) {}
 
   @Get()
-  list() {
-    return this.svc.list();
+  async list() {
+    return { items: await this.svc.list() };
   }
 
   @Post()

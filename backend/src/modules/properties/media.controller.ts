@@ -33,3 +33,19 @@ export class MediaController {
     return this.svc.remove(mediaId);
   }
 }
+
+const videoBody = z.object({ propertyId: z.number().int(), url: z.string().url() });
+
+// مسار مسطّح يطابق عقد اللوحة: POST /admin/media/video { propertyId, url }.
+@ApiTags('admin:media')
+@RequirePermissions('properties.edit')
+@Controller('admin/media')
+export class AdminMediaController {
+  constructor(private readonly svc: MediaService) {}
+
+  @Post('video')
+  addVideo(@Body() body: unknown) {
+    const { propertyId, url } = videoBody.parse(body);
+    return this.svc.addVideo(propertyId, url);
+  }
+}

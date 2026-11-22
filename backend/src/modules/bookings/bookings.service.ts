@@ -387,6 +387,71 @@ export class BookingsService {
     if (typeof query.status === 'string') where.status = query.status as never;
     return this.prisma.scoped.booking.findMany({ where, orderBy: { createdAt: 'desc' }, take: 100, include: { property: { select: { title: true, code: true } }, customer: { select: { name: true, phone: true } }, payments: true } });
   }
+
+  /** قائمة المدفوعات للوحة (مع ملخّص الشهر وعدّاد قيد المراجعة). */
+  async adminPaymentsList(query: Record<string, unknown>) {
+    const page = Math.max(1, Number(query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 20));
+    const where: Prisma.PaymentWhereInput = {};
+    if (typeof query.status === 'string' && query.status) where.status = query.status as never;
+    if (typeof query.method === 'string' && query.method) where.method = query.method as never;
+    if (typeof query.q === 'string' && query.q.trim()) {
+      const q = query.q.trim();
+      where.OR = [
+        { receiptNumber: { contains: q, mode: 'insensitive' } },
+        { booking: { is: { number: { contains: q, mode: 'insensitive' } } } },
+        { booking: { is: { customer: { is: { name: { contains: q, mode: 'insensitive' } } } } } },
+      ];
+    }
+    const bookingSel = {
+      select: { id: true, number: true, customer: { select: { name: true } }, property: { select: { title: true } } },
+    } as const;
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const [total, rows, underReview, monthRows] = await Promise.all([
+      this.prisma.scoped.payment.count({ where }),
+      this.prisma.scoped.payment.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: { booking: bookingSel, transfer: true },
+      }),
+      this.prisma.scoped.payment.count({ where: { status: 'under_review' } }),
+      this.prisma.scoped.payment.groupBy({
+        by: ['method'],
+        where: { status: { in: ['paid', 'partially_refunded'] }, paidAt: { gte: monthStart } },
+        _sum: { amount: true, refundedAmount: true },
+      }),
+    ]);
+    const month = monthRows.map((r) => ({
+      method: r.method,
+      paid: Number(r._sum.amount ?? 0),
+      refunded: Number(r._sum.refundedAmount ?? 0),
+    }));
+    const items = rows.map((p) => ({
+      id: p.id,
+      method: p.method,
+      status: p.status,
+      amount: Number(p.amount),
+      refundedAmount: Number(p.refundedAmount),
+      receiptNumber: p.receiptNumber,
+      paidAt: p.paidAt ? p.paidAt.toISOString() : null,
+      createdAt: p.createdAt.toISOString(),
+      failureReason: p.failureReason ?? null,
+      providerPaymentId: p.providerPaymentId ?? null,
+      transfer: p.transfer ? { id: p.transfer.id, status: p.transfer.status } : null,
+      booking: {
+        id: p.booking.id,
+        number: p.booking.number,
+        customer: { name: p.booking.customer.name },
+        property: { title: p.booking.property.title },
+      },
+    }));
+    return { items, total, page, pageSize, pages: Math.ceil(total / pageSize) || 1, month, underReview };
+  }
+
   async adminGet(id: string) {
     const b = await this.prisma.scoped.booking.findFirst({ where: { id }, include: { property: true, customer: true, payments: { include: { transfer: true, events: true } } } });
     if (!b) throw new NotFoundException('الحجز غير موجود');

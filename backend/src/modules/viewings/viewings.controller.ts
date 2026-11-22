@@ -17,8 +17,8 @@ export class ViewingsAdminController {
   constructor(private readonly svc: ViewingsService) {}
 
   @Get()
-  list(@Query('from') from: string, @Query('to') to: string, @Query('agentId') agentId: string, @CurrentUser() user: AuthUser) {
-    return this.svc.adminList({ from, to, agentId }, user);
+  async list(@Query('from') from: string, @Query('to') to: string, @Query('agentId') agentId: string, @CurrentUser() user: AuthUser) {
+    return { items: await this.svc.adminList({ from, to, agentId }, user) };
   }
 
   @Post(':id/confirm')

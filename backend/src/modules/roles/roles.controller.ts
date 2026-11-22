@@ -17,8 +17,8 @@ export class RolesController {
 
   @Get()
   @ApiOperation({ summary: 'الأدوار (نظامية + مخصّصة)' })
-  list() {
-    return this.roles.list();
+  async list() {
+    return { items: await this.roles.list() };
   }
 
   @Post()

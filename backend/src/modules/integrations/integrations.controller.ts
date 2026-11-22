@@ -21,8 +21,8 @@ export class IntegrationsController {
 
   @Get()
   @ApiOperation({ summary: 'تكاملات المكتب (نماذج مُولَّدة من المخطّطات)' })
-  list() {
-    return this.svc.describeProviders('tenant');
+  async list() {
+    return { items: await this.svc.describeProviders('tenant') };
   }
 
   @Get(':key')
