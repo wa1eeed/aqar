@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة إدارة المنصة — عقار أونلاين</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0A2F25">
+<style>
+@font-face{font-family:'Thmanyah Sans';src:url('assets/fonts/thmanyahsans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Thmanyah Sans';src:url('assets/fonts/thmanyahsans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Thmanyah Sans';src:url('assets/fonts/thmanyahsans-Bold.woff2') format('woff2');font-weight:600 700;font-display:swap}
+@font-face{font-family:'Thmanyah Display';src:url('assets/fonts/thmanyahserifdisplay-Bold.woff2') format('woff2');font-weight:600 700;font-display:swap}
+:root{
+  --bg:#FAF7F2;--surface:#FFFFFF;--sand-100:#F3EDE3;--sand-200:#E9E0D1;
+  --line:#E4DBCC;--line-2:#D6CBB8;--ink:#14211C;--ink-2:#3B4843;--muted:#5F6B66;
+  --green:#0F4C3A;--green-2:#176149;--green-900:#0A2F25;--green-50:#E8F1EC;
+  --gold:#C9A86C;--gold-ink:#85652F;--gold-50:#F7EFDF;
+  --blue:#2457A6;--blue-50:#E7EFFA;--amber:#995000;--amber-50:#F7EFDF;--err:#A3342B;--err-50:#FBECEA;
+  --r-sm:10px;--r:16px;
+  --shadow-sm:0 1px 2px rgba(20,33,28,.06);--shadow:0 10px 30px -12px rgba(20,33,28,.18);
+  --shadow-lg:0 30px 60px -24px rgba(10,47,37,.35);
+  --f-body:'Thmanyah Sans',Tahoma,system-ui,sans-serif;--f-display:'Thmanyah Display','Thmanyah Sans',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:var(--f-body);background:var(--bg);color:var(--ink);line-height:1.6}
+.container{width:min(1180px,94%);margin-inline:auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-family:var(--f-body);font-weight:600;font-size:.9rem;padding:9px 16px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:background .2s,transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn--p{background:var(--green);color:#fff}.btn--p:hover{background:var(--green-2)}
+.btn--ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}.btn--ghost:hover{border-color:var(--green)}
+.btn--sm{padding:6px 12px;font-size:.82rem}
+.btn--danger{background:var(--err-50);color:var(--err);border-color:#F0CFCA}
+.btn[disabled]{opacity:.55;cursor:default;transform:none}
+
+/* Login */
+#loginView{min-height:100vh;display:grid;place-items:center;padding:24px}
+.login-card{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-lg);padding:34px}
+.brand{display:flex;align-items:center;gap:11px;justify-content:center;margin-bottom:6px}
+.brand__mk{width:40px;height:40px;border-radius:11px;background:linear-gradient(145deg,var(--green-2),var(--green-900));display:grid;place-items:center}
+.brand__mk svg{width:22px;height:22px}
+.brand b{font-family:var(--f-display);font-weight:800;font-size:1.3rem;color:var(--green-900)}
+.login-card h1{text-align:center;font-size:1.2rem;margin:10px 0 4px}
+.login-card .sub{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:22px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:.88rem;font-weight:600;color:var(--ink-2)}
+.field input{font-family:var(--f-body);font-size:.98rem;padding:11px 13px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg)}
+.field input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-50)}
+.msg{display:none;padding:10px 13px;border-radius:var(--r-sm);font-size:.88rem;font-weight:500;margin-bottom:14px;background:var(--err-50);color:var(--err);border:1px solid #F0CFCA}
+.msg.show{display:block}
+
+/* App */
+#appView{display:none}
+.topbar{background:var(--green-900);color:#fff;padding:14px 0}
+.topbar__in{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topbar .brand b{color:#fff}.topbar .brand__mk{background:rgba(255,255,255,.12)}
+.topbar .who{font-size:.85rem;color:rgba(255,255,255,.75)}
+.main{padding:28px 0 60px}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.head h2{font-size:1.5rem}.head p{color:var(--muted);font-size:.94rem}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow-sm)}
+.kpi b{font-family:var(--f-display);font-size:1.7rem;display:block;color:var(--green)}
+.kpi span{font-size:.85rem;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;font-size:.88rem;font-weight:600;color:var(--ink-2)}
+.tab.on{background:var(--green);color:#fff;border-color:var(--green)}
+.tab .c{font-size:.76rem;opacity:.8;margin-inline-start:4px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th,td{padding:13px 16px;text-align:right;font-size:.9rem;border-bottom:1px solid var(--line)}
+th{background:var(--sand-100);color:var(--ink-2);font-weight:600;font-size:.82rem;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--bg)}
+.office b{display:block;font-weight:600}
+.office span{font-size:.78rem;color:var(--muted);direction:ltr;display:inline-block}
+.badge{display:inline-block;font-size:.76rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.b-pending{background:var(--amber-50);color:var(--amber)}
+.b-trial{background:var(--blue-50);color:var(--blue)}
+.b-active{background:var(--green-50);color:var(--green)}
+.b-suspended{background:var(--err-50);color:var(--err)}
+.b-cancelled{background:var(--sand-200);color:var(--muted)}
+.row-actions{display:flex;gap:6px;justify-content:flex-start;flex-wrap:wrap}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+.topnav{display:flex;gap:6px}
+.tnav{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.14);padding:7px 15px;border-radius:999px;cursor:pointer;font-size:.86rem;font-weight:600;font-family:var(--f-body)}
+.tnav.on{background:#fff;color:var(--green-900);border-color:#fff}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid .f-col2{grid-column:1/-1}
+.sfield{display:flex;flex-direction:column;gap:6px}
+.sfield label{font-size:.86rem;font-weight:600;color:var(--ink-2)}
+.sfield input,.sfield textarea{font-family:var(--f-body);font-size:.95rem;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);resize:vertical}
+.sfield input:focus,.sfield textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-50)}
+.sfield .h{font-size:.75rem;color:var(--muted)}
+.save-msg{display:none;font-size:.88rem;font-weight:600;color:var(--green)}
+.save-msg.show{display:inline-block}
+@media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}.hide-sm{display:none}.topnav{display:none}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginView">
+  <div class="login-card">
+    <div class="brand">
+      <span class="brand__mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M10 19v-5h4v5"/></svg></span>
+      <b>عقار أونلاين</b>
+    </div>
+    <h1>لوحة إدارة المنصة</h1>
+    <p class="sub">دخول مشغّل المنصة (سوبر-أدمن)</p>
+    <div class="msg" id="loginMsg" role="alert"></div>
+    <form id="loginForm">
+      <div class="field"><label for="email">البريد الإلكتروني</label><input id="email" type="email" dir="ltr" autocomplete="username" required></div>
+      <div class="field"><label for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <div class="field" id="otpField" hidden><label for="otp">رمز التحقق الثنائي</label><input id="otp" type="text" inputmode="numeric" dir="ltr" placeholder="123456"></div>
+      <button class="btn btn--p" type="submit" id="loginBtn" style="width:100%;margin-top:4px">تسجيل الدخول</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="appView">
+  <div class="topbar"><div class="container topbar__in">
+    <div class="brand"><span class="brand__mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></span><b>لوحة المنصة</b></div>
+    <nav class="topnav"><button class="tnav on" data-view="tenants">المكاتب</button><button class="tnav" data-view="settings">إعدادات المنصة</button></nav>
+    <div style="display:flex;align-items:center;gap:14px"><span class="who" id="who"></span><button class="btn btn--ghost btn--sm" id="logoutBtn" style="color:#fff;border-color:rgba(255,255,255,.3)">خروج</button></div>
+  </div></div>
+
+  <main class="main container">
+    <div id="viewTenants">
+      <div class="head">
+        <div><h2>المكاتب المشتركة</h2><p>راجع طلبات الانضمام وفعّل المكاتب وأدِر حالاتها.</p></div>
+        <button class="btn btn--ghost btn--sm" id="refreshBtn">↻ تحديث</button>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="panel"><div id="tableWrap"><div class="loading">جارٍ التحميل…</div></div></div>
+    </div>
+
+    <div id="viewSettings" hidden>
+      <div class="head"><div><h2>إعدادات المنصة والعلامة</h2><p>الاسم، الشعار، الأيقونة، صورة المشاركة (OG)، وإعدادات الـSEO. تظهر على الموقع التسويقي وعند مشاركة الرابط.</p></div></div>
+      <div class="panel" style="padding:24px">
+        <form id="brandForm" class="form-grid">
+          <div class="sfield f-col2"><label for="b_name">اسم المنصة</label><input id="b_name" maxlength="80"></div>
+          <div class="sfield f-col2"><label for="b_tagline">الشعار النصي (tagline)</label><input id="b_tagline" maxlength="160"></div>
+          <div class="sfield f-col2"><label for="b_description">وصف الـSEO (meta description)</label><textarea id="b_description" rows="3" maxlength="400"></textarea><span class="h">يظهر في نتائج البحث وعند المشاركة — اجعله جذّاباً ودقيقاً (حتى ١٦٠ حرفاً مثالي).</span></div>
+          <div class="sfield f-col2"><label for="b_keywords">الكلمات المفتاحية (مفصولة بفواصل)</label><textarea id="b_keywords" rows="2" maxlength="600"></textarea></div>
+          <div class="sfield"><label for="b_logoUrl">رابط الشعار</label><input id="b_logoUrl" dir="ltr" maxlength="400"></div>
+          <div class="sfield"><label for="b_faviconUrl">رابط الأيقونة (favicon)</label><input id="b_faviconUrl" dir="ltr" maxlength="400"></div>
+          <div class="sfield f-col2"><label for="b_ogImageUrl">رابط صورة المشاركة (OG — ١٢٠٠×٦٣٠)</label><input id="b_ogImageUrl" dir="ltr" maxlength="400"><span class="h">الصورة التي تظهر مع الرابط في واتساب وتويتر والتواصل.</span></div>
+          <div class="sfield"><label for="b_email">البريد الرسمي</label><input id="b_email" dir="ltr" maxlength="160"></div>
+          <div class="sfield"><label for="b_phone">رقم التواصل</label><input id="b_phone" dir="ltr" maxlength="40"></div>
+          <div class="sfield f-col2"><label for="b_twitter">حساب تويتر/X (بدون @)</label><input id="b_twitter" dir="ltr" maxlength="80"></div>
+          <div class="f-col2" style="display:flex;align-items:center;gap:14px;margin-top:4px">
+            <button class="btn btn--p" type="submit" id="brandSave">حفظ التغييرات</button>
+            <span class="save-msg" id="brandMsg">تم الحفظ ✓</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var API='/api/v1';
+  var token=null; try{token=sessionStorage.getItem('sa_token');}catch(e){}
+  var tenants=[], filter='pending', challengeId=null;
+
+  function req(path,opts){
+    opts=opts||{};
+    var h={'X-Requested-With':'nx','Accept':'application/json'};
+    if(opts.body){h['Content-Type']='application/json';opts.body=JSON.stringify(opts.body);}
+    if(token)h['Authorization']='Bearer '+token;
+    return fetch(API+path,{method:opts.method||'GET',headers:h,body:opts.body,credentials:'same-origin'})
+      .then(function(r){return r.json().catch(function(){return {};}).then(function(j){return {ok:r.ok,status:r.status,j:j};});});
+  }
+
+  // ---- login ----
+  var loginForm=document.getElementById('loginForm'),loginMsg=document.getElementById('loginMsg'),loginBtn=document.getElementById('loginBtn'),otpField=document.getElementById('otpField');
+  function showLoginErr(m){loginMsg.textContent=m;loginMsg.classList.add('show');}
+  loginForm.addEventListener('submit',function(e){
+    e.preventDefault();loginMsg.classList.remove('show');loginBtn.disabled=true;loginBtn.textContent='جارٍ…';
+    var email=document.getElementById('email').value.trim(),password=document.getElementById('password').value;
+    var otp=document.getElementById('otp').value.trim();
+    var p = challengeId
+      ? req('/auth/platform/2fa',{method:'POST',body:{challengeId:challengeId,code:otp}})
+      : req('/auth/platform/login',{method:'POST',body:{email:email,password:password}});
+    p.then(function(res){
+      if(res.ok && res.j.twoFactorRequired){challengeId=res.j.challengeId;otpField.hidden=false;loginBtn.disabled=false;loginBtn.textContent='تأكيد الرمز';return;}
+      if(res.ok && res.j.accessToken){token=res.j.accessToken;try{sessionStorage.setItem('sa_token',token);}catch(e){}enterApp(res.j.user);return;}
+      showLoginErr((res.j.error&&res.j.error.message)||res.j.message||'بيانات الدخول غير صحيحة');
+      loginBtn.disabled=false;loginBtn.textContent=challengeId?'تأكيد الرمز':'تسجيل الدخول';
+    }).catch(function(){showLoginErr('تعذّر الاتصال بالخادم');loginBtn.disabled=false;loginBtn.textContent='تسجيل الدخول';});
+  });
+
+  function enterApp(user){
+    document.getElementById('loginView').style.display='none';
+    document.getElementById('appView').style.display='block';
+    if(user&&(user.name||user.email))document.getElementById('who').textContent=user.name||user.email;
+    load();
+  }
+  function logout(){token=null;try{sessionStorage.removeItem('sa_token');}catch(e){}location.reload();}
+  document.getElementById('logoutBtn').addEventListener('click',logout);
+  document.getElementById('refreshBtn').addEventListener('click',load);
+
+  // ---- view switching + branding settings ----
+  var brandLoaded=false;
+  Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(b){
+    b.addEventListener('click',function(){
+      var v=b.getAttribute('data-view');
+      Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(x){x.classList.toggle('on',x===b);});
+      document.getElementById('viewTenants').hidden=(v!=='tenants');
+      document.getElementById('viewSettings').hidden=(v!=='settings');
+      if(v==='settings'&&!brandLoaded)loadBranding();
+    });
+  });
+  var BFIELDS=['name','tagline','description','keywords','logoUrl','faviconUrl','ogImageUrl','email','phone','twitter'];
+  function loadBranding(){
+    req('/super/settings/branding').then(function(res){
+      if(res.status===401){logout();return;}
+      if(res.ok&&res.j){brandLoaded=true;BFIELDS.forEach(function(k){var el=document.getElementById('b_'+k);if(el)el.value=res.j[k]||'';});}
+    });
+  }
+  var brandForm=document.getElementById('brandForm'),brandMsg=document.getElementById('brandMsg'),brandSave=document.getElementById('brandSave');
+  brandForm.addEventListener('submit',function(e){
+    e.preventDefault();brandMsg.classList.remove('show');brandSave.disabled=true;brandSave.textContent='جارٍ الحفظ…';
+    var body={};BFIELDS.forEach(function(k){body[k]=(document.getElementById('b_'+k).value||'').trim();});
+    req('/super/settings/branding',{method:'PUT',body:body}).then(function(res){
+      brandSave.disabled=false;brandSave.textContent='حفظ التغييرات';
+      if(res.status===401){logout();return;}
+      if(res.ok){brandMsg.classList.add('show');setTimeout(function(){brandMsg.classList.remove('show');},2500);BFIELDS.forEach(function(k){if(res.j&&res.j[k]!=null)document.getElementById('b_'+k).value=res.j[k];});}
+      else{alert((res.j.error&&res.j.error.message)||'تعذّر الحفظ');}
+    });
+  });
+
+  // ---- data ----
+  var STATUS={pending:['قيد المراجعة','b-pending'],trial:['تجريبي','b-trial'],active:['نشط','b-active'],suspended:['موقوف','b-suspended'],cancelled:['ملغى','b-cancelled']};
+  var TYPE={broker:'وسيط عقاري',office:'مكتب عقاري',company:'شركة عقارية'};
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  function load(){
+    document.getElementById('tableWrap').innerHTML='<div class="loading">جارٍ التحميل…</div>';
+    req('/super/tenants').then(function(res){
+      if(res.status===401){logout();return;}
+      if(!res.ok){document.getElementById('tableWrap').innerHTML='<div class="empty">تعذّر جلب البيانات</div>';return;}
+      tenants=Array.isArray(res.j)?res.j:(res.j.items||[]);
+      render();
+    });
+  }
+
+  function counts(){var c={all:tenants.length,pending:0,trial:0,active:0,suspended:0,cancelled:0};tenants.forEach(function(t){if(c[t.status]!=null)c[t.status]++;});return c;}
+
+  function render(){
+    var c=counts();
+    document.getElementById('kpis').innerHTML=
+      '<div class="kpi"><b>'+c.all+'</b><span>إجمالي المكاتب</span></div>'+
+      '<div class="kpi"><b>'+c.pending+'</b><span>قيد المراجعة</span></div>'+
+      '<div class="kpi"><b>'+c.active+'</b><span>نشطة</span></div>'+
+      '<div class="kpi"><b>'+(c.suspended+c.cancelled)+'</b><span>موقوفة/ملغاة</span></div>';
+    var tabs=[['pending','قيد المراجعة',c.pending],['active','نشطة',c.active],['all','الكل',c.all]];
+    document.getElementById('tabs').innerHTML=tabs.map(function(t){return '<button class="tab'+(filter===t[0]?' on':'')+'" data-f="'+t[0]+'">'+t[1]+'<span class="c">('+t[2]+')</span></button>';}).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.addEventListener('click',function(){filter=b.getAttribute('data-f');render();});});
+
+    var rows=tenants.filter(function(t){return filter==='all'||t.status===filter;});
+    if(!rows.length){document.getElementById('tableWrap').innerHTML='<div class="empty">لا توجد مكاتب في هذا التصنيف.</div>';return;}
+    var html='<table><thead><tr><th>المكتب</th><th>النوع</th><th class="hide-sm">المدينة</th><th class="hide-sm">فال / س.ت</th><th>الباقة</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>';
+    rows.forEach(function(t){
+      var st=STATUS[t.status]||[t.status,'b-cancelled'];
+      var plan=(t.subscription&&t.subscription.plan&&t.subscription.plan.nameAr)||(t.planKey||'—');
+      var fal=t.falLicense||'—', cr=t.commercialReg||'—';
+      html+='<tr>'+
+        '<td class="office"><b>'+esc(t.name)+'</b><span>'+esc(t.slug)+'.aqaar.online</span></td>'+
+        '<td>'+esc(TYPE[t.officeType]||t.officeType||'—')+'</td>'+
+        '<td class="hide-sm">'+esc(t.city||'—')+'</td>'+
+        '<td class="hide-sm" style="direction:ltr;font-size:.8rem">'+esc(fal)+' / '+esc(cr)+'</td>'+
+        '<td>'+esc(plan)+'</td>'+
+        '<td><span class="badge '+st[1]+'">'+esc(st[0])+'</span></td>'+
+        '<td><div class="row-actions">'+actions(t)+'</div></td>'+
+      '</tr>';
+    });
+    html+='</tbody></table>';
+    document.getElementById('tableWrap').innerHTML=html;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-act]'),function(b){
+      b.addEventListener('click',function(){setStatus(b.getAttribute('data-id'),b.getAttribute('data-act'),b);});
+    });
+  }
+
+  function actions(t){
+    var a='';
+    if(t.status==='pending'||t.status==='suspended')a+='<button class="btn btn--p btn--sm" data-act="active" data-id="'+t.id+'">تفعيل</button>';
+    if(t.status==='active'||t.status==='trial')a+='<button class="btn btn--danger btn--sm" data-act="suspended" data-id="'+t.id+'">إيقاف</button>';
+    return a||'—';
+  }
+
+  function setStatus(id,status,btn){
+    var label=status==='active'?'تفعيل هذا المكتب؟':'إيقاف هذا المكتب؟';
+    if(!confirm(label))return;
+    btn.disabled=true;btn.textContent='…';
+    req('/super/tenants/'+id+'/status',{method:'PATCH',body:{status:status}}).then(function(res){
+      if(res.status===401){logout();return;}
+      if(res.ok){var t=tenants.find(function(x){return x.id===id;});if(t)t.status=status;render();}
+      else{alert((res.j.error&&res.j.error.message)||'تعذّر تغيير الحالة');btn.disabled=false;}
+    });
+  }
+
+  // restore session
+  if(token){ req('/super/tenants').then(function(res){ if(res.ok){tenants=Array.isArray(res.j)?res.j:[];enterApp(null);} }); }
+})();
+</script>
+</body>
+</html>

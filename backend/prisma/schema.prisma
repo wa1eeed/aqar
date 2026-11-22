@@ -1198,3 +1198,10 @@ model WalletTransaction {
 
   @@index([tenantId])
 }
+
+// إعدادات المنصة (علامة وSEO على مستوى المنصة — يحرّرها السوبر-أدمن، مفتاح/قيمة JSON).
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
