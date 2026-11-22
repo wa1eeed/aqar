@@ -27,7 +27,8 @@ services:
     command:
       - sh
       - -c
-      - 'pnpm exec prisma migrate deploy 2>/dev/null || pnpm exec prisma db push --skip-generate --accept-data-loss; node dist/main.js'
+      # لا توجد ترحيلات بعد — نزامن المخطط مع القاعدة عبر db push (idempotent) ثم نشغّل الخادم.
+      - 'pnpm exec prisma db push --skip-generate --accept-data-loss && node dist/main.js'
     healthcheck:
       test:
         - CMD
