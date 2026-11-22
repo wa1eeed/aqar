@@ -31,7 +31,6 @@ let fontCss: string | null = null;
 function embeddedFonts(): string {
   if (fontCss !== null) return fontCss;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const dir = join(dirname(require.resolve('@fontsource/ibm-plex-sans-arabic/package.json')), 'files');
     const face = (subset: string, weight: number, range: string) =>
       `@font-face{font-family:'IBM Plex Sans Arabic';font-weight:${weight};font-style:normal;unicode-range:${range};` +

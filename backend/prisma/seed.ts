@@ -316,7 +316,6 @@ async function seedDemoActivity(tenantId: string): Promise<void> {
   }
 
   // المعاينات — ماضية ومستقبلية بحالات مختلفة
-  const VIEW_STATUS = ['requested', 'confirmed', 'completed', 'no_show', 'cancelled'] as const;
   for (let i = 0; i < 8; i++) {
     const prop = pick(props);
     const cust = pick(customers);

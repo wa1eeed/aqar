@@ -52,6 +52,8 @@ export class CustomerAuthService {
     let isNew = false;
 
     if (!customer) {
+      // فُحص أعلاه قبل استهلاك الرمز؛ هذا الحارس لإرضاء المدقّق فقط (name مضمون هنا).
+      if (!name) throw new BadRequestException('الاسم مطلوب لإنشاء حساب جديد');
       customer = await this.prisma.customer.create({
         data: {
           tenantId,
