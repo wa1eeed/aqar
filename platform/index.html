@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>عقار أونلاين — نظام التشغيل المتكامل لمكاتب ووسطاء العقار</title>
+<meta name="description" content="منصّة سعودية متكاملة تُدير مكتبك العقاري: إدارة العقارات، الحجوزات والمدفوعات، العملاء والطلبات، وموقع إلكتروني بنطاقك — بلوحة تحكم عربية واحدة.">
+<meta name="theme-color" content="#0F4C3A">
+<meta property="og:title" content="عقار أونلاين — نظام التشغيل المتكامل لمكاتب العقار">
+<meta property="og:description" content="أدِر مكتبك العقاري بالكامل من مكان واحد: العقارات، الحجوزات، المدفوعات، العملاء، وموقعك الإلكتروني.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF7F2;--surface:#FFFFFF;--sand-100:#F3EDE3;--sand-200:#E9E0D1;
+  --line:#E4DBCC;--line-2:#D6CBB8;--ink:#14211C;--ink-2:#3B4843;--muted:#5F6B66;
+  --green:#0F4C3A;--green-2:#176149;--green-900:#0A2F25;--green-50:#E8F1EC;
+  --gold:#C9A86C;--gold-ink:#85652F;--gold-50:#F7EFDF;
+  --r-sm:10px;--r:16px;--r-lg:24px;--r-xl:32px;
+  --shadow-sm:0 1px 2px rgba(20,33,28,.06),0 1px 1px rgba(20,33,28,.04);
+  --shadow:0 10px 30px -12px rgba(20,33,28,.18),0 2px 6px rgba(20,33,28,.05);
+  --shadow-lg:0 30px 60px -24px rgba(10,47,37,.35);
+  --f-body:'IBM Plex Sans Arabic',Tahoma,'Segoe UI',system-ui,sans-serif;
+  --f-display:'Alexandria','IBM Plex Sans Arabic',Tahoma,sans-serif;
+  --header-h:72px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f-body);background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.container{width:min(1180px,92%);margin-inline:auto}
+section{padding:clamp(56px,8vw,104px) 0}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spacing:-.01em;color:var(--ink)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.84rem;font-weight:600;color:var(--gold-ink);background:var(--gold-50);border:1px solid var(--sand-200);padding:7px 14px;border-radius:999px}
+.sec-head{max-width:720px;margin-bottom:44px}
+.sec-head h2{font-size:clamp(1.7rem,3.6vw,2.6rem);margin:16px 0 12px}
+.sec-head p{color:var(--muted);font-size:1.06rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--f-body);font-weight:600;font-size:1rem;padding:13px 26px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease,background .2s ease}
+.btn:hover{transform:translateY(-2px)}
+.btn--primary{background:var(--green);color:#fff;box-shadow:0 10px 24px -12px rgba(15,76,58,.6)}
+.btn--primary:hover{background:var(--green-2)}
+.btn--gold{background:var(--gold);color:var(--green-900)}
+.btn--gold:hover{background:#d8bb86}
+.btn--ghost{background:transparent;color:var(--ink);border-color:var(--line-2)}
+.btn--ghost:hover{background:var(--surface);border-color:var(--green)}
+.btn--block{width:100%}
+
+/* Header */
+.hdr{position:sticky;top:0;z-index:50;background:rgba(250,247,242,.82);backdrop-filter:saturate(1.3) blur(12px);border-bottom:1px solid var(--line)}
+.hdr__in{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:11px;font-family:var(--f-display);font-weight:800;font-size:1.22rem;color:var(--green-900)}
+.logo__mk{width:38px;height:38px;flex:0 0 38px;border-radius:11px;background:linear-gradient(145deg,var(--green-2),var(--green-900));display:grid;place-items:center;box-shadow:var(--shadow-sm)}
+.logo__mk svg{width:21px;height:21px}
+.nav{display:flex;align-items:center;gap:30px}
+.nav a{font-size:.96rem;font-weight:500;color:var(--ink-2)}
+.nav a:hover{color:var(--green)}
+.hdr__cta{display:flex;align-items:center;gap:12px}
+.burger{display:none;background:none;border:1px solid var(--line-2);border-radius:10px;width:42px;height:42px;cursor:pointer}
+.burger span,.burger span::before,.burger span::after{content:"";display:block;width:18px;height:2px;background:var(--ink);margin:auto;position:relative;transition:.2s}
+.burger span::before{top:-6px;position:absolute}.burger span::after{top:6px;position:absolute}
+
+/* Hero */
+.hero{position:relative;padding-top:clamp(48px,7vw,84px);padding-bottom:0;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:
+   radial-gradient(1100px 480px at 85% -8%,rgba(201,168,108,.18),transparent 60%),
+   radial-gradient(900px 520px at 5% 0%,rgba(15,76,58,.10),transparent 55%);z-index:-1}
+.hero__grid{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+.hero h1{font-size:clamp(2.1rem,5vw,3.6rem);margin:20px 0 18px}
+.hero h1 em{font-style:normal;color:var(--green);position:relative}
+.hero h1 em::after{content:"";position:absolute;inset-inline:0;bottom:4px;height:12px;background:var(--gold-50);z-index:-1;border-radius:4px}
+.hero__lead{font-size:1.16rem;color:var(--ink-2);max-width:40ch;margin-bottom:28px}
+.hero__cta{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:26px}
+.hero__trust{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:center;color:var(--muted);font-size:.9rem;font-weight:500}
+.hero__trust span{display:inline-flex;align-items:center;gap:8px}
+.hero__trust svg{width:17px;height:17px;color:var(--green-2);flex:0 0 17px}
+/* Hero visual: app mock */
+.mock{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);overflow:hidden;transform:rotate(-1.2deg)}
+.mock__bar{display:flex;align-items:center;gap:7px;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--sand-100)}
+.mock__bar i{width:11px;height:11px;border-radius:50%;background:var(--line-2);display:block}
+.mock__bar b{margin-inline-start:10px;font-size:.8rem;color:var(--muted);font-weight:500}
+.mock__body{padding:18px}
+.mock__kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:15px}
+.kpi{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px}
+.kpi b{font-family:var(--f-display);font-size:1.35rem;color:var(--green);display:block}
+.kpi span{font-size:.76rem;color:var(--muted)}
+.mock__rows{display:flex;flex-direction:column;gap:9px}
+.mrow{display:flex;align-items:center;gap:11px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px}
+.mrow .th{width:42px;height:42px;border-radius:9px;background:linear-gradient(135deg,var(--sand-200),var(--sand-100));flex:0 0 42px}
+.mrow .tx{flex:1}
+.mrow .tx i{display:block;height:8px;border-radius:4px;background:var(--sand-200)}
+.mrow .tx i:first-child{width:60%;margin-bottom:7px;background:var(--line-2)}
+.mrow .tx i:last-child{width:38%}
+.mrow .tag{font-size:.72rem;font-weight:600;color:var(--green-2);background:var(--green-50);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.mrow .tag.g{color:var(--gold-ink);background:var(--gold-50)}
+
+/* Logos / stats strip */
+.strip{background:var(--green-900);color:#fff}
+.strip .container{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.strip .s b{font-family:var(--f-display);font-size:clamp(1.7rem,3.4vw,2.5rem);color:#fff;display:block}
+.strip .s span{color:rgba(255,255,255,.72);font-size:.92rem}
+
+/* Features */
+.grid{display:grid;gap:20px}
+.feat-grid{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:26px;box-shadow:var(--shadow-sm);transition:transform .18s ease,box-shadow .2s ease,border-color .2s ease}
+.card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--sand-200)}
+.card__ic{width:48px;height:48px;border-radius:13px;background:var(--green-50);color:var(--green);display:grid;place-items:center;margin-bottom:16px}
+.card__ic svg{width:24px;height:24px}
+.card h3{font-size:1.18rem;margin-bottom:8px}
+.card p{color:var(--muted);font-size:.98rem}
+
+/* How it works */
+.steps{counter-reset:s;grid-template-columns:repeat(3,1fr)}
+.step{position:relative;padding:28px 24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.step::before{counter-increment:s;content:"0" counter(s);font-family:var(--f-display);font-weight:800;font-size:2.1rem;color:var(--gold);line-height:1}
+.step h3{font-size:1.16rem;margin:14px 0 8px}
+.step p{color:var(--muted);font-size:.98rem}
+
+/* Pricing */
+.pricing{background:linear-gradient(180deg,var(--bg),var(--sand-100))}
+.plans{grid-template-columns:repeat(3,1fr);align-items:stretch}
+.plan{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 26px;box-shadow:var(--shadow-sm)}
+.plan--feat{border:2px solid var(--green);box-shadow:var(--shadow);position:relative}
+.plan--feat::after{content:"الأكثر طلباً";position:absolute;top:-13px;inset-inline-start:26px;background:var(--gold);color:var(--green-900);font-size:.78rem;font-weight:700;padding:5px 14px;border-radius:999px}
+.plan h3{font-size:1.3rem;margin-bottom:4px}
+.plan__desc{color:var(--muted);font-size:.92rem;min-height:40px}
+.plan__price{display:flex;align-items:baseline;gap:7px;margin:14px 0 2px}
+.plan__price b{font-family:var(--f-display);font-size:2.5rem;color:var(--ink)}
+.plan__price span{color:var(--muted);font-size:.95rem}
+.plan__free{font-family:var(--f-display);font-size:2.5rem;color:var(--green)}
+.plan ul{list-style:none;margin:20px 0 24px;display:flex;flex-direction:column;gap:11px;flex:1}
+.plan li{display:flex;gap:10px;align-items:flex-start;font-size:.96rem;color:var(--ink-2)}
+.plan li svg{width:19px;height:19px;color:var(--green-2);flex:0 0 19px;margin-top:4px}
+.plan li.off{color:var(--muted);opacity:.65}
+.plan li.off svg{color:var(--line-2)}
+.pricing__note{text-align:center;color:var(--muted);font-size:.92rem;margin-top:26px}
+
+/* CTA band */
+.cta{background:linear-gradient(145deg,var(--green-2),var(--green-900));color:#fff;border-radius:var(--r-xl);padding:clamp(40px,6vw,64px);text-align:center;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 80% 0,rgba(201,168,108,.3),transparent 60%)}
+.cta>*{position:relative}
+.cta h2{color:#fff;font-size:clamp(1.6rem,3.4vw,2.4rem);margin-bottom:12px}
+.cta p{color:rgba(255,255,255,.85);max-width:52ch;margin:0 auto 28px;font-size:1.08rem}
+.cta__btns{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+
+/* Footer */
+.ftr{background:var(--green-900);color:rgba(255,255,255,.78);padding:56px 0 28px}
+.ftr__top{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:34px;padding-bottom:34px;border-bottom:1px solid rgba(255,255,255,.12)}
+.ftr .logo{color:#fff;margin-bottom:14px}
+.ftr p{font-size:.94rem;max-width:34ch}
+.ftr h4{color:#fff;font-size:1rem;margin-bottom:14px;font-family:var(--f-display)}
+.ftr ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.ftr ul a{font-size:.94rem;color:rgba(255,255,255,.72)}
+.ftr ul a:hover{color:var(--gold)}
+.ftr__legal{font-size:.84rem;color:rgba(255,255,255,.55)}
+.ftr__bottom{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;padding-top:22px;font-size:.86rem;color:rgba(255,255,255,.6)}
+
+@media(max-width:900px){
+  .hero__grid{grid-template-columns:1fr;gap:38px}
+  .hero__visual{order:-1;max-width:460px}
+  .feat-grid,.steps,.plans{grid-template-columns:1fr}
+  .strip .container{grid-template-columns:repeat(2,1fr);gap:28px 16px}
+  .ftr__top{grid-template-columns:1fr 1fr}
+  .nav{display:none}
+  .burger{display:grid;place-items:center}
+  .hdr__cta .btn--ghost{display:none}
+  .nav.open{display:flex;position:absolute;top:var(--header-h);inset-inline:0;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--line);padding:18px 6%;gap:16px;box-shadow:var(--shadow)}
+}
+@media(max-width:520px){.strip .container{grid-template-columns:1fr 1fr}.ftr__top{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="container hdr__in">
+    <a href="/" class="logo" aria-label="عقار أونلاين">
+      <span class="logo__mk" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M10 19v-5h4v5"/></svg>
+      </span>
+      عقار أونلاين
+    </a>
+    <nav class="nav" id="nav">
+      <a href="#features">المميزات</a>
+      <a href="#how">كيف يعمل</a>
+      <a href="#pricing">الباقات</a>
+      <a href="#contact">تواصل</a>
+    </nav>
+    <div class="hdr__cta">
+      <a href="/admin/" class="btn btn--ghost">دخول المكاتب</a>
+      <a href="#contact" class="btn btn--primary">اطلب عرضاً</a>
+      <button class="burger" id="burger" aria-label="القائمة" aria-expanded="false"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero__grid">
+      <div class="hero__text">
+        <span class="eyebrow">منصّة سعودية لإدارة المكاتب والوسطاء العقاريين</span>
+        <h1>نظام التشغيل المتكامل لـ<em>مكتبك العقاري</em></h1>
+        <p class="hero__lead">أدِر عقاراتك، وحجوزاتك، ومدفوعاتك، وعملاءك، وموقعك الإلكتروني — من لوحة تحكم عربية واحدة. كل ما يحتاجه مكتبك ليعمل أونلاين، بلا تعقيد.</p>
+        <div class="hero__cta">
+          <a href="#contact" class="btn btn--primary">ابدأ الآن
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
+          </a>
+          <a href="#features" class="btn btn--ghost">استعرض المميزات</a>
+        </div>
+        <div class="hero__trust">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>متوافق مع الهيئة العامة للعقار</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/></svg>حماية بيانات وفق PDPL</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>مدفوعات موثّقة</span>
+        </div>
+      </div>
+      <div class="hero__visual">
+        <div class="mock" role="img" aria-label="لوحة تحكم عقار أونلاين">
+          <div class="mock__bar"><i></i><i></i><i></i><b>لوحة المكتب — عقار أونلاين</b></div>
+          <div class="mock__body">
+            <div class="mock__kpis">
+              <div class="kpi"><b>١٤٢</b><span>عقار نشط</span></div>
+              <div class="kpi"><b>٢٨</b><span>حجز هذا الشهر</span></div>
+              <div class="kpi"><b>٩١٬٥٠٠</b><span>ر.س مدفوعات</span></div>
+            </div>
+            <div class="mock__rows">
+              <div class="mrow"><span class="th"></span><span class="tx"><i></i><i></i></span><span class="tag">متاح</span></div>
+              <div class="mrow"><span class="th"></span><span class="tx"><i></i><i></i></span><span class="tag g">محجوز</span></div>
+              <div class="mrow"><span class="th"></span><span class="tx"><i></i><i></i></span><span class="tag">متاح</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS STRIP -->
+  <section class="strip" style="padding:clamp(34px,5vw,52px) 0">
+    <div class="container">
+      <div class="s"><b>كل شيء</b><span>في لوحة واحدة</span></div>
+      <div class="s"><b>عربية</b><span>بالكامل RTL</span></div>
+      <div class="s"><b>بنطاقك</b><span>موقع خاص بمكتبك</span></div>
+      <div class="s"><b>آمنة</b><span>تدقيق وسجلّات كاملة</span></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="container">
+      <div class="sec-head">
+        <span class="eyebrow">المميزات</span>
+        <h2>كل أدوات مكتبك العقاري في مكان واحد</h2>
+        <p>من إدراج العقار حتى استلام الدفعة وإصدار الإيصال — دورة عمل كاملة مصمّمة لسوق العقار السعودي.</p>
+      </div>
+      <div class="grid feat-grid">
+        <div class="card">
+          <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></div>
+          <h3>إدارة العقارات</h3>
+          <p>فلل وشقق وأراضٍ وعمائر وأبراج، للبيع والإيجار والاستثمار، مع خريطة وخدمات قريبة وحالة لكل عقار.</p>
+        </div>
+        <div class="card">
+          <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <h3>الحجوزات والمعاينات</h3>
+          <p>رحلة حجز متكاملة: طلب معاينة، حجز بعربون أو دفعة كاملة، وتتبّع حالة كل حجز خطوة بخطوة.</p>
+        </div>
+        <div class="card">
+          <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+          <h3>المدفوعات والإيصالات</h3>
+          <p>دفع إلكتروني وتحويل بنكي وعربون، مع إيصالات PDF رسمية — والخادم هو مرجع المبلغ والحالة دائماً.</p>
+        </div>
+        <div class="card">
+          <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+          <h3>العملاء والطلبات</h3>
+          <p>سجلّ عملاء موحّد، طلبات واستفسارات، عمليات بحث محفوظة، ومتابعة كل فرصة حتى الإغلاق.</p>
+        </div>
+        <div class="card">
+          <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg></div>
+          <h3>موقع إلكتروني بنطاقك</h3>
+          <p>لكل مكتب موقعه العام الأنيق بهويته ولونه ونطاقه الخاص — يعرض عقاراته ويستقبل الحجوزات مباشرة.</p>
+        </div>
+        <div class="card">
+          <div class="card__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+          <h3>الإشعارات والتدقيق</h3>
+          <p>مركز إشعارات للمكتب والعميل، وسجلّ تدقيق يوثّق كل تغيير في العقار والحجز والدفع.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how" style="background:var(--surface)">
+    <div class="container">
+      <div class="sec-head">
+        <span class="eyebrow">كيف يعمل</span>
+        <h2>مكتبك أونلاين في ثلاث خطوات</h2>
+        <p>نجهّز لك كل شيء — أنت تضيف عقاراتك وتبدأ باستقبال العملاء.</p>
+      </div>
+      <div class="grid steps">
+        <div class="step"><h3>اشترك وفعّل مكتبك</h3><p>نُنشئ حساب مكتبك على المنصّة ونحدّد باقتك ونطاقك — بمرافقة فريقنا في الإعداد.</p></div>
+        <div class="step"><h3>جهّز عقاراتك وفريقك</h3><p>أضِف عقاراتك وصورها وأسعارها، وادعُ موظفيك بصلاحيات محدّدة لكل دور.</p></div>
+        <div class="step"><h3>انشر واستقبل الحجوزات</h3><p>ينطلق موقعك العام، ويبدأ العملاء بالتصفّح والحجز والدفع — وأنت تدير كل شيء من لوحتك.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <div class="sec-head" style="margin-inline:auto;text-align:center">
+        <span class="eyebrow">الباقات</span>
+        <h2>باقات تنمو مع مكتبك</h2>
+        <p>ابدأ مجاناً، وارتقِ حين تحتاج مزيداً من العقارات والمدفوعات والأدوات المتقدّمة.</p>
+      </div>
+      <div class="grid plans">
+        <!-- Trial -->
+        <div class="plan">
+          <h3>تجريبي</h3>
+          <p class="plan__desc">لتجربة المنصّة والتعرّف على أدواتها.</p>
+          <div class="plan__price"><span class="plan__free">مجاناً</span></div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>حتى ١٠ عقارات</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>موظفان اثنان</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>عمليات بحث محفوظة</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>تحويل بنكي</li>
+            <li class="off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>دفع إلكتروني</li>
+          </ul>
+          <a href="#contact" class="btn btn--ghost btn--block">ابدأ التجربة</a>
+        </div>
+        <!-- Basic -->
+        <div class="plan">
+          <h3>أساسي</h3>
+          <p class="plan__desc">للمكاتب الناشئة التي تبدأ العمل أونلاين.</p>
+          <div class="plan__price"><b>٢٩٩</b><span>ر.س / شهرياً</span></div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>حتى ١٠٠ عقار</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>٥ موظفين</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>دفع إلكتروني + تحويل بنكي</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>عمليات بحث محفوظة</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>موقع المكتب العام</li>
+          </ul>
+          <a href="#contact" class="btn btn--ghost btn--block">اطلب الباقة</a>
+        </div>
+        <!-- Pro -->
+        <div class="plan plan--feat">
+          <h3>احترافي</h3>
+          <p class="plan__desc">للمكاتب الكبيرة التي تريد كل الإمكانات بلا حدود.</p>
+          <div class="plan__price"><b>٩٩٩</b><span>ر.س / شهرياً</span></div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>عقارات بلا حدّ</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>٢٠ موظفاً</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>المزادات العقارية</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>نطاق مخصّص لمكتبك</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>أدوات ظهور (SEO) متقدّمة + API</li>
+          </ul>
+          <a href="#contact" class="btn btn--primary btn--block">اطلب الباقة</a>
+        </div>
+      </div>
+      <p class="pricing__note">الأسعار شهرية بالريال السعودي. تُفعّل الاشتراكات بالتواصل مع فريقنا — لا حاجة لبطاقة للبدء.</p>
+    </div>
+  </section>
+
+  <!-- CTA / CONTACT -->
+  <section id="contact">
+    <div class="container">
+      <div class="cta">
+        <h2>جاهز تنقل مكتبك العقاري أونلاين؟</h2>
+        <p>تواصل معنا الآن ونرافقك في إعداد مكتبك وعقاراتك وموقعك — وابدأ باستقبال الحجوزات خلال أيام.</p>
+        <div class="cta__btns">
+          <a href="https://wa.me/966500000000" class="btn btn--gold" rel="noopener">تواصل عبر واتساب</a>
+          <a href="mailto:info@aqaar.online?subject=طلب%20عرض%20—%20عقار%20أونلاين" class="btn btn--ghost" style="color:#fff;border-color:rgba(255,255,255,.4)">راسلنا بالبريد</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="ftr">
+  <div class="container">
+    <div class="ftr__top">
+      <div>
+        <a href="/" class="logo">
+          <span class="logo__mk" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M10 19v-5h4v5"/></svg></span>
+          عقار أونلاين
+        </a>
+        <p>نظام تشغيل متكامل لمكاتب ووسطاء العقار في المملكة العربية السعودية — عقارات، حجوزات، مدفوعات، وموقع بنطاقك.</p>
+      </div>
+      <div>
+        <h4>المنصّة</h4>
+        <ul>
+          <li><a href="#features">المميزات</a></li>
+          <li><a href="#how">كيف يعمل</a></li>
+          <li><a href="#pricing">الباقات</a></li>
+          <li><a href="/admin/">دخول المكاتب</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>تواصل</h4>
+        <ul>
+          <li><a href="https://wa.me/966500000000" rel="noopener">واتساب</a></li>
+          <li><a href="mailto:info@aqaar.online">info@aqaar.online</a></li>
+          <li class="ftr__legal">رخصة فال: [—] · س.ت: [—]</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ftr__bottom">
+      <span>© <span id="yr"></span> عقار أونلاين. جميع الحقوق محفوظة.</span>
+      <span>متوافق مع نظام حماية البيانات الشخصية (PDPL)</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  var burger=document.getElementById('burger'),nav=document.getElementById('nav');
+  burger&&burger.addEventListener('click',function(){var o=nav.classList.toggle('open');burger.setAttribute('aria-expanded',o)});
+  nav&&nav.addEventListener('click',function(e){if(e.target.tagName==='A')nav.classList.remove('open')});
+</script>
+</body>
+</html>

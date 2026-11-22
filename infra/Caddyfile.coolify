@@ -23,6 +23,15 @@
 		file_server
 	}
 
+	# واجهة المنصة التسويقية — على الجذر aqaar.online و www فقط
+	@platform host aqaar.online www.aqaar.online
+	handle @platform {
+		root * /srv/platform
+		try_files {path} {path}.html /index.html
+		file_server
+	}
+
+	# مواقع المكاتب (storefront) — النطاقات الفرعية والمخصّصة
 	# جذر الموقع → index.html
 	@root path /
 	handle @root {

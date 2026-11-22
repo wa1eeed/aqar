@@ -16,6 +16,7 @@ RUN pnpm --filter @manzilah/admin build
 # مرحلة ٢: Caddy مع كلّ الملفّات الثابتة مخبوزة
 FROM caddy:2-alpine
 COPY infra/Caddyfile.coolify /etc/caddy/Caddyfile
+COPY platform /srv/platform
 COPY frontend /srv/frontend
 COPY --from=admin /app/admin/dist /srv/admin
 EXPOSE 80
