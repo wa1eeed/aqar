@@ -23,10 +23,18 @@
 		file_server
 	}
 
-	# الواجهة العامة الثابتة (clean URLs)
+	# جذر الموقع → index.html
+	@root path /
+	handle @root {
+		root * /srv/frontend
+		rewrite * /index.html
+		file_server
+	}
+
+	# الواجهة العامة الثابتة (clean URLs + فهارس المجلدات مثل /account)
 	handle {
 		root * /srv/frontend
-		try_files {path} {path}.html /404.html
+		try_files {path} {path}.html {path}/index.html /404.html
 		file_server
 	}
 }
