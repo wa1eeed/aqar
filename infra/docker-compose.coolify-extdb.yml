@@ -54,10 +54,13 @@ services:
     restart: unless-stopped
 
   # Caddy مع الواجهة واللوحة وCaddyfile مخبوزة داخل الصورة (بلا bind-mount من المضيف).
+  # SERVICE_FQDN_CADDY_80: متغيّر Coolify السحري — يربط الدومين ببروكسي Coolify على المنفذ 80 ويُصدِر TLS.
   caddy:
     build:
       context: .
       dockerfile: infra/web.Dockerfile
+    environment:
+      - SERVICE_FQDN_CADDY_80=https://aqaar.online
     networks: [default, coolify]
     expose:
       - '80'
