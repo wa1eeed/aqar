@@ -10,6 +10,11 @@
 		-Server
 	}
 
+	# صفحات HTML (التسويق + الواجهة) لا تُخزَّن، حتى لا تبقى نسخة قديمة في المتصفّح.
+	# (لوحة /admin لها قاعدتها الخاصة أدناه، والـAPI والأصول مستثناة.)
+	@htmlDoc not path /admin/* /api/* /ws* *.js *.css *.woff2 *.woff *.ttf *.png *.jpg *.jpeg *.svg *.ico *.webp *.map *.xml *.txt
+	header @htmlDoc Cache-Control "no-store"
+
 	# API + مسارات يخدمها الـ backend (SSR، خرائط الموقع، robots، theme.css…)
 	@api path /api/* /ws* /property/* /properties/* /sitemap*.xml /robots.txt /llms.txt /feeds/* /theme.css
 	handle @api {
