@@ -64,3 +64,74 @@ jobs:
 
       - name: Build backend
         run: pnpm --filter @manzilah/backend build
+
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: manzilah_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/manzilah_test?schema=public
+      APP_ENCRYPTION_KEY: ci_test_key_0123456789abcdef0123456789
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared schema
+        run: pnpm --filter @manzilah/schema build
+
+      - name: Prepare database (schema + seed)
+        run: |
+          pnpm --filter @manzilah/backend exec prisma generate
+          pnpm --filter @manzilah/backend exec prisma db push --skip-generate
+          pnpm --filter @manzilah/backend db:seed
+
+      - name: Build backend
+        run: pnpm --filter @manzilah/backend build
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright e2e
+        run: pnpm e2e
+
+      - name: Backend log on failure
+        if: failure()
+        run: cat e2e/.backend.log || true
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
