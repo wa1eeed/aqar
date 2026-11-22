@@ -21,18 +21,29 @@ const STAGE_LABEL: Record<string, string> = {
 };
 const SLOT_HOUR: Record<string, number> = { morning: 10, afternoon: 14, evening: 18 };
 
+// الواجهة ترسل الحقول نصّاً من نموذج HTML؛ نحوّل الفراغ إلى null والميزانية (قد تحوي فواصل) إلى رقم.
+const emptyToNull = (v: unknown): unknown => (typeof v === 'string' && v.trim() === '' ? null : v);
+const budgetFromInput = (v: unknown): unknown => {
+  if (v == null || (typeof v === 'string' && v.trim() === '')) return null;
+  if (typeof v === 'string') {
+    const n = Number(v.replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+  }
+  return v;
+};
+
 export const publicLeadSchema = z.object({
   type: z.enum(LEAD_TYPES),
   propertyId: z.number().int().optional().nullable(),
   name: z.string().min(2).max(120),
   phone: z.string().min(6),
-  email: z.string().email().optional().nullable(),
+  email: z.preprocess(emptyToNull, z.string().email().nullable().optional()),
   date: z.string().optional().nullable(),
   slot: z.enum(['morning', 'afternoon', 'evening']).optional().nullable(),
   notes: z.string().optional().nullable(),
   city: z.string().optional().nullable(),
   propertyType: z.string().optional().nullable(),
-  budget: z.number().int().optional().nullable(),
+  budget: z.preprocess(budgetFromInput, z.number().int().nonnegative().nullable().optional()),
   message: z.string().optional().nullable(),
   consent: z.boolean().optional(),
   utm: z.record(z.unknown()).optional().nullable(),

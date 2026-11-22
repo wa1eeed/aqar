@@ -41,16 +41,17 @@ export class CustomerAuthService {
 
   async otpVerify(destination: string, code: string, name: string | undefined, meta: Meta): Promise<Session> {
     const tenantId = this.tenant.requireTenantId();
-    if (!(await this.otp.verify(destination, code))) {
-      throw new UnauthorizedException('رمز غير صحيح أو منتهٍ');
-    }
     const isEmail = destination.includes('@');
     const where = isEmail ? { email: destination } : { phone: destination };
     let customer = await this.prisma.customer.findFirst({ where: { tenantId, ...where } });
+    // العميل الجديد يحتاج اسماً: نفحص ذلك قبل استهلاك الرمز، حتى تنجح إعادة الواجهة للطلب بالاسم.
+    if (!customer && !name) throw new BadRequestException('الاسم مطلوب لإنشاء حساب جديد');
+    if (!(await this.otp.verify(destination, code))) {
+      throw new UnauthorizedException('رمز غير صحيح أو منتهٍ');
+    }
     let isNew = false;
 
     if (!customer) {
-      if (!name) throw new BadRequestException('الاسم مطلوب لإنشاء حساب جديد');
       customer = await this.prisma.customer.create({
         data: {
           tenantId,
