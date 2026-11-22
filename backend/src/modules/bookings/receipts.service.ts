@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service.js';
 import { TenantContext } from '../../common/tenant/tenant-context.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { FileStore } from './file-store.service.js';
+import { escapeHtml, receiptKey } from './receipt-utils.js';
 
 const METHOD: Record<string, string> = {
   moyasar: 'الدفع الإلكتروني (ميسر)',
@@ -24,10 +25,6 @@ const DATE = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {
 });
 const sar = (h: bigint | number) =>
   `${(Number(h) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ر.س`;
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-}
 
 // خطّ الموقع (IBM Plex Sans Arabic, OFL) مُضمَّن data URI حتى يبدو الـPDF نفسه على أيّ خادم بلا خطوط نظام ولا شبكة.
 let fontCss: string | null = null;
@@ -73,7 +70,7 @@ export class ReceiptsService implements OnApplicationShutdown {
   }
 
   private key(paymentId: string): string {
-    return `tenants/${this.tenant.requireTenantId()}/receipts/${paymentId}.pdf`;
+    return receiptKey(this.tenant.requireTenantId(), paymentId);
   }
 
   async html(paymentId: string): Promise<string> {
