@@ -16,6 +16,12 @@
 		reverse_proxy api:3000
 	}
 
+	# رابط موحّد قصير لدخول المكاتب: /login → /admin/login
+	@loginRedir path /login /login/
+	handle @loginRedir {
+		redir * /admin/login 308
+	}
+
 	# /admin بلا شرطة → /admin/ (وإلا يسقط على الواجهة التسويقية)
 	@adminRoot path /admin
 	handle @adminRoot {
@@ -23,8 +29,14 @@
 	}
 
 	# لوحة التحكم (SPA) — base /admin/
+	# الأصول المُبصومة تُخزّن طويلاً؛ صفحة الـSPA (index.html) لا تُخزّن أبداً
+	# حتى لا تبقى نسخة قديمة تُظهر صفحة فارغة.
 	handle_path /admin/* {
 		root * /srv/admin
+		@adminAsset path *.js *.css *.woff2 *.woff *.ttf *.png *.jpg *.jpeg *.svg *.ico *.map *.webp
+		header @adminAsset Cache-Control "public, max-age=31536000, immutable"
+		@adminDoc not path *.js *.css *.woff2 *.woff *.ttf *.png *.jpg *.jpeg *.svg *.ico *.map *.webp
+		header @adminDoc Cache-Control "no-store"
 		try_files {path} /index.html
 		file_server
 	}
