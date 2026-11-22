@@ -184,7 +184,7 @@
     if (state.types.length === 1) t = S.types[state.types[0]].plural + (state.offer ? ' ' + S.offers[state.offer].label : '');
     if (state.city) t += ' في ' + S.city(state.city).label;
     els.title.textContent = t; els.crumb.textContent = t;
-    document.title = t + ' — منزلة العقارية';
+    document.title = t + ' — عقار أونلاين';
     document.querySelectorAll('.nav__link').forEach(function (a) {
       var id = a.getAttribute('href').split('#')[1] || (a.getAttribute('href') === '/properties' ? '' : null);
       var on = id !== null && id === state.offer && a.getAttribute('href').indexOf('/properties') === 0;

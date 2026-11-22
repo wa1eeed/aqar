@@ -46,7 +46,7 @@ export class IntegrationsService {
   private envDefaults(key: string): { config: Record<string, unknown>; secrets: Record<string, unknown> } {
     if (key === 'email.resend') {
       return {
-        config: { fromName: 'منزلة', fromEmail: this.config.get('RESEND_FROM') ?? '' },
+        config: { fromName: 'عقار أونلاين', fromEmail: this.config.get('RESEND_FROM') ?? '' },
         secrets: { apiKey: this.config.get('RESEND_API_KEY') ?? '' },
       };
     }

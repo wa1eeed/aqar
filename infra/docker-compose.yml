@@ -1,4 +1,4 @@
-# منزلة — compose الإنتاج (VPS واحد). راجع infra/.env.example.
+# عقار أونلاين — compose الإنتاج (VPS واحد). راجع infra/.env.example.
 # الهجرات أول تشغيل: migrate deploy إن وُجدت، وإلا db push (حتى تُولَّد الهجرات).
 name: manzilah
 

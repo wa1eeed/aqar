@@ -43,7 +43,7 @@ display helper `priceSar` (number, SAR) on public property payloads for the exis
 
 ```json
 {
-  "brand": { "name": "منزلة", "fullName": "منزلة العقارية", "tagline": "…", "logoUrl": "…", "logoLightUrl": "…", "faviconUrl": "…" },
+  "brand": { "name": "عقار أونلاين", "fullName": "عقار أونلاين", "tagline": "…", "logoUrl": "…", "logoLightUrl": "…", "faviconUrl": "…" },
   "theme": { "primary": "#0F4C3A", "primaryDark": "#0A2F25", "accent": "#C9A86C", "accentInk": "#85652F", "background": "#FAF7F2", "ink": "#14211C", "radius": 16, "fontDisplay": "Alexandria", "fontBody": "IBM Plex Sans Arabic" },
   "contact": { "phone": "+9665…", "phoneDisplay": "05…", "whatsapp": "9665…", "email": "…", "address": "…", "hours": "…", "officeLat": 24.7, "officeLng": 46.6, "social": { "x": "", "instagram": "", "snapchat": "", "tiktok": "", "linkedin": "" } },
   "licensing": { "regaFalLicense": "1100000000", "regaVerifyUrl": "https://…", "showRegaInFooter": true, "ejarMembership": "…", "showEjarInFooter": true, "cr": "…", "vatNumber": "…" },

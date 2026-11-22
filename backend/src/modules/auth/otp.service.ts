@@ -48,7 +48,7 @@ export class OtpService {
         if (await this.integrations.isEmailReady()) {
           await this.integrations.sendEmail({
             to: destination,
-            subject: 'رمز الدخول — منزلة',
+            subject: 'رمز الدخول — عقار أونلاين',
             html: `<div dir="rtl" style="font-family:sans-serif"><p>رمز الدخول الخاص بك:</p><p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p><p>صالح لمدّة 10 دقائق.</p></div>`,
             text: `رمز الدخول: ${code} (صالح 10 دقائق)`,
             idempotencyKey: `otp:${destination}:${Date.now()}`,

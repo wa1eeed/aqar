@@ -3,8 +3,8 @@ import { z } from 'zod';
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'لون hex غير صالح');
 
 export const brandingSchema = z.object({
-  name: z.string().default('منزلة'),
-  fullName: z.string().default('منزلة العقارية'),
+  name: z.string().default('عقار أونلاين'),
+  fullName: z.string().default('عقار أونلاين'),
   tagline: z.string().default('عقارات تليق بمنزلتك'),
   logoLightKey: z.string().nullable().default(null),
   logoDarkKey: z.string().nullable().default(null),

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const notificationsSchema = z.object({
-  senderName: z.string().default('منزلة'),
+  senderName: z.string().default('عقار أونلاين'),
   leadRouting: z
     .object({
       strategy: z.enum(['round_robin', 'manual', 'by_city']).default('round_robin'),

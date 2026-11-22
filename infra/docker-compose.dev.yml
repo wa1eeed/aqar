@@ -1,4 +1,4 @@
-# منزلة — compose التطوير المحلي. تشغيل:
+# عقار أونلاين — compose التطوير المحلي. تشغيل:
 #   docker compose -f infra/docker-compose.dev.yml up --build
 # ثم: الواجهة http://localhost:8080/  اللوحة /admin  الصحّة http://localhost:3000/api/v1/health
 name: manzilah-dev

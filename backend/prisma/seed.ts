@@ -126,7 +126,7 @@ async function seedPlatformAdmin(): Promise<void> {
 async function seedDemoTenant(): Promise<void> {
   const slug = process.env.SEED_TENANT_SLUG ?? 'demo';
   const code = process.env.SEED_TENANT_CODE ?? 'MZ';
-  const name = process.env.SEED_TENANT_NAME ?? 'منزلة العقارية';
+  const name = process.env.SEED_TENANT_NAME ?? 'عقار أونلاين';
   const ownerEmail = process.env.SEED_OWNER_EMAIL ?? 'owner@manzilah.local';
   const ownerName = process.env.SEED_OWNER_NAME ?? 'مالك المكتب';
   const ownerPassword = process.env.SEED_OWNER_PASSWORD;

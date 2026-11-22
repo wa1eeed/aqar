@@ -39,8 +39,8 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('منزلة API')
-    .setDescription('واجهة برمجة منصة منزلة العقارية')
+    .setTitle('عقار أونلاين API')
+    .setDescription('واجهة برمجة منصة عقار أونلاين')
     .setVersion('1')
     .addBearerAuth()
     .build();

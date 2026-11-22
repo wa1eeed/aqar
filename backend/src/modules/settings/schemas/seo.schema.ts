@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const seoSchema = z.object({
-  siteName: z.string().default('منزلة العقارية'),
+  siteName: z.string().default('عقار أونلاين'),
   titleTemplate: z.string().default('{page} | {brand}'),
   defaultDescription: z.string().default(''),
   canonicalDomain: z.string().default(''),

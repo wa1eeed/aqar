@@ -1,4 +1,4 @@
-# منزلة — Caddy للتطوير المحلي (HTTP فقط، بلا TLS). http://localhost:8080
+# عقار أونلاين — Caddy للتطوير المحلي (HTTP فقط، بلا TLS). http://localhost:8080
 {
 	auto_https off
 }

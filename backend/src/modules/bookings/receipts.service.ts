@@ -104,7 +104,7 @@ export class ReceiptsService implements OnApplicationShutdown {
       licensing.regaFalLicense ? `رخصة فال: ${licensing.regaFalLicense}` : '',
       licensing.ejarMembership ? `عضوية إيجار: ${licensing.ejarMembership}` : '',
     ].filter(Boolean);
-    const brandName = branding.fullName ?? 'منزلة العقارية';
+    const brandName = branding.fullName ?? 'عقار أونلاين';
     const primary = /^#[0-9a-fA-F]{6}$/.test(branding.theme?.primary ?? '') ? branding.theme!.primary! : '#0F4C3A';
     return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${e(p.receiptNumber)}</title>
 <style>

@@ -1,4 +1,4 @@
-# منزلة — Caddy (reverse proxy + TLS + static) لمنصة multi-tenant.
+# عقار أونلاين — Caddy (reverse proxy + TLS + static) لمنصة multi-tenant.
 # - النطاق الأساسي ونطاقاته الفرعية (<slug>.<base>) عبر شهادة واحدة/wildcard.
 # - النطاقات المخصّصة للمشتركين عبر on-demand TLS (تتحقّق من API قبل إصدار الشهادة).
 

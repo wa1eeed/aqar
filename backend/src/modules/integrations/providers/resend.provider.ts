@@ -3,7 +3,7 @@ import type { EmailMessage } from '../capabilities.js';
 import type { ProviderCtx, ProviderDefinition } from '../provider-definition.js';
 
 const configSchema = z.object({
-  fromName: z.string().default('منزلة'),
+  fromName: z.string().default('عقار أونلاين'),
   fromEmail: z.string().email(),
   replyTo: z.string().email().optional(),
   domain: z.string().optional(),

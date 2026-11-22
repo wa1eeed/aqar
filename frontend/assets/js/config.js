@@ -5,8 +5,8 @@ window.MZ = window.MZ || {};
 
 MZ.config = {
   brand: {
-    name: 'منزلة',
-    fullName: 'منزلة العقارية',
+    name: 'عقار أونلاين',
+    fullName: 'عقار أونلاين',
     tagline: 'عقارات تليق بمنزلتك',
     falLicense: '[رقم رخصة فال للمنشأة]',
     cr: '[رقم السجل التجاري]',

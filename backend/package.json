@@ -1,7 +1,7 @@
 {
   "name": "@manzilah/backend",
   "version": "0.1.0",
-  "description": "منزلة — واجهة البرمجة (NestJS) + العامل الخلفي + التكاملات",
+  "description": "عقار أونلاين — واجهة البرمجة (NestJS) + العامل الخلفي + التكاملات",
   "private": true,
   "scripts": {
     "build": "nest build",

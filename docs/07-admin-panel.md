@@ -114,7 +114,7 @@ Grid + generated detail pages as defined in docs/05 §5. Categories in Arabic: �
 
 ### 10.1 الهوية والمظهر (branding & theme)
 
-- **Identity**: platform short name (`name`, e.g. «منزلة»), full name, tagline, logo for light
+- **Identity**: platform short name (`name`, e.g. «عقار أونلاين»), full name, tagline, logo for light
   backgrounds (SVG/PNG), logo for dark backgrounds, favicon source (square ≥ 512 px → worker generates
   16/32/180/192/512 PNG + `site.webmanifest`), default social share image (1200×630), email logo.
 - **Theme colours** (colour pickers with hex input):

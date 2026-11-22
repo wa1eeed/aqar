@@ -25,7 +25,7 @@ export function AuthLayout({ children, art = 'default' }: { children: ReactNode;
           <>
             <div>
               <span className="eyebrow" style={{ color: 'var(--gold)' }}>
-                منصة منزلة العقارية
+                منصة عقار أونلاين
               </span>
               <h2 style={{ fontSize: 44, marginTop: 16, lineHeight: 1.3 }}>
                 كل عقاراتك وطلباتك

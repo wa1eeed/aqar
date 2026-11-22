@@ -26,7 +26,7 @@
   function render(p) {
     var t = S.types[p.type], s = p.specs, closed = S.isClosed(p.status);
     var fields = S.fieldsFor(p.type, p.offer);
-    document.title = p.title + ' — ' + p.district + '، ' + p.cityLabel + ' | منزلة العقارية';
+    document.title = p.title + ' — ' + p.district + '، ' + p.cityLabel + ' | عقار أونلاين';
 
     /* Gallery */
     var imgs = p.images;

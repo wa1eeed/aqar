@@ -14,7 +14,7 @@ export function renderFrontend(): string {
     .join('\n');
 
   return `/* =========================================================
-   منزلة العقارية — نموذج البيانات (Schema)
+   عقار أونلاين — نموذج البيانات (Schema)
    GENERATED — عدّل المصدر في packages/schema ثم شغّل:
      pnpm --filter @manzilah/schema build:frontend
    لا تُعدّل هذا الملف يدوياً.

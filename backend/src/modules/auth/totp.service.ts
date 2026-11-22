@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { authenticator } from 'otplib';
 
-const ISSUER = 'منزلة';
+const ISSUER = 'عقار أونلاين';
 
 /** مصادقة ثنائية TOTP (RFC 6238) عبر otplib. */
 @Injectable()

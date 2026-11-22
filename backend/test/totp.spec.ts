@@ -28,6 +28,6 @@ describe('TotpService — المصادقة الثنائية (RFC 6238)', () => {
     const uri = svc.keyUri('owner@demo.local', svc.generateSecret());
     expect(uri.startsWith('otpauth://totp/')).toBe(true);
     expect(uri).toContain('issuer=');
-    expect(decodeURIComponent(uri)).toContain('منزلة');
+    expect(decodeURIComponent(uri)).toContain('عقار أونلاين');
   });
 });

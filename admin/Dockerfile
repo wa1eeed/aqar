@@ -1,4 +1,4 @@
-# منزلة — بناء لوحة الإدارة (SPA) إلى ملفّات ثابتة يقدّمها Caddy من حجم مشترك.
+# عقار أونلاين — بناء لوحة الإدارة (SPA) إلى ملفّات ثابتة يقدّمها Caddy من حجم مشترك.
 # سياق البناء = جذر المستودع.
 FROM node:20-bookworm-slim AS build
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate

@@ -1,4 +1,4 @@
-# منزلة — compose لسيرفر Coolify مشترك (بروكسي Coolify/Traefik يتولّى الدومين وTLS).
+# عقار أونلاين — compose لسيرفر Coolify مشترك (بروكسي Coolify/Traefik يتولّى الدومين وTLS).
 # الفرق عن docker-compose.yml: Caddy يعمل داخلياً على :80 (بلا حجز 80/443 على المضيف)،
 # ويُعرَض كخدمة واحدة. في Coolify: اضبط الدومين (aqaar.online) على خدمة `caddy` والمنفذ 80.
 name: manzilah
