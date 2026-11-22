@@ -1,0 +1,102 @@
+# منزلة — compose لسيرفر Coolify مشترك (بروكسي Coolify/Traefik يتولّى الدومين وTLS).
+# الفرق عن docker-compose.yml: Caddy يعمل داخلياً على :80 (بلا حجز 80/443 على المضيف)،
+# ويُعرَض كخدمة واحدة. في Coolify: اضبط الدومين (aqaar.online) على خدمة `caddy` والمنفذ 80.
+name: manzilah
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - 'pnpm exec prisma migrate deploy 2>/dev/null || pnpm exec prisma db push --skip-generate --accept-data-loss; node dist/main.js'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/v1/health/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    # إيصالات PDF: فعّلها بتثبيت Chromium في صورة العامل وضبط CHROMIUM_PATH (راجع COOLIFY.md §8).
+    depends_on:
+      api:
+        condition: service_started
+    command: ['node', 'dist/worker.js']
+    restart: unless-stopped
+
+  # بناء لوحة الإدارة مرّة واحدة إلى حجم مشترك.
+  admin-build:
+    build:
+      context: ..
+      dockerfile: admin/Dockerfile
+    volumes:
+      - admin_dist:/out
+    restart: 'no'
+
+  # Caddy داخلي: يوجّه API + لوحة + الواجهة على :80. Coolify يوجّه الدومين إليه ويتولّى TLS.
+  caddy:
+    image: caddy:2-alpine
+    expose:
+      - '80'
+    volumes:
+      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
+      - ../frontend:/srv/frontend:ro
+      - admin_dist:/srv/admin:ro
+      - generated:/srv/generated
+    depends_on:
+      api:
+        condition: service_started
+      admin-build:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  generated:
+  admin_dist:

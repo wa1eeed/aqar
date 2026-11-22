@@ -1,0 +1,32 @@
+# منزلة — Caddy خلف بروكسي Coolify (Traefik يتولّى الدومين وTLS).
+# يستمع HTTP فقط على :80 داخل الشبكة، ويوجّه: API + لوحة الإدارة + الواجهة العامة.
+# تعدّد المستأجرين يعمل عبر ترويسة Host (يحلّها الباكند) إن وُجّهت النطاقات الفرعية إلى هذه الخدمة في Coolify.
+
+:80 {
+	encode zstd gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# API + مسارات يخدمها الـ backend (SSR، خرائط الموقع، robots، theme.css…)
+	@api path /api/* /ws* /property/* /properties/* /sitemap*.xml /robots.txt /llms.txt /feeds/* /theme.css
+	handle @api {
+		reverse_proxy api:3000
+	}
+
+	# لوحة التحكم (SPA) — base /admin/
+	handle_path /admin/* {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+	}
+
+	# الواجهة العامة الثابتة (clean URLs)
+	handle {
+		root * /srv/frontend
+		try_files {path} {path}.html /404.html
+		file_server
+	}
+}

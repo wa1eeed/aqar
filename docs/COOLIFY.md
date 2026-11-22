@@ -1,9 +1,19 @@
-# النشر على Coolify (VPS واحد) — Caddy يملك 80/443
+# النشر على Coolify
 
-منصّة منزلة متعدّدة المستأجرين تحتاج أن يملك **Caddy** المنفذَين 80/443 ليدير:
-نطاقك الأساسي، **النطاقات الفرعية** `‎<مكتب>.نطاقك`، و**النطاقات المخصّصة** للمشتركين بشهادات **عند الطلب**
-(on-demand TLS بعد تحقّق الـAPI). لذا **Coolify يدير الدورة الحياتية فقط** (سحب/بناء/تشغيل)،
-ولا يُشغّل بروكسيه (Traefik) على هذا الخادم.
+للمنصّة مساران حسب سيرفرك:
+
+- **أ) سيرفر مُخصّص لهذا المشروع** → **Caddy يملك 80/443** (كامل تعدّد المستأجرين: نطاقات فرعية +
+  مخصّصة + TLS عند الطلب). الملفّ `infra/docker-compose.yml`. التفاصيل في الأقسام ١–٩ أدناه.
+- **ب) سيرفر Coolify مشترك مع مشاريع أخرى** → **بروكسي Coolify (Traefik) يتولّى الدومين وTLS**،
+  وCaddy يعمل داخلياً للتوجيه. الملفّ `infra/docker-compose.coolify.yml`. **راجع القسم «ب» في الأسفل**.
+
+> في المسار «ب»: النطاق الأساسي يعمل فوراً عبر Let's Encrypt. النطاقات الفرعية للمكاتب تحتاج شهادة
+> wildcard في Coolify (تحدّي DNS عبر Cloudflare)، والنطاقات المخصّصة بـTLS عند الطلب تُؤجَّل حتى سيرفر
+> مخصّص بـCaddy. الباكند نفسه يدعم تعدّد المستأجرين كاملاً؛ القيد في طبقة الشهادات فقط.
+
+---
+
+## المسار أ) سيرفر مخصّص — Caddy يملك 80/443
 
 البنية: `infra/docker-compose.yml` — postgres · redis · api · worker · admin-build · caddy.
 
@@ -106,3 +116,46 @@ CMD ["node","dist/worker.js"]
 - **الترقية:** ادفع إلى `main` → Coolify يُعيد البناء والنشر تلقائياً.
 - **النسخ الاحتياطي/الاستعادة/التراجع/المراقبة:** راجع [RUNBOOK](RUNBOOK.md) §4–§6.
 - **نطاق مشترك مخصّص:** أضِفه من لوحة السوبر-أدمن، ثمّ وجّه DNS له إلى الخادم — يُصدَّر TLS عند أوّل زيارة.
+
+---
+
+## المسار ب) سيرفر Coolify مشترك — بروكسي Coolify يتولّى TLS (حالتك)
+
+البنية: `infra/docker-compose.coolify.yml` — نفس الخدمات، لكنّ Caddy يعمل داخلياً على :80 (بلا حجز
+80/443)، وCoolify يوجّه `aqaar.online` إليه ويُصدِر شهادة Let's Encrypt.
+
+### ب-١) Cloudflare DNS
+| النوع | الاسم | المحتوى | Proxy |
+|---|---|---|---|
+| A | `@` | IP سيرفرك | 🔘 DNS only (رمادي) |
+
+> رمادي (DNS only) ليتحقّق Let's Encrypt (عبر Coolify) من النطاق مباشرةً. النطاقات الفرعية لاحقاً.
+
+### ب-٢) أنشئ المورد في Coolify
+1. **New Resource → Docker Compose** → اربط `wa1eeed/aqar` فرع `main`.
+2. مسار الـcompose: **`infra/docker-compose.coolify.yml`**.
+3. **Environment variables** (نفس القسم ٤ من المسار أ): `PLATFORM_BASE_DOMAIN=aqaar.online`،
+   `POSTGRES_*`, `DATABASE_URL=postgresql://<USER>:<PASS>@postgres:5432/<DB>?schema=public`,
+   `REDIS_URL=redis://redis:6379`, الأسرار، وبيانات البذر. `NODE_ENV=production`.
+   (لا حاجة لـ`ACME_EMAIL`/`ONDEMAND_ASK_URL` هنا — Coolify يتولّى TLS.)
+
+### ب-٣) اربط الدومين بخدمة caddy
+- في المورد → خدمة **`caddy`** → **Domains** → أضِف `https://aqaar.online`، والمنفذ **80**.
+- Coolify يضيف تسميات Traefik ويُصدِر شهادة Let's Encrypt تلقائياً.
+
+### ب-٤) Deploy
+اضغط **Deploy** — يبني Coolify الصور (api/worker، admin-build) ويُشغّل الحزمة خلف بروكسيه.
+
+### ب-٥) البذر والتحقّق
+```bash
+# من طرفية المورد في Coolify:
+docker compose -f infra/docker-compose.coolify.yml run --rm api pnpm db:seed
+```
+- `https://aqaar.online/api/v1/health` → `{"status":"ok","db":"up"}`.
+- اللوحة: `https://aqaar.online/admin/` (سجّل بحساب `SEED_PLATFORM_ADMIN_EMAIL`).
+- أدخل تكاملات R2 وResend من لوحة السوبر-أدمن.
+
+### ب-٦) لاحقاً — نطاقات المكاتب الفرعية
+- **خيار سريع:** أضِف كلّ نطاق فرعي (`demo.aqaar.online`) يدوياً على خدمة caddy في Coolify.
+- **خيار شامل:** فعّل شهادة wildcard `*.aqaar.online` في Coolify عبر تحدّي DNS (توكن Cloudflare API).
+- **تعدّد المستأجرين الكامل** (نطاقات مخصّصة + TLS عند الطلب): يأتي مع سيرفر مخصّص بـCaddy (المسار أ).
