@@ -1,6 +1,5 @@
 # عقار أونلاين — compose لسيرفر Coolify مشترك + قاعدة PostgreSQL منفصلة (مورد Coolify مُدار).
-# الفرق عن docker-compose.coolify.yml: لا خدمة postgres هنا — الباكند يتّصل بقاعدة Coolify عبر DATABASE_URL.
-# يجب أن يكون هذا المورد على نفس شبكة قاعدة Coolify (فعّل "Connect To Predefined Network" إن لزم).
+# api/worker/caddy منضمّة لشبكة Coolify (coolify) للوصول للقاعدة المُدارة ولبروكسي Coolify (Traefik).
 name: manzilah
 
 services:
@@ -21,6 +20,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     env_file: .env
+    networks: [default, coolify]
     depends_on:
       redis:
         condition: service_healthy
@@ -45,6 +45,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     env_file: .env
+    networks: [default, coolify]
     # إيصالات PDF: فعّلها بتثبيت Chromium في صورة العامل وضبط CHROMIUM_PATH (راجع COOLIFY.md §8).
     depends_on:
       api:
@@ -57,12 +58,19 @@ services:
     build:
       context: .
       dockerfile: infra/web.Dockerfile
+    networks: [default, coolify]
     expose:
       - '80'
     depends_on:
       api:
         condition: service_started
     restart: unless-stopped
+
+networks:
+  default:
+  coolify:
+    external: true
+    name: coolify
 
 volumes:
   redisdata:
