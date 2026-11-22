@@ -1,4 +1,4 @@
-/* منزلة — المتغيّرات التصميمية (منقولة من frontend/assets/css/main.css). لا تُعدّل هنا منفصلاً. */
+/* Design tokens copied from frontend/assets/css/main.css (docs/00 §3). /theme.css overrides them at runtime. */
 :root {
   --bg: #faf7f2;
   --surface: #ffffff;
