@@ -17,6 +17,23 @@ export type StaffLoginResult =
   | { twoFactorRequired: true; challengeId: string }
   | { accessToken: string; refreshToken: string; user: AuthUser };
 
+// شكل /auth/me للموظّف — يطابق عقد لوحة الإدارة (admin lib/types Me).
+export interface StaffMe {
+  typ: 'staff';
+  staff: {
+    id: string;
+    name: string;
+    email: string;
+    title: string | null;
+    totpEnabled: boolean;
+    recoveryCodesLeft: number;
+    role: { key: string; nameAr: string };
+    mustSetup2fa: boolean;
+  };
+  permissions: string[];
+  scope: 'all' | 'own';
+}
+
 interface Challenge {
   sub: string;
   tid: string;
@@ -122,18 +139,25 @@ export class StaffAuthService {
     });
   }
 
-  async me(userId: string): Promise<AuthUser & { name: string; email: string }> {
+  async me(userId: string): Promise<StaffMe> {
     const user = await this.prisma.staffUser.findUnique({ where: { id: userId }, include: { role: true } });
     if (!user) throw new UnauthorizedException();
+    // الوكيل يرى صفوفه فقط؛ بقيّة الأدوار ترى الكلّ (docs/03). التفصيل الدقيق في AccessScopeService.
+    const scope: 'all' | 'own' = user.role.key === 'agent' ? 'own' : 'all';
     return {
-      sub: user.id,
       typ: 'staff',
-      tid: user.tenantId,
-      role: user.role.key,
-      perms: user.role.permissions,
-      mustSetup2fa: MANDATORY_2FA.has(user.role.key) && !user.totpEnabled,
-      name: user.name,
-      email: user.email,
+      staff: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        title: user.title,
+        totpEnabled: user.totpEnabled,
+        recoveryCodesLeft: 0,
+        role: { key: user.role.key, nameAr: user.role.nameAr },
+        mustSetup2fa: MANDATORY_2FA.has(user.role.key) && !user.totpEnabled,
+      },
+      permissions: user.role.permissions,
+      scope,
     };
   }
 

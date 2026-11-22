@@ -17,8 +17,8 @@ export class StaffController {
 
   @Get()
   @ApiOperation({ summary: 'قائمة موظفي المكتب' })
-  list() {
-    return this.staff.list();
+  async list() {
+    return { items: await this.staff.list() };
   }
 
   @Post()

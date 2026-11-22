@@ -14,11 +14,19 @@ export const districtSchema = z.object({
 export class LocationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  listCities() {
-    return this.prisma.city.findMany({
+  async listCities() {
+    const cities = await this.prisma.city.findMany({
       include: { districts: { orderBy: { nameAr: 'asc' } } },
       orderBy: { sort: 'asc' },
     });
+    // Prisma Decimal يُسلسَل نصّاً؛ اللوحة تتوقّع lat/lng أرقاماً.
+    const num = (v: unknown): number | null => (v == null ? null : Number(v));
+    return cities.map((c) => ({
+      ...c,
+      lat: num(c.lat),
+      lng: num(c.lng),
+      districts: c.districts.map((d) => ({ ...d, lat: num(d.lat), lng: num(d.lng) })),
+    }));
   }
 
   async createDistrict(input: unknown) {

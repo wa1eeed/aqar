@@ -6,13 +6,14 @@ import { RequirePermissions } from '../auth/decorators.js';
 
 @ApiTags('admin:locations')
 @RequirePermissions('settings.locations')
-@Controller('admin/locations')
+// المسارات: /admin/cities و/admin/districts (تطابق عقد لوحة الإدارة).
+@Controller('admin')
 export class LocationsController {
   constructor(private readonly svc: LocationsService) {}
 
   @Get('cities')
-  cities() {
-    return this.svc.listCities();
+  async cities() {
+    return { items: await this.svc.listCities() };
   }
 
   @Post('districts')
