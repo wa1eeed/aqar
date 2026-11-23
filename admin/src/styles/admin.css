@@ -1669,3 +1669,14 @@ button.ev {
 .g2e > * {
   min-width: 0;
 }
+
+/* مشهد صفحة الدخول المتحرّك (login-art) */
+.la-scene { position: relative; width: 100%; max-width: 440px; margin: auto 0; }
+.la-scene svg { width: 100%; height: auto; display: block; overflow: visible; }
+@keyframes laTwinkle { 0%, 100% { opacity: .22; } 50% { opacity: 1; } }
+@keyframes laFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes laFloat2 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(9px); } }
+.la-win { animation: laTwinkle 3s ease-in-out infinite; }
+.la-float { animation: laFloat 6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.la-float2 { animation: laFloat2 7s ease-in-out infinite .5s; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) { .la-win, .la-float, .la-float2 { animation: none; } }

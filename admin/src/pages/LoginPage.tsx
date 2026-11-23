@@ -33,11 +33,58 @@ export function AuthLayout({ children, art = 'default' }: { children: ReactNode;
                 وعملاؤك في مكان واحد
               </h2>
             </div>
-            <img
-              src="/assets/img/photos/villa-modern.jpg"
-              alt=""
-              style={{ borderRadius: 24, height: 340, objectFit: 'cover', width: '100%', opacity: 0.9 }}
-            />
+            <div className="la-scene" aria-hidden="true">
+              <svg viewBox="0 0 480 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="laSun" cx="50%" cy="50%" r="50%">
+                    <stop offset="0" stopColor="#E7C68A" stopOpacity="0.85" />
+                    <stop offset="1" stopColor="#E7C68A" stopOpacity="0" />
+                  </radialGradient>
+                  <linearGradient id="laB" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="#ffffff" stopOpacity="0.17" />
+                    <stop offset="1" stopColor="#ffffff" stopOpacity="0.05" />
+                  </linearGradient>
+                </defs>
+                <circle cx="372" cy="74" r="78" fill="url(#laSun)" />
+                <circle cx="372" cy="74" r="24" fill="#E7C68A" opacity="0.85" />
+                <g>
+                  <rect x="40" y="176" width="52" height="124" rx="5" fill="url(#laB)" />
+                  <rect x="104" y="128" width="58" height="172" rx="5" fill="url(#laB)" />
+                  <rect x="174" y="200" width="46" height="100" rx="5" fill="url(#laB)" />
+                  <rect x="232" y="150" width="60" height="150" rx="5" fill="url(#laB)" />
+                  <rect x="304" y="196" width="48" height="104" rx="5" fill="url(#laB)" />
+                  <rect x="364" y="162" width="56" height="138" rx="5" fill="url(#laB)" />
+                  <g fill="#E7C68A">
+                    <rect className="la-win" style={{ animationDelay: '0s' }} x="50" y="190" width="9" height="9" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.6s' }} x="66" y="190" width="9" height="9" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '1.2s' }} x="50" y="212" width="9" height="9" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.3s' }} x="116" y="142" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.9s' }} x="134" y="142" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '1.5s' }} x="116" y="166" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.5s' }} x="134" y="166" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '1.1s' }} x="184" y="214" width="9" height="9" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.2s' }} x="244" y="166" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.8s' }} x="262" y="166" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '1.4s' }} x="244" y="190" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.7s' }} x="314" y="210" width="9" height="9" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '1.3s' }} x="374" y="176" width="10" height="10" rx="1.5" />
+                    <rect className="la-win" style={{ animationDelay: '.4s' }} x="392" y="176" width="10" height="10" rx="1.5" />
+                  </g>
+                </g>
+                <g className="la-float">
+                  <rect x="48" y="44" width="156" height="58" rx="13" fill="#ffffff" opacity="0.97" />
+                  <rect x="60" y="56" width="34" height="34" rx="8" fill="#E8F1EC" />
+                  <rect x="102" y="60" width="88" height="7" rx="3.5" fill="#C8BBA4" />
+                  <rect x="102" y="74" width="58" height="7" rx="3.5" fill="#176149" />
+                </g>
+                <g className="la-float2">
+                  <rect x="262" y="104" width="156" height="50" rx="13" fill="#ffffff" opacity="0.97" />
+                  <circle cx="286" cy="129" r="12" fill="#E8F1EC" />
+                  <rect x="306" y="120" width="98" height="6" rx="3" fill="#C8BBA4" />
+                  <rect x="306" y="134" width="66" height="6" rx="3" fill="#C9A86C" />
+                </g>
+              </svg>
+            </div>
             <p style={{ opacity: 0.7, fontSize: 13 }}>اتصال مشفّر · مصادقة ثنائية للمدراء</p>
           </>
         )}

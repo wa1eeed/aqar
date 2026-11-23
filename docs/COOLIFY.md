@@ -159,3 +159,10 @@ docker compose -f infra/docker-compose.coolify.yml run --rm api pnpm db:seed
 - **خيار سريع:** أضِف كلّ نطاق فرعي (`demo.aqaar.online`) يدوياً على خدمة caddy في Coolify.
 - **خيار شامل:** فعّل شهادة wildcard `*.aqaar.online` في Coolify عبر تحدّي DNS (توكن Cloudflare API).
 - **تعدّد المستأجرين الكامل** (نطاقات مخصّصة + TLS عند الطلب): يأتي مع سيرفر مخصّص بـCaddy (المسار أ).
+
+## بذر بيانات العرض التجريبي (اختياري)
+بيانات العرض (عقارات/طلبات/حجوزات للمكتب `demo`) لا تُبذَر في الإنتاج افتراضياً. لتفعيلها مرّة:
+```bash
+docker exec -e SEED_DEMO=1 $(docker ps --format '{{.Names}}' | grep '^api-' | head -n1) pnpm db:seed
+```
+(صورة الـAPI تتضمّن `frontend/data` اللازم لذلك.)

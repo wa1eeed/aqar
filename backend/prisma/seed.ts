@@ -160,7 +160,13 @@ async function seedDemoTenant(): Promise<void> {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // يحمّل بيانات العرض من ملف الواجهة (نفس المصدر) عبر تنفيذه في سياق معزول.
 function loadDemo(): { agents: Record<string, any>; properties: any[] } {
-  const code = readFileSync(FRONTEND_DATA, 'utf8');
+  let code: string;
+  try {
+    code = readFileSync(FRONTEND_DATA, 'utf8');
+  } catch {
+    console.log('⚠ تعذّر قراءة بيانات العرض (ملف الواجهة غير متوفّر) — تخطّي العقارات التجريبية');
+    return { agents: {}, properties: [] };
+  }
   const sandbox: any = {};
   sandbox.window = sandbox; // window === global فيعمل MZ وwindow.MZ معاً
   vm.createContext(sandbox);
@@ -169,7 +175,8 @@ function loadDemo(): { agents: Record<string, any>; properties: any[] } {
 }
 
 async function seedDemoProperties(tenantId: string, tenantCode: string): Promise<void> {
-  if (process.env.NODE_ENV === 'production') return; // العرض التجريبي لبيئات غير الإنتاج فقط
+  // بيانات العرض لبيئات غير الإنتاج، أو في الإنتاج عند طلبها صراحةً بـ SEED_DEMO=1.
+  if (process.env.NODE_ENV === 'production' && process.env.SEED_DEMO !== '1') return;
   const { agents, properties } = loadDemo();
 
   const agentRole = await prisma.role.findUnique({ where: { tenantId_key: { tenantId, key: 'agent' } } });

@@ -14,6 +14,8 @@ RUN pnpm install --frozen-lockfile --prod=false
 # المصدر والبناء
 COPY packages/schema packages/schema
 COPY backend backend
+# بيانات العرض التجريبي (يقرؤها seed عند SEED_DEMO=1) — خارج backend، فتُنسخ صراحةً.
+COPY frontend/data frontend/data
 # DATABASE_URL وهمي لـ prisma generate وقت البناء (لا يتصل بقاعدة)
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build?schema=public"
 RUN pnpm --filter @manzilah/schema build \
