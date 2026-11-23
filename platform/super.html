@@ -97,6 +97,20 @@ tbody tr:hover{background:var(--bg)}
 .sfield .h{font-size:.75rem;color:var(--muted)}
 .save-msg{display:none;font-size:.88rem;font-weight:600;color:var(--green)}
 .save-msg.show{display:inline-block}
+.mtx{width:100%;border-collapse:collapse;font-size:.88rem}
+.mtx th,.mtx td{border:1px solid var(--line);padding:10px 12px;text-align:center;white-space:nowrap}
+.mtx th:first-child,.mtx td:first-child{text-align:right;white-space:normal}
+.mtx thead th{background:var(--sand-100)}
+.mtx .pname{font-family:var(--f-display);font-weight:700;color:var(--green-900)}
+.mtx .pprice{font-size:.74rem;color:var(--muted);font-weight:400;display:block}
+.mtx .fcat{font-size:.7rem;color:var(--muted);display:block;font-weight:400}
+.mtx input[type=number]{width:74px;padding:6px;border:1px solid var(--line-2);border-radius:8px;text-align:center;font-family:var(--f-body)}
+.chk{width:22px;height:22px;accent-color:var(--green);cursor:pointer}
+.modal-bg{position:fixed;inset:0;background:rgba(10,47,37,.45);display:grid;place-items:center;z-index:60;padding:20px}
+.modal{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow-lg);width:min(440px,100%);padding:24px}
+.modal h3{font-size:1.15rem;margin-bottom:16px}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.modal select,.modal input{font-family:var(--f-body);font-size:.95rem;padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--bg);width:100%}
 @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}.hide-sm{display:none}.topnav{display:none}.form-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -125,7 +139,7 @@ tbody tr:hover{background:var(--bg)}
 <div id="appView">
   <div class="topbar"><div class="container topbar__in">
     <div class="brand"><span class="brand__mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></span><b>لوحة المنصة</b></div>
-    <nav class="topnav"><button class="tnav on" data-view="tenants">المكاتب</button><button class="tnav" data-view="settings">إعدادات المنصة</button></nav>
+    <nav class="topnav"><button class="tnav on" data-view="tenants">المكاتب</button><button class="tnav" data-view="plans">الباقات والمميزات</button><button class="tnav" data-view="settings">إعدادات المنصة</button></nav>
     <div style="display:flex;align-items:center;gap:14px"><span class="who" id="who"></span><button class="btn btn--ghost btn--sm" id="logoutBtn" style="color:#fff;border-color:rgba(255,255,255,.3)">خروج</button></div>
   </div></div>
 
@@ -138,6 +152,18 @@ tbody tr:hover{background:var(--bg)}
       <div class="kpis" id="kpis"></div>
       <div class="tabs" id="tabs"></div>
       <div class="panel"><div id="tableWrap"><div class="loading">جارٍ التحميل…</div></div></div>
+    </div><!-- /viewTenants -->
+
+    <div id="viewPlans" hidden>
+      <div class="head">
+        <div><h2>الباقات والمميزات</h2><p>كوّن الباقات، وفعّل/عطّل كل ميزة أو اضبط حدّها لكل باقة. أي ميزة جديدة تظهر هنا تلقائياً.</p></div>
+        <button class="btn btn--ghost btn--sm" id="newPlanBtn">+ باقة جديدة</button>
+      </div>
+      <div class="panel" style="overflow:auto"><div id="matrixWrap"><div class="loading">جارٍ التحميل…</div></div></div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:14px">
+        <button class="btn btn--p" id="savePlansBtn">حفظ التغييرات</button>
+        <span class="save-msg" id="plansMsg">تم الحفظ ✓</span>
+      </div>
     </div>
 
     <div id="viewSettings" hidden>
@@ -162,6 +188,7 @@ tbody tr:hover{background:var(--bg)}
       </div>
     </div>
   </main>
+  <div id="modalMount"></div>
 </div>
 
 <script>
@@ -208,16 +235,110 @@ tbody tr:hover{background:var(--bg)}
   document.getElementById('refreshBtn').addEventListener('click',load);
 
   // ---- view switching + branding settings ----
-  var brandLoaded=false;
+  var brandLoaded=false, plansLoaded=false;
   Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(b){
     b.addEventListener('click',function(){
       var v=b.getAttribute('data-view');
       Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(x){x.classList.toggle('on',x===b);});
       document.getElementById('viewTenants').hidden=(v!=='tenants');
+      document.getElementById('viewPlans').hidden=(v!=='plans');
       document.getElementById('viewSettings').hidden=(v!=='settings');
       if(v==='settings'&&!brandLoaded)loadBranding();
+      if(v==='plans'&&!plansLoaded)loadPlans();
     });
   });
+
+  // ---- plans & features matrix ----
+  var PLANS=[], FEATURES=[], ENT={}; // ENT[planId][featureKey]=value
+  function loadPlans(){
+    document.getElementById('matrixWrap').innerHTML='<div class="loading">جارٍ التحميل…</div>';
+    Promise.all([req('/super/plans'),req('/super/features')]).then(function(r){
+      if(r[0].status===401||r[1].status===401){logout();return;}
+      PLANS=Array.isArray(r[0].j)?r[0].j:[]; FEATURES=Array.isArray(r[1].j)?r[1].j:[];
+      ENT={};
+      PLANS.forEach(function(p){ENT[p.id]={}; (p.entitlements||[]).forEach(function(e){ENT[p.id][e.featureKey]=e.value;});});
+      plansLoaded=true; renderMatrix();
+    });
+  }
+  var FTYPE={listings:'العقارات',team:'الفريق',crm:'العملاء',payments:'المدفوعات',advanced:'متقدّم',branding:'العلامة',seo:'الظهور',integrations:'تكاملات'};
+  function renderMatrix(){
+    if(!PLANS.length){document.getElementById('matrixWrap').innerHTML='<div class="empty">لا توجد باقات بعد. أنشئ باقة.</div>';return;}
+    var h='<table class="mtx"><thead><tr><th>الميزة</th>';
+    PLANS.forEach(function(p){h+='<th><span class="pname">'+esc(p.nameAr)+'</span><span class="pprice">'+(p.priceMonthly?((p.priceMonthly/100)+' ر.س'):'مجّاني')+'</span></th>';});
+    h+='</tr></thead><tbody>';
+    FEATURES.forEach(function(f){
+      h+='<tr><td><b>'+esc(f.nameAr)+'</b><span class="fcat">'+esc(FTYPE[f.category]||f.category||'')+'</span></td>';
+      PLANS.forEach(function(p){
+        var v=ENT[p.id][f.key];
+        if(f.type==='boolean'){
+          h+='<td><input type="checkbox" class="chk" data-p="'+p.id+'" data-f="'+esc(f.key)+'" '+(v===true?'checked':'')+'></td>';
+        }else{
+          var num=(v===null||v===undefined||v===false)?'':v;
+          h+='<td><input type="number" min="0" placeholder="∞" value="'+esc(num)+'" data-p="'+p.id+'" data-f="'+esc(f.key)+'" data-num="1"></td>';
+        }
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    document.getElementById('matrixWrap').innerHTML=h;
+  }
+  function savePlans(){
+    // اجمع من الحقول
+    Array.prototype.forEach.call(document.querySelectorAll('#matrixWrap [data-p]'),function(el){
+      var p=el.getAttribute('data-p'),f=el.getAttribute('data-f');
+      if(el.getAttribute('data-num')){var raw=el.value.trim();ENT[p][f]=raw===''?null:parseInt(raw,10);}
+      else{ENT[p][f]=el.checked;}
+    });
+    var btn=document.getElementById('savePlansBtn'),msg=document.getElementById('plansMsg');
+    btn.disabled=true;btn.textContent='جارٍ الحفظ…';
+    var calls=PLANS.map(function(p){
+      var list=FEATURES.map(function(f){return {featureKey:f.key,value:(ENT[p.id][f.key]===undefined?null:ENT[p.id][f.key])};});
+      return req('/super/plans/'+p.id+'/entitlements',{method:'PUT',body:{entitlements:list}});
+    });
+    Promise.all(calls).then(function(rs){
+      btn.disabled=false;btn.textContent='حفظ التغييرات';
+      if(rs.some(function(r){return r.status===401;})){logout();return;}
+      if(rs.every(function(r){return r.ok;})){msg.classList.add('show');setTimeout(function(){msg.classList.remove('show');},2500);}
+      else{alert('تعذّر حفظ بعض الباقات');}
+    });
+  }
+  document.getElementById('savePlansBtn').addEventListener('click',savePlans);
+  document.getElementById('newPlanBtn').addEventListener('click',function(){
+    var key=prompt('مفتاح الباقة (لاتيني صغير، مثل: enterprise):');if(!key)return;
+    var nameAr=prompt('اسم الباقة بالعربية:');if(!nameAr)return;
+    var price=prompt('السعر الشهري بالريال (0 للمجّانية):','0');
+    req('/super/plans',{method:'POST',body:{key:key.trim(),nameAr:nameAr.trim(),priceMonthly:Math.round((parseFloat(price)||0)*100)}}).then(function(r){
+      if(r.ok){plansLoaded=false;loadPlans();}else{alert((r.j.error&&r.j.error.message)||'تعذّر إنشاء الباقة');}
+    });
+  });
+
+  // ---- tenant plan change modal ----
+  function openPlanModal(tenant){
+    var opts=PLANS.length?PLANS:[];
+    if(!opts.length){ // لم تُحمّل الباقات بعد
+      req('/super/plans').then(function(r){PLANS=Array.isArray(r.j)?r.j:[];openPlanModal(tenant);});return;
+    }
+    var sel=opts.map(function(p){return '<option value="'+p.key+'"'+(tenant.planKey===p.key?' selected':'')+'>'+esc(p.nameAr)+'</option>';}).join('');
+    var html='<div class="modal-bg" id="mbg"><div class="modal">'+
+      '<h3>تغيير باقة: '+esc(tenant.name)+'</h3>'+
+      '<div class="field" style="gap:6px;margin-bottom:12px"><label>الباقة</label><select id="mPlan">'+sel+'</select></div>'+
+      '<div class="field" style="gap:6px"><label>مدة الاشتراك (أيام — اختياري للتجديد)</label><input id="mDays" type="number" min="1" placeholder="مثال: 30"></div>'+
+      '<div class="acts"><button class="btn btn--ghost btn--sm" id="mCancel">إلغاء</button><button class="btn btn--p btn--sm" id="mSave">حفظ</button></div>'+
+    '</div></div>';
+    var mount=document.getElementById('modalMount');mount.innerHTML=html;
+    function close(){mount.innerHTML='';}
+    document.getElementById('mCancel').addEventListener('click',close);
+    document.getElementById('mbg').addEventListener('click',function(e){if(e.target.id==='mbg')close();});
+    document.getElementById('mSave').addEventListener('click',function(){
+      var planKey=document.getElementById('mPlan').value;var days=document.getElementById('mDays').value.trim();
+      var body={planKey:planKey};if(days)body.periodDays=parseInt(days,10);
+      var sb=document.getElementById('mSave');sb.disabled=true;sb.textContent='…';
+      req('/super/tenants/'+tenant.id+'/plan',{method:'PUT',body:body}).then(function(r){
+        if(r.status===401){logout();return;}
+        if(r.ok){close();load();}else{alert((r.j.error&&r.j.error.message)||'تعذّر تغيير الباقة');sb.disabled=false;sb.textContent='حفظ';}
+      });
+    });
+  }
   var BFIELDS=['name','tagline','description','keywords','logoUrl','faviconUrl','ogImageUrl','email','phone','twitter'];
   function loadBranding(){
     req('/super/settings/branding').then(function(res){
@@ -287,13 +408,17 @@ tbody tr:hover{background:var(--bg)}
     Array.prototype.forEach.call(document.querySelectorAll('[data-act]'),function(b){
       b.addEventListener('click',function(){setStatus(b.getAttribute('data-id'),b.getAttribute('data-act'),b);});
     });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-plan]'),function(b){
+      b.addEventListener('click',function(){var t=tenants.find(function(x){return x.id===b.getAttribute('data-plan');});if(t)openPlanModal(t);});
+    });
   }
 
   function actions(t){
     var a='';
     if(t.status==='pending'||t.status==='suspended')a+='<button class="btn btn--p btn--sm" data-act="active" data-id="'+t.id+'">تفعيل</button>';
     if(t.status==='active'||t.status==='trial')a+='<button class="btn btn--danger btn--sm" data-act="suspended" data-id="'+t.id+'">إيقاف</button>';
-    return a||'—';
+    a+='<button class="btn btn--ghost btn--sm" data-plan="'+t.id+'">الباقة</button>';
+    return a;
   }
 
   function setStatus(id,status,btn){

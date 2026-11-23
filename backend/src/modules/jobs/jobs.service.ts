@@ -29,6 +29,24 @@ export class JobsService {
     }
   }
 
+  /**
+   * تجميد المشتركين بعد انتهاء الاشتراك دون تجديد: كل ساعة، يوقف المكاتب التي
+   * انتهى `currentPeriodEnd` ولم تُجدَّد (الحالة active/trialing) → past_due + تعليق المكتب.
+   */
+  @Cron('0 * * * *')
+  async freezeExpiredSubscriptions(): Promise<void> {
+    const now = new Date();
+    const expired = await this.prisma.subscription.findMany({
+      where: { currentPeriodEnd: { lt: now }, status: { in: ['active', 'trialing'] } },
+      select: { id: true, tenantId: true },
+    });
+    for (const s of expired) {
+      await this.prisma.subscription.update({ where: { id: s.id }, data: { status: 'past_due' } });
+      await this.prisma.tenant.update({ where: { id: s.tenantId }, data: { status: 'suspended' } });
+    }
+    if (expired.length) this.logger.log(`جُمّد ${expired.length} مشترك لانتهاء الاشتراك`);
+  }
+
   /** تحرير الحجوزات منتهية المهلة كل 5 دقائق (docs/04 §4). */
   @Cron('*/5 * * * *')
   async releaseExpiredHolds(): Promise<void> {

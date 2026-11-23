@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { PrismaService } from '../../prisma/prisma.service.js';
@@ -22,6 +22,12 @@ const tenantEntitlementSchema = z.object({
   featureKey: z.string(),
   value: entitlementValue,
   expiresAt: z.string().datetime().nullable().optional(),
+});
+
+const setTenantPlanSchema = z.object({
+  planKey: z.string(),
+  // عدد أيام الاشتراك من الآن (اختياري — للتجديد/التفعيل). بدونه يبقى تاريخ الانتهاء كما هو.
+  periodDays: z.number().int().positive().max(3650).optional(),
 });
 
 function toJson(value: boolean | number | null): Prisma.InputJsonValue | typeof Prisma.JsonNull {
@@ -101,5 +107,34 @@ export class PlansService {
 
   tenantEntitlements(tenantId: string) {
     return this.prisma.tenantEntitlement.findMany({ where: { tenantId } });
+  }
+
+  /** تغيير/ترقية باقة مشترك (وتجديد الاشتراك اختيارياً، ويُفعّل حساباً معلّقاً/موقوفاً). */
+  async setTenantPlan(tenantId: string, body: unknown, actorId?: string | null) {
+    const { planKey, periodDays } = setTenantPlanSchema.parse(body);
+    const plan = await this.prisma.plan.findUnique({ where: { key: planKey } });
+    if (!plan) throw new BadRequestException('باقة غير معروفة');
+    const tenant = await this.prisma.tenant.findFirst({ where: { id: tenantId, deletedAt: null } });
+    if (!tenant) throw new NotFoundException('المشترك غير موجود');
+
+    const currentPeriodEnd = periodDays ? new Date(Date.now() + periodDays * 86_400_000) : undefined;
+    const sub = await this.prisma.subscription.upsert({
+      where: { tenantId },
+      create: { tenantId, planId: plan.id, status: 'active', currentPeriodEnd: currentPeriodEnd ?? null },
+      update: { planId: plan.id, status: 'active', ...(currentPeriodEnd !== undefined ? { currentPeriodEnd } : {}) },
+    });
+    await this.prisma.tenant.update({
+      where: { id: tenantId },
+      data: {
+        planKey: plan.key,
+        ...(tenant.status === 'pending' || tenant.status === 'suspended' ? { status: 'active' as const } : {}),
+      },
+    });
+    await this.audit.record({
+      tenantId: null, actorType: 'platform', actorId: actorId ?? null,
+      action: 'tenant.plan.change', entityType: 'Tenant', entityId: tenantId,
+      after: { planKey, periodDays: periodDays ?? null },
+    });
+    return sub;
   }
 }

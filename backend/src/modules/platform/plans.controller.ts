@@ -35,6 +35,12 @@ export class PlansController {
     return this.plans.setPlanEntitlements(id, body, user.sub);
   }
 
+  @Put('tenants/:id/plan')
+  @ApiOperation({ summary: 'تغيير/ترقية باقة مشترك (مع تجديد اختياري)' })
+  setTenantPlan(@Param('id') id: string, @Body() body: unknown, @CurrentUser() user: AuthUser) {
+    return this.plans.setTenantPlan(id, body, user.sub);
+  }
+
   @Get('tenants/:id/entitlements')
   @ApiOperation({ summary: 'استثناءات/إضافات المشترك' })
   tenantEntitlements(@Param('id') id: string) {
