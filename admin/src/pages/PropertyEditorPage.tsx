@@ -316,7 +316,7 @@ export function PropertyEditorPage() {
   };
 
   const save = useCallback(
-    async (opts: { silent?: boolean } = {}) => {
+    async (opts: { silent?: boolean; toEditor?: boolean } = {}) => {
       if (!opts.silent) setBusy(true);
       setError(null);
       setFields({});
@@ -325,7 +325,9 @@ export function PropertyEditorPage() {
         if (isNew) {
           const created = await api<AdminProperty>('/admin/properties', { body });
           toast('تم إنشاء المسودة');
-          navigate(`/properties/${created.id}`, { replace: true });
+          navigate(opts.toEditor ? `/properties/${created.id}/edit#sec-media` : `/properties/${created.id}`, {
+            replace: true,
+          });
           return true;
         }
         const updated = await api<AdminProperty>(`/admin/properties/${id}`, { method: 'PATCH', body });
@@ -497,7 +499,7 @@ export function PropertyEditorPage() {
       </div>
 
       <nav className="tabs2 editor-tabs" aria-label="أقسام المحرر">
-        {SECTIONS.filter(([k]) => !isNew || !['media', 'history'].includes(k)).map(([k, l]) => (
+        {SECTIONS.filter(([k]) => !isNew || !['history'].includes(k)).map(([k, l]) => (
           <a
             key={k}
             href={`#sec-${k}`}
@@ -803,7 +805,30 @@ export function PropertyEditorPage() {
           <p className="hint">قيمة العربون وطرق الدفع تُضبط من إعدادات الحجز (المرحلة 5).</p>
         </Section>
 
-        {p ? <MediaSection p={p} editable={editable} onChanged={load} /> : null}
+        {p ? (
+          <MediaSection p={p} editable={editable} onChanged={load} />
+        ) : (
+          <Section id="media" title="الصور والملفات">
+            <div className="media-gate">
+              <div className="media-gate__icon" aria-hidden>
+                <Icon name="layers" />
+              </div>
+              <p className="media-gate__title">احفظ المسودة أولاً لرفع صور العقار</p>
+              <p className="hint">
+                بعد حفظ الأساسيات نُنشئ مسودة للعقار، ثم تظهر لك أداة رفع الصور والمخططات ومقاطع الفيديو. تُخزَّن الصور بأمان على مساحة المكتب الخاصة.
+              </p>
+              <button
+                type="button"
+                className="btn btn--p"
+                disabled={!editable || busy}
+                onClick={() => void save({ toEditor: true })}
+              >
+                <Icon name="check" />
+                حفظ المسودة ومتابعة إضافة الصور
+              </button>
+            </div>
+          </Section>
+        )}
 
         <Section id="license" title="الترخيص" aside={p ? <LicensePill p={p} /> : null}>
           <div className="form3">

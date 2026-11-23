@@ -85,6 +85,16 @@ tbody tr:hover{background:var(--bg)}
 .row-actions{display:flex;gap:6px;justify-content:flex-start;flex-wrap:wrap}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 .loading{padding:40px;text-align:center;color:var(--muted)}
+.int-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.int-card{background:#fff;border:1px solid var(--sand-200);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.int-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.int-top h3{margin:0;font-size:1rem;font-weight:700;font-family:var(--f-display)}
+.int-top p{margin:3px 0 0;font-size:.82rem;color:var(--muted);line-height:1.5}
+.int-err{font-size:.78rem;color:var(--err);background:var(--err-50);padding:8px 10px;border-radius:8px;direction:ltr;text-align:left;word-break:break-word}
+.int-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.tgl{display:inline-flex;align-items:center;gap:7px;font-size:.84rem;font-weight:600;color:var(--ink);cursor:pointer;margin-inline-end:auto}
+.tgl input{width:16px;height:16px;cursor:pointer}
+.hint{font-size:.76rem;color:var(--muted);font-weight:400}
 .topnav{display:flex;gap:6px}
 .tnav{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.14);padding:7px 15px;border-radius:999px;cursor:pointer;font-size:.86rem;font-weight:600;font-family:var(--f-body)}
 .tnav.on{background:#fff;color:var(--green-900);border-color:#fff}
@@ -156,6 +166,7 @@ tbody tr:hover{background:var(--bg)}
       <button class="snav on" data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>نظرة عامة</button>
       <button class="snav" data-view="tenants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>المكاتب</button>
       <button class="snav" data-view="plans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 4.9V17L12 22 3 17V6.9z"/><path d="M12 22V12"/><path d="M3 7l9 5 9-5"/></svg>الباقات والمميزات</button>
+      <button class="snav" data-view="integrations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 4.9v10.2L12 22l-9-4.9V6.9z" opacity="0"/><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><path d="M17 13v3m0 0v3m0-3h3m-3 0h-3"/></svg>التكاملات</button>
       <button class="snav" data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 15H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3h4a1.65 1.65 0 0 0 .91 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9c.22.6.78 1 1.42 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51.91z"/></svg>إعدادات المنصة</button>
     </nav>
     <div class="side__foot"><span class="who" id="who"></span><button class="btn btn--ghost btn--sm" id="logoutBtn" style="color:#fff;border-color:rgba(255,255,255,.28);width:100%">تسجيل الخروج</button></div>
@@ -188,6 +199,11 @@ tbody tr:hover{background:var(--bg)}
         <button class="btn btn--p" id="savePlansBtn">حفظ التغييرات</button>
         <span class="save-msg" id="plansMsg">تم الحفظ ✓</span>
       </div>
+    </div>
+
+    <div id="viewIntegrations" hidden>
+      <div class="head"><div><h2>تكاملات المنصة</h2><p>اضبط مزوّدي المنصة (تخزين R2، البريد، الخرائط). المفاتيح مشفّرة (AES-256) ولا تُعاد بعد الحفظ.</p></div></div>
+      <div id="intList"><div class="loading">جارٍ التحميل…</div></div>
     </div>
 
     <div id="viewSettings" hidden>
@@ -259,7 +275,7 @@ tbody tr:hover{background:var(--bg)}
   document.getElementById('refreshBtn').addEventListener('click',load);
 
   // ---- view switching + branding settings ----
-  var brandLoaded=false, plansLoaded=false;
+  var brandLoaded=false, plansLoaded=false, intLoaded=false;
   Array.prototype.forEach.call(document.querySelectorAll('.snav'),function(b){
     b.addEventListener('click',function(){
       var v=b.getAttribute('data-view');
@@ -267,9 +283,11 @@ tbody tr:hover{background:var(--bg)}
       document.getElementById('viewOverview').hidden=(v!=='overview');
       document.getElementById('viewTenants').hidden=(v!=='tenants');
       document.getElementById('viewPlans').hidden=(v!=='plans');
+      document.getElementById('viewIntegrations').hidden=(v!=='integrations');
       document.getElementById('viewSettings').hidden=(v!=='settings');
       if(v==='settings'&&!brandLoaded)loadBranding();
       if(v==='plans'&&!plansLoaded)loadPlans();
+      if(v==='integrations'&&!intLoaded)loadIntegrations();
     });
   });
 
@@ -382,6 +400,109 @@ tbody tr:hover{background:var(--bg)}
       else{alert((res.j.error&&res.j.error.message)||'تعذّر الحفظ');}
     });
   });
+
+  // ---- integrations (platform providers: R2, email, maps …) ----
+  var INT=[]; // [{key,nameAr,descriptionAr,scope,uiHints,enabled,health,lastError}]
+  var IHEALTH={ok:['متصل','b-active'],degraded:['متذبذب','b-trial'],down:['متعذّر','b-suspended'],unknown:['غير مُهيّأ','b-pending'],unconfigured:['غير مُهيّأ','b-pending']};
+  function loadIntegrations(){
+    document.getElementById('intList').innerHTML='<div class="loading">جارٍ التحميل…</div>';
+    req('/super/integrations').then(function(r){
+      if(r.status===401){logout();return;}
+      var list=Array.isArray(r.j)?r.j:(r.j&&r.j.items)||[];
+      if(!list.length){document.getElementById('intList').innerHTML='<div class="empty">لا توجد تكاملات متاحة.</div>';intLoaded=true;return;}
+      // اجلب حالة كل مزوّد (enabled/health)
+      Promise.all(list.map(function(it){return req('/super/integrations/'+encodeURIComponent(it.key));})).then(function(rs){
+        INT=list.map(function(it,i){var d=(rs[i]&&rs[i].ok&&rs[i].j)||{};return {
+          key:it.key, nameAr:it.nameAr||it.name||it.key, descriptionAr:it.descriptionAr||it.description||'',
+          scope:it.scope||d.scope||'', uiHints:it.uiHints||{},
+          enabled:!!d.enabled, health:d.health||(d.enabled?'unknown':'unconfigured'), lastError:d.lastError||'',
+          config:d.config||{}, secretsHint:d.secretsHint||{}, environment:d.environment||''
+        };});
+        intLoaded=true; renderIntegrations();
+      });
+    });
+  }
+  function renderIntegrations(){
+    var h='<div class="int-grid">';
+    INT.forEach(function(it){
+      var hb=IHEALTH[it.health]||IHEALTH.unknown;
+      h+='<div class="int-card">'+
+        '<div class="int-top"><div><h3>'+esc(it.nameAr)+'</h3>'+(it.descriptionAr?'<p>'+esc(it.descriptionAr)+'</p>':'')+'</div>'+
+        '<span class="badge '+hb[1]+'">'+hb[0]+'</span></div>'+
+        (it.lastError?'<div class="int-err">'+esc(it.lastError)+'</div>':'')+
+        '<div class="int-acts">'+
+          '<label class="tgl"><input type="checkbox" data-ient="'+esc(it.key)+'" '+(it.enabled?'checked':'')+'><span>مُفعّل</span></label>'+
+          '<button class="btn btn--ghost btn--sm" data-icfg="'+esc(it.key)+'">تهيئة</button>'+
+          '<button class="btn btn--ghost btn--sm" data-itest="'+esc(it.key)+'">اختبار الاتصال</button>'+
+        '</div></div>';
+    });
+    h+='</div>';
+    var wrap=document.getElementById('intList');wrap.innerHTML=h;
+    Array.prototype.forEach.call(wrap.querySelectorAll('[data-icfg]'),function(b){b.addEventListener('click',function(){openIntegration(b.getAttribute('data-icfg'));});});
+    Array.prototype.forEach.call(wrap.querySelectorAll('[data-itest]'),function(b){b.addEventListener('click',function(){testIntegration(b.getAttribute('data-itest'),b);});});
+    Array.prototype.forEach.call(wrap.querySelectorAll('[data-ient]'),function(c){c.addEventListener('change',function(){
+      var key=c.getAttribute('data-ient');c.disabled=true;
+      req('/super/integrations/'+encodeURIComponent(key)+'/enabled',{method:'PATCH',body:{enabled:c.checked}}).then(function(r){
+        c.disabled=false;
+        if(r.status===401){logout();return;}
+        if(r.ok){var it=find(key);if(it)it.enabled=c.checked;}else{c.checked=!c.checked;alert((r.j.error&&r.j.error.message)||'تعذّر تغيير الحالة');}
+      });
+    });});
+  }
+  function find(key){for(var i=0;i<INT.length;i++)if(INT[i].key===key)return INT[i];return null;}
+  function testIntegration(key,btn){
+    var old=btn.textContent;btn.disabled=true;btn.textContent='جارٍ…';
+    req('/super/integrations/'+encodeURIComponent(key)+'/test',{method:'POST'}).then(function(r){
+      btn.disabled=false;btn.textContent=old;
+      if(r.status===401){logout();return;}
+      var ok=r.ok&&(r.j.ok!==false);
+      if(!ok)alert(r.j.messageAr||(r.j.error&&r.j.error.message)||'فشل الاختبار — تحقّق من المفاتيح');
+      intLoaded=false;loadIntegrations();
+    });
+  }
+  function openIntegration(key){
+    var it=find(key);if(!it)return;
+    var hints=it.uiHints||{};var keys=Object.keys(hints);
+    var rows=keys.map(function(fk){
+      var hint=hints[fk]||{};var isSecret=(hint.type==='password'||hint.secret===true);
+      var cur=isSecret?'':(it.config&&it.config[fk]!=null?it.config[fk]:'');
+      var ph=isSecret?(it.secretsHint&&it.secretsHint[fk]?it.secretsHint[fk]:(hint.placeholder||'••••••••'))
+                     :(hint.placeholder||'');
+      return '<div class="field" style="gap:6px;margin-bottom:10px"><label>'+esc(hint.labelAr||hint.label||fk)+(isSecret?' <span class="hint">(سرّي — مشفّر)</span>':'')+'</label>'+
+        '<input id="if_'+esc(fk)+'" type="'+(isSecret?'password':'text')+'" value="'+esc(cur)+'" placeholder="'+esc(ph)+'" autocomplete="off" data-secret="'+(isSecret?'1':'0')+'"></div>';
+    }).join('');
+    if(!rows)rows='<p class="hint">لا توجد حقول لهذا المزوّد.</p>';
+    var html='<div class="modal-bg" id="mbg"><div class="modal" style="max-width:520px">'+
+      '<h3>تهيئة: '+esc(it.nameAr)+'</h3>'+
+      '<p class="hint" style="margin:-4px 0 14px">المفاتيح السرّية مشفّرة (AES-256) ولا تُعاد بعد الحفظ. اترك الحقل السرّي فارغاً للإبقاء على القيمة الحالية.</p>'+
+      rows+
+      '<div id="imsg" class="msg"></div>'+
+      '<div class="acts"><button class="btn btn--ghost btn--sm" id="iCancel">إلغاء</button><button class="btn btn--p btn--sm" id="iSave">حفظ</button></div>'+
+    '</div></div>';
+    var mount=document.getElementById('modalMount');mount.innerHTML=html;
+    function close(){mount.innerHTML='';}
+    document.getElementById('iCancel').addEventListener('click',close);
+    document.getElementById('mbg').addEventListener('click',function(e){if(e.target.id==='mbg')close();});
+    document.getElementById('iSave').addEventListener('click',function(){
+      var config={},secrets={};
+      keys.forEach(function(fk){
+        var el=document.getElementById('if_'+fk);if(!el)return;var val=el.value;
+        if(el.getAttribute('data-secret')==='1'){if(val!=='')secrets[fk]=val;}
+        else{config[fk]=val.trim();}
+      });
+      var sb=document.getElementById('iSave');sb.disabled=true;sb.textContent='جارٍ…';
+      var calls=[];
+      if(Object.keys(config).length)calls.push(req('/super/integrations/'+encodeURIComponent(key)+'/config',{method:'PATCH',body:config}));
+      if(Object.keys(secrets).length)calls.push(req('/super/integrations/'+encodeURIComponent(key)+'/secrets',{method:'PATCH',body:secrets}));
+      if(!calls.length){close();return;}
+      Promise.all(calls).then(function(rs){
+        sb.disabled=false;sb.textContent='حفظ';
+        if(rs.some(function(r){return r.status===401;})){logout();return;}
+        if(rs.every(function(r){return r.ok;})){close();intLoaded=false;loadIntegrations();}
+        else{var bad=rs.filter(function(r){return !r.ok;})[0];document.getElementById('imsg').textContent=(bad&&bad.j.error&&bad.j.error.message)||'تعذّر الحفظ';document.getElementById('imsg').classList.add('show');}
+      });
+    });
+  }
 
   // ---- data ----
   var STATUS={pending:['قيد المراجعة','b-pending'],trial:['تجريبي','b-trial'],active:['نشط','b-active'],suspended:['موقوف','b-suspended'],cancelled:['ملغى','b-cancelled']};
