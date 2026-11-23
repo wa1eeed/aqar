@@ -20,6 +20,8 @@ import { NotificationsPage } from '../pages/NotificationsPage';
 import { PlaceholderPage } from '../pages/PlaceholderPage';
 import { PropertiesPage } from '../pages/PropertiesPage';
 import { PropertyEditorPage } from '../pages/PropertyEditorPage';
+import { PropertyDetailPage } from '../pages/PropertyDetailPage';
+import { AuditPage } from '../pages/AuditPage';
 import { RolesPage } from '../pages/RolesPage';
 import { StaffPage } from '../pages/StaffPage';
 import { ViewingsPage } from '../pages/ViewingsPage';
@@ -40,6 +42,7 @@ const BUILT = new Set([
   '/bookings',
   '/payments',
   '/settings',
+  '/audit',
 ]);
 
 /** `/settings` opens the first section the user may edit. */
@@ -122,6 +125,14 @@ export function App() {
           path="properties/:id"
           element={
             <Gate permission="properties.view">
+              <PropertyDetailPage />
+            </Gate>
+          }
+        />
+        <Route
+          path="properties/:id/edit"
+          element={
+            <Gate permission="properties.view">
               <PropertyEditorPage />
             </Gate>
           }
@@ -151,6 +162,14 @@ export function App() {
           }
         />
         <Route path="notifications" element={<NotificationsPage />} />
+        <Route
+          path="audit"
+          element={
+            <Gate permission="audit.view">
+              <AuditPage />
+            </Gate>
+          }
+        />
         <Route
           path="bookings"
           element={

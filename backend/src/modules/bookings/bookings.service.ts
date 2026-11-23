@@ -387,6 +387,7 @@ export class BookingsService {
     const pageSize = Math.min(100, Math.max(1, Number(query.pageSize) || 20));
     const where: Prisma.BookingWhereInput = {};
     if (typeof query.status === 'string' && query.status) where.status = query.status as never;
+    if (query.propertyId) where.propertyId = Number(query.propertyId);
     if (typeof query.q === 'string' && query.q.trim()) {
       const q = query.q.trim();
       where.OR = [

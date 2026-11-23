@@ -226,3 +226,8 @@ Use the Redis adapter so multiple API containers broadcast correctly.
 - `GET /api/v1/auth/session` — حالة جلسة المكتب `{loggedIn,name}` (كوكي، بلا تدوير).
 - `GET|PUT /api/v1/super/settings/branding` — إعدادات علامة/SEO المنصة (سوبر-أدمن).
 - `PUT /api/v1/super/tenants/:id/plan` — تغيير/ترقية باقة مشترك (body: `planKey`, `periodDays?`).
+
+### تحديث — نقاط اللوحات (تحسينات التكامل)
+- `GET /api/v1/admin/dashboard` — مؤشرات لوحة المكتب (عقارات منشورة/إجمالي، طلبات اليوم، معاينات قادمة، حجوزات الشهر، مدفوعات الشهر، تحويلات بانتظار).
+- `GET /api/v1/admin/audit?entityType=&entityId=&actorId=` — سجلّ العمليات (موجود؛ يُستخدم في صفحة «سجل العمليات» وسجلّ العقار الزمني).
+- فلاتر: `GET /admin/leads?propertyId=` و`GET /admin/bookings?propertyId=` (لتبويبات صفحة العقار).

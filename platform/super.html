@@ -139,12 +139,18 @@ tbody tr:hover{background:var(--bg)}
 <div id="appView">
   <div class="topbar"><div class="container topbar__in">
     <div class="brand"><span class="brand__mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></span><b>لوحة المنصة</b></div>
-    <nav class="topnav"><button class="tnav on" data-view="tenants">المكاتب</button><button class="tnav" data-view="plans">الباقات والمميزات</button><button class="tnav" data-view="settings">إعدادات المنصة</button></nav>
+    <nav class="topnav"><button class="tnav on" data-view="overview">نظرة عامة</button><button class="tnav" data-view="tenants">المكاتب</button><button class="tnav" data-view="plans">الباقات والمميزات</button><button class="tnav" data-view="settings">إعدادات المنصة</button></nav>
     <div style="display:flex;align-items:center;gap:14px"><span class="who" id="who"></span><button class="btn btn--ghost btn--sm" id="logoutBtn" style="color:#fff;border-color:rgba(255,255,255,.3)">خروج</button></div>
   </div></div>
 
   <main class="main container">
-    <div id="viewTenants">
+    <div id="viewOverview">
+      <div class="head"><div><h2>نظرة عامة على المنصة</h2><p>حالة المكاتب المشتركة وأحدث التسجيلات.</p></div></div>
+      <div class="kpis" id="ovKpis"></div>
+      <div class="panel"><div class="ph" style="padding:14px 16px;border-bottom:1px solid var(--line)"><h3 style="font-size:1.05rem">أحدث التسجيلات</h3></div><div id="ovRecent"><div class="loading">جارٍ التحميل…</div></div></div>
+    </div>
+
+    <div id="viewTenants" hidden>
       <div class="head">
         <div><h2>المكاتب المشتركة</h2><p>راجع طلبات الانضمام وفعّل المكاتب وأدِر حالاتها.</p></div>
         <button class="btn btn--ghost btn--sm" id="refreshBtn">↻ تحديث</button>
@@ -240,6 +246,7 @@ tbody tr:hover{background:var(--bg)}
     b.addEventListener('click',function(){
       var v=b.getAttribute('data-view');
       Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(x){x.classList.toggle('on',x===b);});
+      document.getElementById('viewOverview').hidden=(v!=='overview');
       document.getElementById('viewTenants').hidden=(v!=='tenants');
       document.getElementById('viewPlans').hidden=(v!=='plans');
       document.getElementById('viewSettings').hidden=(v!=='settings');
@@ -369,8 +376,35 @@ tbody tr:hover{background:var(--bg)}
       if(res.status===401){logout();return;}
       if(!res.ok){document.getElementById('tableWrap').innerHTML='<div class="empty">تعذّر جلب البيانات</div>';return;}
       tenants=Array.isArray(res.j)?res.j:(res.j.items||[]);
-      render();
+      render();renderOverview();
     });
+  }
+
+  function renderOverview(){
+    var c=counts();
+    var ov=document.getElementById('ovKpis');if(!ov)return;
+    ov.innerHTML=
+      '<div class="kpi"><b>'+c.all+'</b><span>إجمالي المكاتب</span></div>'+
+      '<div class="kpi"><b>'+c.pending+'</b><span>قيد المراجعة</span></div>'+
+      '<div class="kpi"><b>'+c.active+'</b><span>نشطة</span></div>'+
+      '<div class="kpi"><b>'+(c.suspended+c.cancelled)+'</b><span>موقوفة/ملغاة</span></div>';
+    var recent=tenants.slice().sort(function(a,b){return (String(a.createdAt)<String(b.createdAt))?1:-1;}).slice(0,6);
+    var w=document.getElementById('ovRecent');
+    if(!recent.length){w.innerHTML='<div class="empty">لا تسجيلات بعد.</div>';return;}
+    var html='<table><tbody>';
+    recent.forEach(function(t){
+      var st=STATUS[t.status]||[t.status,'b-cancelled'];
+      var d=t.createdAt?new Date(t.createdAt).toLocaleDateString('en-GB'):'';
+      html+='<tr>'+
+        '<td class="office"><b>'+esc(t.name)+'</b><span>'+esc((TYPE[t.officeType]||t.officeType||'')+(t.city?(' · '+t.city):''))+'</span></td>'+
+        '<td><span class="badge '+st[1]+'">'+esc(st[0])+'</span></td>'+
+        '<td style="color:var(--muted);font-size:.82rem">'+d+'</td>'+
+        '<td>'+(t.status==='pending'?'<button class="btn btn--p btn--sm" data-act="active" data-id="'+t.id+'">تفعيل</button>':'')+'</td>'+
+      '</tr>';
+    });
+    html+='</tbody></table>';
+    w.innerHTML=html;
+    Array.prototype.forEach.call(w.querySelectorAll('[data-act]'),function(b){b.addEventListener('click',function(){setStatus(b.getAttribute('data-id'),b.getAttribute('data-act'),b);});});
   }
 
   function counts(){var c={all:tenants.length,pending:0,trial:0,active:0,suspended:0,cancelled:0};tenants.forEach(function(t){if(c[t.status]!=null)c[t.status]++;});return c;}
@@ -427,7 +461,7 @@ tbody tr:hover{background:var(--bg)}
     btn.disabled=true;btn.textContent='…';
     req('/super/tenants/'+id+'/status',{method:'PATCH',body:{status:status}}).then(function(res){
       if(res.status===401){logout();return;}
-      if(res.ok){var t=tenants.find(function(x){return x.id===id;});if(t)t.status=status;render();}
+      if(res.ok){var t=tenants.find(function(x){return x.id===id;});if(t)t.status=status;render();renderOverview();}
       else{alert((res.j.error&&res.j.error.message)||'تعذّر تغيير الحالة');btn.disabled=false;}
     });
   }

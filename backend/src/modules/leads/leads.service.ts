@@ -186,6 +186,7 @@ export class LeadsService {
     if (str('type')) where.type = str('type') as never;
     if (str('assignee')) where.assignedToId = str('assignee');
     if (str('source')) where.source = str('source') as never;
+    if (str('propertyId')) where.propertyId = Number(str('propertyId'));
     if (str('q')) {
       where.OR = [
         { name: { contains: str('q')!, mode: 'insensitive' } },

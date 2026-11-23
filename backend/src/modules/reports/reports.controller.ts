@@ -43,6 +43,18 @@ export class AuditController {
   }
 }
 
+@ApiTags('admin:dashboard')
+@RequirePermissions('dashboard.view')
+@Controller('admin/dashboard')
+export class DashboardController {
+  constructor(private readonly svc: ReportsService) {}
+
+  @Get()
+  summary() {
+    return this.svc.dashboard();
+  }
+}
+
 @ApiTags('admin:system')
 @RequireStaff()
 @Controller('admin/system')

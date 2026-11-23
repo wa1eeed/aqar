@@ -14,6 +14,33 @@ export interface Report {
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** مؤشرات لوحة المكتب الحيّة. */
+  async dashboard() {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const p = this.prisma.scoped;
+    const [propertiesTotal, propertiesPublished, leadsToday, viewingsUpcoming, bookingsMonth, paySum, transfersPending] =
+      await Promise.all([
+        p.property.count({}),
+        p.property.count({ where: { visibility: 'published' } }),
+        p.lead.count({ where: { createdAt: { gte: startOfDay } } }),
+        p.viewing.count({ where: { scheduledAt: { gte: now }, status: { in: ['requested', 'confirmed'] } } }),
+        p.booking.count({ where: { createdAt: { gte: startOfMonth } } }),
+        p.payment.aggregate({ _sum: { amount: true }, where: { status: 'paid', paidAt: { gte: startOfMonth } } }),
+        p.payment.count({ where: { method: 'bank_transfer', status: 'under_review' } }),
+      ]);
+    return {
+      propertiesTotal,
+      propertiesPublished,
+      leadsToday,
+      viewingsUpcoming,
+      bookingsMonth,
+      paymentsMonth: Number(paySum._sum.amount ?? 0n),
+      transfersPending,
+    };
+  }
+
   async run(kind: string, from?: string, to?: string): Promise<Report> {
     if (!KINDS.includes(kind as ReportKind)) throw new BadRequestException('نوع تقرير غير معروف');
     const range: Prisma.DateTimeFilter = {};
