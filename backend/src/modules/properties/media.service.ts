@@ -60,4 +60,32 @@ export class MediaService {
     await this.prisma.scoped.propertyMedia.update({ where: { id: mediaId }, data: { isCover: true } });
     return { ok: true };
   }
+
+  /** يُؤكّد اكتمال الرفع إلى R2: ينقل الحالة من processing إلى ready. */
+  async complete(mediaId: string) {
+    const m = await this.prisma.scoped.propertyMedia.findFirst({ where: { id: mediaId } });
+    if (!m) throw new NotFoundException('الوسيط غير موجود');
+    await this.prisma.scoped.propertyMedia.update({ where: { id: mediaId }, data: { status: 'ready' } });
+    return { ok: true, status: 'ready' as const };
+  }
+
+  /** تحديث الوسيط: تعيين الغلاف أو النص البديل. */
+  async update(mediaId: string, data: { isCover?: boolean; altAr?: string | null }) {
+    const m = await this.prisma.scoped.propertyMedia.findFirst({ where: { id: mediaId } });
+    if (!m) throw new NotFoundException('الوسيط غير موجود');
+    if (data.isCover === true) return this.setCover(mediaId);
+    if (data.altAr !== undefined) {
+      await this.prisma.scoped.propertyMedia.update({ where: { id: mediaId }, data: { altAr: data.altAr } });
+    }
+    return { ok: true };
+  }
+
+  /** إعادة ترتيب وسائط العقار حسب مصفوفة المعرّفات. */
+  async reorder(propertyId: number, ids: string[]) {
+    await this.requireProperty(propertyId);
+    for (let i = 0; i < ids.length; i++) {
+      await this.prisma.scoped.propertyMedia.updateMany({ where: { id: ids[i], propertyId }, data: { sort: i } });
+    }
+    return { ok: true };
+  }
 }
