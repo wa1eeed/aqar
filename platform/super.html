@@ -88,6 +88,19 @@ tbody tr:hover{background:var(--bg)}
 .topnav{display:flex;gap:6px}
 .tnav{background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.14);padding:7px 15px;border-radius:999px;cursor:pointer;font-size:.86rem;font-weight:600;font-family:var(--f-body)}
 .tnav.on{background:#fff;color:var(--green-900);border-color:#fff}
+.shell{min-height:100vh}
+.side{width:250px;flex:0 0 250px;background:var(--green-900);color:#fff;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side__brand{display:flex;align-items:center;gap:10px;padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.1);font-family:var(--f-display);font-weight:800;font-size:1.08rem;color:#fff}
+.side__brand .brand__mk{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.12)}
+.side__nav{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:4px}
+.snav{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:10px;background:none;border:none;color:rgba(255,255,255,.75);font-family:var(--f-body);font-size:.95rem;font-weight:500;cursor:pointer;text-align:right;width:100%;transition:background .15s,color .15s}
+.snav svg{width:19px;height:19px;flex:0 0 19px}
+.snav:hover{background:rgba(255,255,255,.08);color:#fff}
+.snav.on{background:#fff;color:var(--green-900);font-weight:600}
+.side__foot{padding:16px;border-top:1px solid rgba(255,255,255,.1)}
+.side__foot .who{display:block;font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.content{flex:1;min-width:0;padding:26px 30px}
+@media(max-width:860px){.side{width:auto;flex:none;height:auto;position:static;flex-direction:row;align-items:center;overflow-x:auto}.side__brand{border-bottom:none;flex:0 0 auto;padding:14px}.side__nav{flex-direction:row;flex:1;overflow-x:auto}.snav{white-space:nowrap}.side__foot{display:none}.content{padding:18px}}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .form-grid .f-col2{grid-column:1/-1}
 .sfield{display:flex;flex-direction:column;gap:6px}
@@ -136,14 +149,19 @@ tbody tr:hover{background:var(--bg)}
 </div>
 
 <!-- ===== APP ===== -->
-<div id="appView">
-  <div class="topbar"><div class="container topbar__in">
-    <div class="brand"><span class="brand__mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></span><b>لوحة المنصة</b></div>
-    <nav class="topnav"><button class="tnav on" data-view="overview">نظرة عامة</button><button class="tnav" data-view="tenants">المكاتب</button><button class="tnav" data-view="plans">الباقات والمميزات</button><button class="tnav" data-view="settings">إعدادات المنصة</button></nav>
-    <div style="display:flex;align-items:center;gap:14px"><span class="who" id="who"></span><button class="btn btn--ghost btn--sm" id="logoutBtn" style="color:#fff;border-color:rgba(255,255,255,.3)">خروج</button></div>
-  </div></div>
+<div id="appView" class="shell">
+  <aside class="side">
+    <div class="side__brand"><span class="brand__mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg></span><b>لوحة المنصة</b></div>
+    <nav class="side__nav">
+      <button class="snav on" data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>نظرة عامة</button>
+      <button class="snav" data-view="tenants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>المكاتب</button>
+      <button class="snav" data-view="plans"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 4.9V17L12 22 3 17V6.9z"/><path d="M12 22V12"/><path d="M3 7l9 5 9-5"/></svg>الباقات والمميزات</button>
+      <button class="snav" data-view="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.82 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 15H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3h4a1.65 1.65 0 0 0 .91 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9c.22.6.78 1 1.42 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51.91z"/></svg>إعدادات المنصة</button>
+    </nav>
+    <div class="side__foot"><span class="who" id="who"></span><button class="btn btn--ghost btn--sm" id="logoutBtn" style="color:#fff;border-color:rgba(255,255,255,.28);width:100%">تسجيل الخروج</button></div>
+  </aside>
 
-  <main class="main container">
+  <main class="content">
     <div id="viewOverview">
       <div class="head"><div><h2>نظرة عامة على المنصة</h2><p>حالة المكاتب المشتركة وأحدث التسجيلات.</p></div></div>
       <div class="kpis" id="ovKpis"></div>
@@ -232,7 +250,7 @@ tbody tr:hover{background:var(--bg)}
 
   function enterApp(user){
     document.getElementById('loginView').style.display='none';
-    document.getElementById('appView').style.display='block';
+    document.getElementById('appView').style.display='flex';
     if(user&&(user.name||user.email))document.getElementById('who').textContent=user.name||user.email;
     load();
   }
@@ -242,10 +260,10 @@ tbody tr:hover{background:var(--bg)}
 
   // ---- view switching + branding settings ----
   var brandLoaded=false, plansLoaded=false;
-  Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(b){
+  Array.prototype.forEach.call(document.querySelectorAll('.snav'),function(b){
     b.addEventListener('click',function(){
       var v=b.getAttribute('data-view');
-      Array.prototype.forEach.call(document.querySelectorAll('.tnav'),function(x){x.classList.toggle('on',x===b);});
+      Array.prototype.forEach.call(document.querySelectorAll('.snav'),function(x){x.classList.toggle('on',x===b);});
       document.getElementById('viewOverview').hidden=(v!=='overview');
       document.getElementById('viewTenants').hidden=(v!=='tenants');
       document.getElementById('viewPlans').hidden=(v!=='plans');
