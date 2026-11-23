@@ -100,6 +100,19 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
 .burger span,.burger span::before,.burger span::after{content:"";display:block;width:18px;height:2px;background:var(--ink);margin:auto;position:relative;transition:.2s}
 .burger span::before{top:-6px;position:absolute}.burger span::after{top:6px;position:absolute}
 
+/* Account menu (office logged in) */
+.acct{position:relative}
+.acct__btn{display:inline-flex;align-items:center;gap:8px}
+.acct__btn .ava{width:26px;height:26px;border-radius:50%;background:var(--green-50);color:var(--green);display:grid;place-items:center}
+.acct__btn .ava svg{width:15px;height:15px}
+.acct__btn .cv{width:14px;height:14px;color:var(--muted)}
+.acct__pop{position:absolute;top:calc(100% + 8px);inset-inline-end:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:190px;padding:6px;z-index:60}
+.acct__pop a,.acct__pop button{display:flex;align-items:center;gap:9px;width:100%;text-align:right;background:none;border:none;font-family:var(--f-body);font-size:.92rem;font-weight:500;color:var(--ink);padding:9px 11px;border-radius:8px;cursor:pointer}
+.acct__pop a:hover,.acct__pop button:hover{background:var(--sand-100)}
+.acct__pop .lo{color:var(--err)}
+.acct__pop svg{width:16px;height:16px;color:var(--muted)}
+.acct__pop hr{border:none;border-top:1px solid var(--line);margin:4px 2px}
+
 /* Hero */
 .hero{position:relative;padding-top:clamp(48px,7vw,84px);padding-bottom:0;overflow:hidden}
 .hero::before{content:"";position:absolute;inset:0;background:
@@ -247,7 +260,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
       <a href="#contact">تواصل</a>
     </nav>
     <div class="hdr__cta">
-      <a href="/login" class="btn btn--ghost">دخول المكاتب</a>
+      <a href="/login" class="btn btn--ghost" id="officeLoginBtn">دخول المكاتب</a>
       <a href="register.html" class="btn btn--primary">اشترك الآن</a>
       <button class="burger" id="burger" aria-label="القائمة" aria-expanded="false"><span></span></button>
     </div>
@@ -511,6 +524,35 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;letter-spa
     if(b.ogImageUrl){set('meta[property="og:image"]','content',b.ogImageUrl);set('meta[name="twitter:image"]','content',b.ogImageUrl);}
     if(b.description){set('meta[name="description"]','content',b.description);set('meta[property="og:description"]','content',b.description);}
     if(b.keywords)set('meta[name="keywords"]','content',b.keywords);
+  }).catch(function(){});
+})();
+</script>
+<script>
+/* حالة دخول المكتب: يحوّل زر «دخول المكاتب» إلى قائمة حساب (الاسم + لوحة التحكم + خروج). */
+(function(){
+  fetch('/api/v1/auth/session',{credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(s){
+    if(!s||!s.loggedIn)return;
+    var btn=document.getElementById('officeLoginBtn');if(!btn)return;
+    var name=s.name||'حسابي';
+    var wrap=document.createElement('div');wrap.className='acct';
+    wrap.innerHTML=
+      '<button class="btn btn--ghost acct__btn" id="acctBtn" aria-haspopup="true" aria-expanded="false">'+
+        '<span class="ava"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>'+
+        '<span>'+name+'</span>'+
+        '<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>'+
+      '</button>'+
+      '<div class="acct__pop" id="acctPop" hidden>'+
+        '<a href="/admin/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>لوحة التحكم</a>'+
+        '<hr>'+
+        '<button class="lo" id="acctLogout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>تسجيل الخروج</button>'+
+      '</div>';
+    btn.replaceWith(wrap);
+    var pop=document.getElementById('acctPop'),ab=document.getElementById('acctBtn');
+    ab.addEventListener('click',function(e){e.stopPropagation();pop.hidden=!pop.hidden;ab.setAttribute('aria-expanded',String(!pop.hidden));});
+    document.addEventListener('click',function(){pop.hidden=true;ab.setAttribute('aria-expanded','false');});
+    document.getElementById('acctLogout').addEventListener('click',function(){
+      fetch('/api/v1/auth/logout',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-Requested-With':'nx'},body:JSON.stringify({audience:'staff'})}).finally(function(){location.reload();});
+    });
   }).catch(function(){});
 })();
 </script>

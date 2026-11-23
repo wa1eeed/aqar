@@ -82,6 +82,15 @@ export class StaffAuthService {
     return this.issueSession(user.id, meta);
   }
 
+  /** اسم الموظف النشِط للعرض (لحالة الجلسة في الواجهة) — بلا سياق مشترك. */
+  async displayName(id: string): Promise<string | null> {
+    const u = await this.prisma.staffUser.findUnique({
+      where: { id },
+      select: { name: true, isActive: true, deletedAt: true },
+    });
+    return u && u.isActive && !u.deletedAt ? u.name : null;
+  }
+
   /** دخول موحّد: يحلّ موظف المكتب من بريده عبر كل المكاتب (البريد فريد عملياً). */
   private async resolveStaffByEmail(email: string) {
     const matches = await this.prisma.staffUser.findMany({

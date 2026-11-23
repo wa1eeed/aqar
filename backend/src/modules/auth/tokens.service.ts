@@ -71,6 +71,15 @@ export class TokensService {
     return raw;
   }
 
+  /** يفحص رمز التحديث دون تدويره (لمعرفة حالة الجلسة فقط). */
+  async peekRefresh(
+    raw: string,
+  ): Promise<{ subjectType: SubjectKind; subjectId: string; tenantId: string | null } | null> {
+    const rec = await this.prisma.refreshToken.findUnique({ where: { tokenHash: this.hashToken(raw) } });
+    if (!rec || rec.revokedAt || rec.expiresAt < new Date()) return null;
+    return { subjectType: rec.subjectType as SubjectKind, subjectId: rec.subjectId, tenantId: rec.tenantId };
+  }
+
   /** يدوّر رمز التحديث: يُبطل القديم ويُصدر جديداً بنفس العائلة. إعادة استخدام رمز مُبطَل تُلغي العائلة كلها. */
   async rotate(
     raw: string,

@@ -38,6 +38,19 @@ export class AuthController {
     private readonly tokens: TokensService,
   ) {}
 
+  /** حالة جلسة المكتب (للواجهة التسويقية: إظهار «مسجّل دخول» بدل زر الدخول). لا يدوّر الرمز. */
+  @Public()
+  @Get('session')
+  @ApiOperation({ summary: 'حالة جلسة الموظف الحالية (مسجّل دخول + الاسم)' })
+  async session(@Req() req: Request) {
+    const raw = (req.cookies as Record<string, string> | undefined)?.[COOKIE];
+    if (!raw) return { loggedIn: false };
+    const peek = await this.tokens.peekRefresh(raw);
+    if (!peek || peek.subjectType !== 'staff') return { loggedIn: false };
+    const name = await this.staff.displayName(peek.subjectId);
+    return name ? { loggedIn: true, name } : { loggedIn: false };
+  }
+
   // ───────── الموظفون ─────────
   @Public()
   @Post('staff/login')
