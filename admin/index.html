@@ -7,6 +7,31 @@
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#0F4C3A" />
     <title>لوحة التحكم — عقار أونلاين</title>
+    <script>
+      /* مُصلِح ذاتي: نسخة قديمة عالقة بعد نشر جديد تشير إلى أصول محذوفة فتظهر صفحة فارغة.
+         عند فشل تحميل أي أصل للوحة، نمسح الكاش ونعيد التحميل نظيفاً مرّة (حارس زمني يمنع الحلقات). */
+      (function () {
+        function heal() {
+          var now = Date.now();
+          try {
+            var last = +sessionStorage.getItem('nx_healed_at') || 0;
+            if (now - last < 10000) return;
+            sessionStorage.setItem('nx_healed_at', String(now));
+          } catch (e) {}
+          try {
+            if (window.caches && caches.keys) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); });
+          } catch (e) {}
+          var sep = location.search ? location.search + '&' : '?';
+          location.replace(location.pathname + sep + 'r=' + now);
+        }
+        window.addEventListener('error', function (e) {
+          var t = e && e.target;
+          var u = t && (t.src || t.href);
+          if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK') && u && String(u).indexOf('/admin/assets/') > -1) heal();
+        }, true);
+        window.addEventListener('vite:preloadError', function (e) { if (e && e.preventDefault) e.preventDefault(); heal(); });
+      })();
+    </script>
     <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
