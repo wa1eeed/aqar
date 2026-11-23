@@ -215,3 +215,14 @@ Server → client events (payloads are minimal; clients refetch details when nee
 Client → server: `subscribe:property`, `unsubscribe:property`, `notifications:read` `{ ids }`,
 `auction:bid` (docs/09). All emits validated with zod; unknown events ignored.
 Use the Redis adapter so multiple API containers broadcast correctly.
+
+---
+
+## تحديث — نقاط إضافية (مرحلة إطلاق الـSaaS)
+
+راجع `docs/15-platform-onboarding-billing.md §6` للتفاصيل. الجديد:
+- `POST /api/v1/public/register` — تسجيل مكتب ذاتي (ينشئ مشتركاً `pending` + مالكاً + اشتراكاً).
+- `GET /api/v1/public/platform/branding` — علامة/SEO المنصة للموقع التسويقي.
+- `GET /api/v1/auth/session` — حالة جلسة المكتب `{loggedIn,name}` (كوكي، بلا تدوير).
+- `GET|PUT /api/v1/super/settings/branding` — إعدادات علامة/SEO المنصة (سوبر-أدمن).
+- `PUT /api/v1/super/tenants/:id/plan` — تغيير/ترقية باقة مشترك (body: `planKey`, `periodDays?`).

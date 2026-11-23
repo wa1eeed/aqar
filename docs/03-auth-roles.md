@@ -62,3 +62,11 @@ through `AccessScopeService.forStaff(user)` returning Prisma `where` fragments.
 
 Seed creates one `owner` from env `SEED_OWNER_EMAIL` / `SEED_OWNER_PASSWORD` (forced password change and
 2FA setup on first login) — never hard-code credentials.
+
+---
+
+## تحديث — الدخول الموحّد للمكاتب (مرحلة الإطلاق)
+
+راجع `docs/15 §2`. دخول موظفي المكاتب من رابط موحّد `/login` (لا نطاق كل مكتب): يُحلّ المستأجر من بريد
+الموظف عند غياب سياق المستأجر، ويُضبط من `tid` في التوكن داخل `JwtAuthGuard` (العزل محفوظ). السوبر-أدمن
+من `/super`. حالة الجلسة للواجهة: `GET /auth/session`. النطاقات الفرعية لموقع المكتب العام فقط.

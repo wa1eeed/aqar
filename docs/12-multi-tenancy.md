@@ -103,3 +103,12 @@
 - تُضاف **المرحلة -1 / 0.5 "منصّة ومشتركون"** قبل المرحلة 1: نماذج المشترك، السياق، الـ RLS،
   لوحة السوبر-أدمن (مشتركون/خطط/نطاقات)، وتسجيل دخول المشترك عبر النطاق.
 - لوحة المكتب والواجهة العامة تصبحان "واعيتين بالمشترك" (base path / الهوية من إعدادات المشترك).
+
+---
+
+## تحديث — التسجيل الذاتي للمكاتب (يَغلب النصّ أعلاه)
+
+راجع `docs/15 §1`. **أصبح هناك تسجيل ذاتي علني** للمكاتب عبر `POST /api/v1/public/register` وصفحة
+`platform/register.html`، مع حالة جديدة **`pending`** في `TenantStatus` (pending → trial → active →
+suspended → cancelled) و**تفعيل يدوي** من السوبر-أدمن. حقول `Tenant` الجديدة: `officeType, commercialReg,
+falLicense, city, phone, contactName, website`. ونموذج `PlatformSetting` (علامة/SEO المنصة).
